@@ -1,0 +1,441 @@
+PhoenixHRMS
+Multi-Tenancy Design Document
+Version: 1.0
+Status: Draft
+Document Type: SaaS Multi-Tenancy Architecture
+Related Documents:
+	•	06-system-architecture.md
+	•	08-backend-architecture.md
+	•	09-security-architecture.md
+
+1. Purpose
+This document defines the multi-tenancy architecture of PhoenixHRMS.
+The purpose of this architecture is to:
+	•	Support multiple organizations
+	•	Ensure strict data isolation
+	•	Support SaaS subscriptions
+	•	Enable tenant customization
+	•	Simplify deployment
+	•	Reduce infrastructure costs
+
+2. Multi-Tenancy Definition
+A tenant represents a single organization.
+Examples:
+Company A
+Company B
+Company C
+Each company operates independently while sharing the same platform infrastructure.
+
+3. Architecture Strategy
+Selected Strategy:
+Shared Database
+Shared Schema
+Tenant Isolation via company_id
+
+Architecture:
+PhoenixHRMS  ↓  Database  ↓  Employees Attendance Payroll Leave Recruitment  ↓  company_id
+
+4. Why This Strategy
+Advantages:
+	•	Lower cost
+	•	Easier deployment
+	•	Easier maintenance
+	•	Faster development
+	•	Better resource utilization
+
+Alternative Approaches
+Database Per Tenant
+Pros:
+Strong isolation
+Cons:
+Operational complexity
+
+Schema Per Tenant
+Pros:
+Good isolation
+Cons:
+Migration complexity
+
+Decision:
+Shared Schema
+
+5. Tenant Model
+Every organization is a tenant.
+Core Table:
+companies
+
+Structure:
+companies  id  uuid  name  slug  status  subscription_plan_id  timezone  currency  created_at
+
+6. Tenant Identification
+Every request must identify tenant.
+Methods:
+Web
+Authenticated User
+↓
+Company ID
+
+API
+Token
+↓
+Company ID
+
+Future
+Subdomain
+Example:
+acme.phoenixhrms.com
+
+7. Core Tenant Entity
+Company becomes root entity.
+All business data belongs to a company.
+Example:
+Company  ↓  Employees  ↓  Attendance  ↓  Payroll  ↓  Assets
+
+8. Data Isolation Strategy
+Every business table contains:
+company_id
+Examples:
+employees
+attendance
+leave_requests
+payrolls
+departments
+assets
+documents
+
+Example
+employees
+id  company_id  employee_code  name
+
+Company A
+company_id = 1
+
+Company B
+company_id = 2
+
+Data never mixed.
+
+9. Tenant Scope Architecture
+Laravel Global Scope
+Example:
+TenantScope
+Automatically applies:
+WHERE company_id = ?
+to every query.
+
+Benefits:
+No accidental leakage.
+
+10. Tenant Context
+Each request loads:
+TenantContext
+Contains:
+	•	Company ID
+	•	Company Name
+	•	Subscription Plan
+	•	Timezone
+	•	Currency
+
+Available globally.
+
+11. Tenant Middleware
+Middleware:
+ResolveTenantMiddleware
+Responsibilities:
+	•	Identify tenant
+	•	Validate tenant
+	•	Load tenant context
+
+Request Flow:
+Request  ↓  Authentication  ↓  Tenant Resolution  ↓  Authorization  ↓  Business Logic
+
+12. Tenant Configuration
+Every organization may configure:
+Leave Policies
+Payroll Rules
+Attendance Policies
+Approval Workflows
+Branding
+
+Stored In:
+tenant_settings
+
+Structure:
+tenant_settings  company_id  key  value
+
+13. Tenant Branding
+Supported:
+Logo
+Primary Color
+Secondary Color
+Email Templates
+Company Name
+
+Frontend dynamically loads branding.
+
+14. Tenant Timezone Management
+Every company has:
+timezone
+Example:
+Asia/Kolkata  Europe/Berlin  America/New_York
+
+All timestamps stored:
+UTC
+Displayed:
+Tenant Timezone
+
+15. Tenant Currency Management
+Supported:
+INR
+USD
+EUR
+GBP
+AED
+
+Payroll displays tenant currency.
+
+16. Tenant Locale Management
+Future Support:
+English
+Hindi
+Spanish
+German
+Korean
+
+Stored:
+company.locale
+
+17. Tenant Subscription Model
+Table:
+subscription_plans
+
+Example Plans
+Starter
+Professional
+Enterprise
+
+Features controlled by plan.
+
+Starter Plan
+Employees:
+100
+Storage:
+5 GB
+Modules:
+Core HR
+Attendance
+Leave
+
+Professional Plan
+Employees:
+1000
+Storage:
+100 GB
+Modules:
+All Standard Modules
+
+Enterprise Plan
+Unlimited
+Custom Features
+Dedicated Support
+
+18. Feature Flags
+Table:
+feature_flags
+
+Examples:
+AI Assistant
+Advanced Analytics
+SSO
+Recruitment
+
+Tenant-specific activation.
+
+19. Tenant User Management
+Users belong to company.
+Structure:
+users  id  company_id  role_id
+
+Rules:
+User cannot belong to multiple companies.
+Version 1.
+
+Future:
+Multi-Organization Support.
+
+20. Tenant RBAC
+Permissions isolated.
+Example:
+Manager
+Company A
+cannot access
+Company B
+resources.
+
+Authorization includes:
+Permission Check
+AND
+Tenant Check
+
+21. Tenant File Storage
+Documents stored in:
+/company-id/
+Example:
+/1/employees/documents  /2/employees/documents
+
+Benefits:
+Isolation
+Easier backup
+
+22. Tenant Cache Strategy
+Cache Keys:
+tenant:1:employees  tenant:1:settings  tenant:1:dashboard
+
+Avoids cache collisions.
+
+23. Tenant Queue Strategy
+Jobs carry:
+company_id
+
+Example:
+GeneratePayrollJob
+contains:
+company_id
+payroll_id
+
+Worker restores context.
+
+24. Tenant Reporting
+Reports generated per tenant.
+Cross-tenant reporting prohibited.
+Except:
+Super Admin.
+
+25. Tenant Analytics
+Metrics isolated.
+Examples:
+Headcount
+Payroll Cost
+Attrition
+Attendance
+
+No tenant can view another tenant’s analytics.
+
+26. Tenant Audit Logs
+Audit records contain:
+company_id
+user_id
+action
+entity
+timestamp
+
+Required for compliance.
+
+27. Tenant Backup Strategy
+Backup Types:
+Full
+Incremental
+
+Future:
+Tenant-level restore.
+
+28. Tenant Data Export
+Organizations may export:
+Employees
+Attendance
+Payroll
+Documents
+
+Formats:
+CSV
+Excel
+PDF
+
+29. Tenant Offboarding
+Process:
+Subscription Cancelled
+↓
+Export Offered
+↓
+Grace Period
+↓
+Archive
+↓
+Deletion
+
+Configurable.
+
+30. Tenant Migration Strategy
+Future support:
+Tenant Migration
+Shared Database
+↓
+Dedicated Database
+
+Required for enterprise customers.
+
+31. Enterprise Tenant Isolation
+Future Enterprise Tier:
+Dedicated Infrastructure
+Dedicated Database
+Dedicated Storage
+Dedicated Cache
+
+For highly regulated customers.
+
+32. Security Controls
+Tenant isolation enforced at:
+Database Layer
+Application Layer
+Authorization Layer
+API Layer
+Caching Layer
+Queue Layer
+Storage Layer
+
+Multiple protection layers.
+
+33. Monitoring
+Monitor:
+Tenant Growth
+Storage Usage
+API Usage
+Payroll Volume
+
+Per tenant metrics.
+
+34. Billing Architecture
+Future:
+Subscription
+Invoices
+Usage Tracking
+Payment Processing
+Renewals
+
+Integrated with SaaS plans.
+
+35. Future Enhancements
+Version 2:
+Custom Domains
+SSO
+Tenant Marketplace
+Workflow Builder
+Advanced Feature Flags
+Dedicated Infrastructure
+
+Architecture Decision Record
+ADR-004
+Decision:
+Shared Database
+Shared Schema
+Tenant Isolation via company_id
+Reason:
+Best balance of:
+	•	Cost
+	•	Performance
+	•	Simplicity
+	•	Scalability
+
+Conclusion
+PhoenixHRMS implements a secure, scalable, and cost-efficient multi-tenant SaaS architecture using a shared database and shared schema model with strict tenant isolation enforced through company_id, global scopes, authorization controls, tenant-aware caching, queues, storage, and audit logging.
+This architecture enables PhoenixHRMS to scale from a single organization to thousands of organizations while maintaining strong security, operational simplicity, and future migration flexibility.

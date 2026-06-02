@@ -1,0 +1,616 @@
+PhoenixHRMS
+Payroll Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: PAY
+Document Type: Functional Module Specification
+Related Documents:
+	•	04-business-rules.md
+	•	11-database-design.md
+	•	16-attendance-management-module.md
+	•	17-leave-management-module.md
+	•	14-openapi-spec.md
+
+1. Module Overview
+Purpose
+The Payroll Management Module is responsible for calculating, processing, validating, approving, and distributing employee compensation.
+The payroll engine serves as the financial core of PhoenixHRMS.
+
+Business Objectives
+	•	Accurate salary calculation
+	•	Compliance adherence
+	•	Automated payroll processing
+	•	Financial transparency
+	•	Auditability
+	•	Integration with accounting systems
+
+2. Module Scope
+
+Included
+Salary Structures
+Salary Components
+Payroll Periods
+Payroll Runs
+Earnings
+Deductions
+Tax Calculations
+PF
+ESI
+Professional Tax
+TDS
+Bonuses
+Incentives
+Loans
+Advances
+Reimbursements
+Arrears
+Retro Payroll
+Final Settlement
+Payslips
+Payroll Reports
+Payroll Analytics
+
+Excluded
+Accounting Ledger Posting
+Bank Payment Processing
+These integrate externally.
+
+3. Payroll Lifecycle
+Payroll Period Created  ↓  Attendance Imported  ↓  Leave Imported  ↓  Payroll Calculation  ↓  Validation  ↓  Approval  ↓  Payroll Locked  ↓  Payslip Generated  ↓  Disbursement  ↓  Archived
+
+4. Payroll Architecture
+
+Core Components
+Payroll Engine
+Formula Engine
+Tax Engine
+Compliance Engine
+Payslip Engine
+Reporting Engine
+Audit Engine
+
+5. Payroll Frequencies
+
+Supported
+Monthly
+Weekly
+Bi-Weekly
+Semi-Monthly
+Custom
+
+Default
+Monthly
+
+6. Payroll Periods
+
+Fields
+Period Name
+Start Date
+End Date
+Payroll Date
+Status
+
+Statuses
+Draft
+Processing
+Calculated
+Approved
+Locked
+Paid
+Archived
+
+7. Salary Structure Management
+
+Purpose
+Define employee compensation.
+
+Fields
+CTC
+Basic Salary
+Gross Salary
+Net Salary
+Effective Date
+Revision Date
+
+Versioning Required.
+
+8. Salary Components
+
+Earnings
+Basic
+HRA
+Special Allowance
+Conveyance
+Medical
+Bonus
+Incentive
+Overtime
+Shift Allowance
+Meal Allowance
+Telephone Allowance
+Custom Earnings
+
+Deductions
+PF
+ESI
+Professional Tax
+Income Tax
+Insurance
+Loan Recovery
+Advance Recovery
+Custom Deductions
+
+Employer Contributions
+Employer PF
+Employer ESI
+Gratuity
+Superannuation
+
+9. Formula Engine
+
+Purpose
+Allow configurable calculations.
+
+Example
+HRA  =  40%  ×  Basic Salary
+
+Formula Types
+Fixed
+Percentage
+Expression Based
+Custom Script (Future)
+
+10. Payroll Calculation Engine
+
+Inputs
+Attendance
+Leave
+Salary Structure
+Policies
+Tax Rules
+Adjustments
+
+Outputs
+Gross Salary
+Total Earnings
+Total Deductions
+Net Salary
+Employer Cost
+
+11. Attendance Integration
+
+Attendance Consumed
+Working Days
+Absent Days
+Overtime
+Late Penalties
+Shift Allowances
+
+Output
+Payroll Inputs
+
+12. Leave Integration
+
+Consumed Data
+Approved Leave
+Unpaid Leave
+LOP Days
+Leave Encashment
+
+Output
+Payroll Adjustments
+
+13. Loss Of Pay (LOP)
+
+Generated When
+Insufficient Leave Balance
+Unauthorized Absence
+Policy Violation
+
+Formula Example
+Daily Salary  =  Monthly Salary  ÷  Payable Days
+
+14. Overtime Processing
+
+Types
+Regular OT
+Weekend OT
+Holiday OT
+Night OT
+
+Formula Support
+Fixed
+Multiplier
+Policy Based
+
+Example
+OT Rate  =  1.5x  Hourly Rate
+
+15. Bonus Management
+
+Types
+Performance Bonus
+Festival Bonus
+Retention Bonus
+Joining Bonus
+Referral Bonus
+Custom Bonus
+
+Tax Treatment Configurable.
+
+16. Incentive Management
+
+Types
+Sales Incentive
+Target Incentive
+Project Incentive
+Custom Incentive
+
+Supports:
+One-Time
+Recurring
+
+17. Reimbursements
+
+Types
+Travel
+Food
+Fuel
+Internet
+Medical
+Training
+Custom
+
+Workflow
+Employee Request
+↓
+Approval
+↓
+Payroll Inclusion
+
+18. Loan Management
+
+Purpose
+Manage employee loans.
+
+Fields
+Loan Amount
+Interest Rate
+EMI Amount
+Tenure
+Outstanding Balance
+
+Repayment Through Payroll.
+
+19. Salary Advances
+
+Types
+Emergency Advance
+Salary Advance
+Custom Advance
+
+Recovery Configurable.
+
+20. Arrears Processing
+
+Purpose
+Handle backdated changes.
+
+Examples
+Promotion Effective Earlier
+Salary Revision Effective Earlier
+Attendance Corrections
+
+Automatically Calculated.
+
+21. Retroactive Payroll
+
+Purpose
+Recalculate historical payroll.
+
+Supported
+Salary Changes
+Policy Changes
+Tax Changes
+
+Audit Mandatory.
+
+22. Tax Management
+
+Version 1
+India
+
+Supported
+TDS
+Income Tax
+Old Regime
+New Regime
+
+Future
+USA
+UK
+UAE
+Singapore
+Australia
+
+23. PF Management
+
+Employee Contribution
+Employer Contribution
+PF Wage Ceiling
+PF Reporting
+PF Statements
+
+Configurable.
+
+24. ESI Management
+
+Eligibility Rules
+Contribution Rates
+Employer Contribution
+Employee Contribution
+
+Configurable.
+
+25. Professional Tax
+
+State Based
+Configurable
+Effective Dates Supported
+
+26. Payroll Validation Engine
+
+Checks
+Missing Attendance
+Missing Salary Structure
+Duplicate Payroll
+Negative Payroll
+Policy Violations
+
+Blocking Errors Supported.
+
+27. Payroll Approval Workflow
+
+Standard Flow
+Payroll Officer  ↓  Payroll Manager  ↓  Finance  ↓  Approved
+
+Custom Workflow Supported.
+
+28. Payroll Locking
+
+Purpose
+Prevent modifications.
+
+After Approval
+↓
+Locked
+
+Changes require reopening.
+
+29. Payslip Engine
+
+Formats
+PDF
+HTML
+Email
+
+Sections
+Employee Information
+Earnings
+Deductions
+Tax Summary
+Employer Contributions
+Net Pay
+
+30. Final Settlement (F&F)
+
+Applicable For
+Resignation
+Termination
+Retirement
+
+Includes
+Salary
+Leave Encashment
+Recovery
+Loan Balance
+Bonus
+Reimbursements
+
+31. Payroll Reports
+
+Payroll Register
+Salary Summary
+Department Payroll
+Tax Report
+PF Report
+ESI Report
+Professional Tax Report
+Loan Report
+Reimbursement Report
+Final Settlement Report
+
+Formats
+Excel
+PDF
+CSV
+
+32. Payroll Analytics
+
+Metrics
+Payroll Cost
+Cost Per Employee
+Department Cost
+Overtime Cost
+Tax Liability
+Employer Contributions
+Payroll Trends
+
+33. Payroll Notifications
+
+Payroll Processed
+Payroll Approved
+Payslip Available
+Salary Revision
+Bonus Credited
+Final Settlement Processed
+
+34. Payroll APIs
+
+Periods
+GET /payroll-periods  POST /payroll-periods
+
+Payroll Runs
+GET /payroll-runs  POST /payroll-runs  GET /payroll-runs/{id}
+
+Payslips
+GET /payslips  GET /payslips/{id}
+
+Loans
+GET /loans  POST /loans
+
+Reimbursements
+GET /reimbursements  POST /reimbursements
+
+35. Database Tables
+Core Tables
+payroll_periods
+payroll_runs
+payroll_items
+salary_structures
+salary_components
+
+Tax Tables
+tax_slabs
+tax_rules
+
+Compliance Tables
+pf_records
+esi_records
+professional_tax_records
+
+Adjustment Tables
+payroll_adjustments
+arrears
+retro_payrolls
+
+Loan Tables
+employee_loans
+loan_repayments
+
+Reimbursement Tables
+reimbursements
+reimbursement_claims
+
+36. Permissions Matrix
+
+payroll.view
+payroll.process
+payroll.approve
+payroll.lock
+payroll.reopen
+payroll.export
+salary.manage
+loan.manage
+reimbursement.manage
+tax.manage
+
+37. Security Requirements
+
+Salary Encryption
+RBAC
+Audit Logging
+Tenant Isolation
+Payroll Locking
+Data Masking
+
+38. Audit Requirements
+
+Salary Changed
+Payroll Run Created
+Payroll Approved
+Payroll Locked
+Payslip Generated
+Tax Adjusted
+Loan Created
+Loan Closed
+
+Retention
+10 Years Minimum
+
+39. Compliance Requirements
+
+India
+PF
+ESI
+Professional Tax
+Income Tax
+Labor Regulations
+
+Future
+Country Packs
+Regional Compliance Engines
+
+40. Integrations
+
+Employee Module
+Attendance Module
+Leave Module
+Notification Module
+Accounting Systems
+Banking Systems
+Tax Systems
+AI Module
+
+41. Dashboard Widgets
+
+Current Payroll Cost
+Payroll Processing Status
+Pending Approvals
+Tax Liability
+Employer Contributions
+Overtime Cost
+Payroll Trend
+
+42. Performance Requirements
+
+Payroll Calculation
+10,000 Employees
+< 15 Minutes
+
+Payslip Generation
+10,000 Employees
+< 10 Minutes
+
+Payroll Search
+< 1 Second
+
+43. Future Enhancements
+Version 2
+Multi-Country Payroll
+Payroll Forecasting
+AI Payroll Audit
+Payroll Copilot
+Advanced Compensation Planning
+Variable Pay Engine
+Stock Options
+ESOP Management
+Global Mobility Payroll
+
+Success Metrics
+Payroll Accuracy
+99.99%
+
+Tax Accuracy
+100%
+
+Payroll Processing SLA
+< 15 Minutes
+
+Payslip Availability
+100%
+
+Conclusion
+The Payroll Management Module is the financial backbone of PhoenixHRMS.
+It provides a highly configurable, compliant, auditable, and scalable payroll platform capable of supporting organizations ranging from small businesses to enterprise-scale workforces.
+The module integrates attendance, leave, compensation, taxation, compliance, loans, reimbursements, and final settlements into a unified payroll engine while maintaining security, auditability, accuracy, and tenant isolation.

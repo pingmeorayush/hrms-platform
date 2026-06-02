@@ -1,0 +1,434 @@
+PhoenixHRMS
+Manager Self-Service (MSS) Module Specification
+Version: 1.0
+Status: Draft
+Module ID: MSS
+Document Type: Functional Module Specification
+Related Documents:
+	•	15-employee-management-module.md
+	•	16-attendance-management-module.md
+	•	17-leave-management-module.md
+	•	20-performance-management-module.md
+	•	25-reporting-analytics-module.md
+	•	26-ai-copilot-module.md
+	•	35-employee-self-service-module.md
+
+1. Module Overview
+Purpose
+The Manager Self-Service (MSS) Module provides managers with a centralized platform to manage teams, monitor workforce activities, approve requests, conduct performance reviews, plan workforce growth, and make data-driven decisions.
+The MSS Portal acts as the operational command center for people managers.
+
+Business Objectives
+	•	Improve manager productivity
+	•	Reduce HR dependency
+	•	Enable faster decision making
+	•	Improve workforce visibility
+	•	Increase team accountability
+	•	Support leadership development
+
+2. MSS Vision
+Manager  ↓  Manager Portal  ↓  Team Insights  ↓  Approvals  ↓  Planning  ↓  Action  ↓  Business Outcomes
+
+3. Module Scope
+Included
+Manager Dashboard
+Team Management
+Approvals Center
+Attendance Oversight
+Leave Oversight
+Performance Management
+Learning Oversight
+Workforce Planning
+Succession Planning
+Recognition
+Team Analytics
+Manager AI Copilot
+
+Excluded
+HR Administration
+Payroll Processing
+Organization Administration
+
+4. Manager Dashboard
+Purpose
+Central management workspace.
+
+Dashboard Widgets
+Team Headcount
+Attendance Today
+Pending Approvals
+Leave Calendar
+Performance Status
+Learning Compliance
+Open Positions
+Attrition Risk
+Team Engagement Score
+AI Insights
+
+5. Team Overview
+Features
+Team Directory
+Organization Hierarchy
+Reporting Structure
+Team Profiles
+Employee Summary Cards
+
+Information Displayed
+Employee Name
+Role
+Department
+Manager
+Location
+Status
+Tenure
+Performance Rating
+
+6. Team Management
+Purpose
+Manage direct and indirect reports.
+
+Features
+View Team
+Manage Team
+Assign Tasks
+Monitor Performance
+Approve Requests
+Track Goals
+Manage Development Plans
+
+7. Team Structure Visibility
+Views
+Direct Reports
+Indirect Reports
+Organization Tree
+Matrix Reports
+Project Teams
+
+Example
+Manager  ├── Team Lead A  │   ├── Employee 1  │   ├── Employee 2  │  ├── Team Lead B      ├── Employee 3      ├── Employee 4
+
+8. Approvals Center
+Purpose
+Unified approval management.
+
+Approval Types
+Leave Requests
+Attendance Corrections
+Expense Requests
+Asset Requests
+Training Requests
+Document Approvals
+Promotion Requests
+Transfer Requests
+
+Features
+Bulk Approval
+Delegation
+Escalation
+Approval History
+
+9. Attendance Oversight
+Features
+Team Attendance
+Late Arrivals
+Absenteeism
+Work Hours
+Overtime
+Shift Compliance
+Attendance Corrections
+
+Manager Actions
+Approve Corrections
+Review Attendance
+Escalate Issues
+Generate Reports
+
+10. Leave Management
+Features
+Team Leave Calendar
+Pending Leave Requests
+Leave Balance Visibility
+Leave Trends
+Coverage Planning
+
+Manager Actions
+Approve Leave
+Reject Leave
+Suggest Alternatives
+View Team Availability
+
+11. Team Calendar
+Purpose
+Workforce scheduling visibility.
+
+Events
+Leave
+Training
+Performance Reviews
+Birthdays
+Work Anniversaries
+Company Events
+
+Views
+Daily
+Weekly
+Monthly
+Agenda
+
+12. Performance Management
+Features
+Goal Tracking
+Review Management
+Feedback Management
+Competency Assessments
+Development Plans
+PIP Monitoring
+
+Manager Actions
+Create Goals
+Review Goals
+Provide Feedback
+Conduct Reviews
+Approve Ratings
+
+13. Continuous Feedback
+Features
+Feedback Requests
+Recognition
+Coaching Notes
+One-on-One Notes
+Check-Ins
+
+Benefits
+Employee Growth
+Performance Improvement
+Engagement Improvement
+
+14. One-on-One Management
+Features
+Meeting Scheduling
+Agenda Management
+Action Items
+Notes
+Follow-Up Tracking
+
+Outputs
+Coaching Plans
+Development Goals
+Performance Improvements
+
+15. Learning Oversight
+Features
+Training Compliance
+Course Completion
+Certification Tracking
+Skill Gap Analysis
+Learning Recommendations
+
+Manager Actions
+Assign Courses
+Monitor Progress
+Approve Learning Requests
+Track Development
+
+16. Workforce Planning
+Purpose
+Support workforce growth decisions.
+
+Features
+Headcount Planning
+Vacancy Planning
+Resource Allocation
+Capacity Planning
+Succession Planning
+Budget Awareness
+
+17. Position Management
+Features
+View Positions
+Request New Positions
+Backfill Requests
+Position Forecasting
+Vacancy Analysis
+
+Workflow
+Position Request
+↓
+Approval
+↓
+Recruitment
+↓
+Hiring
+id="wk7n3f"  ---  # 18. Succession Planning  ## Purpose  Identify future leaders.  ---  ## Features  Successor Identification  Readiness Assessment  Talent Pools  Risk Assessment  Development Planning  ---  ## Outputs  Succession Matrix  Readiness Reports  Development Plans  ---  # 19. Talent Review  ## Features  Performance Analysis  Potential Assessment  Talent Segmentation  Promotion Readiness  Retention Risk  ---  ## Framework  9-Box Grid  Supported.  ---  # 20. Employee Recognition  ## Features  Recognize Employees  Nominate Awards  Reward Recommendations  Recognition Analytics  ---  ## Categories  Performance  Innovation  Leadership  Collaboration  Customer Excellence  ---  # 21. Employee Engagement  ## Features  Survey Results  Pulse Survey Trends  Engagement Metrics  Sentiment Analysis  Action Plans  ---  ## Outputs  Engagement Dashboard  Manager Recommendations  Improvement Plans  ---  # 22. Team Analytics  ## Metrics  Headcount  Attendance Rate  Leave Utilization  Attrition Rate  Engagement Score  Learning Completion  Performance Distribution  Promotion Readiness  ---  # 23. Workforce Intelligence  ## Insights  Attrition Risk  Skill Gaps  Workload Imbalances  High Potential Employees  Performance Risks  Burnout Indicators  ---  ## Sources  Analytics Platform  AI Platform  Performance Module  ---  # 24. Manager AI Copilot  ## Purpose  Provide management assistance.  ---  ## Example Queries  ```text  Who is at risk of attrition?  Show employees with pending reviews.  Recommend successors for Team Lead.  Identify team skill gaps.  Who has excessive absenteeism?
+
+Features
+Team Insights
+Decision Support
+Workforce Analysis
+Recommendation Engine
+Natural Language Queries
+
+25. Team Communications
+Features
+Announcements
+Bulk Messaging
+Team Notifications
+Recognition Messages
+Meeting Invitations
+
+Channels
+Email
+SMS
+Push
+In-App
+
+26. Team Documents
+Features
+Document Visibility
+Policy Distribution
+Acknowledgement Tracking
+Approval Workflows
+Team Document Access
+
+Security
+Role-Based Visibility
+Manager Scope Enforcement
+
+27. Mobile Manager Experience
+Features
+Mobile Approvals
+Mobile Analytics
+Push Notifications
+Attendance Monitoring
+Team Directory
+AI Assistant
+
+Platforms
+iOS
+Android
+Web
+
+28. Reports
+Team Attendance Report
+Team Leave Report
+Performance Report
+Learning Report
+Attrition Report
+Succession Report
+Recognition Report
+Engagement Report
+
+Formats
+PDF
+Excel
+CSV
+
+29. APIs
+Team
+ GET /my-team  GET /my-team/{employeeId}
+
+Approvals
+ GET /approvals  POST /approvals/{id}/approve
+
+Performance
+ GET /team-performance
+
+Analytics
+ GET /team-analytics
+
+AI
+ POST /manager-ai/chat
+
+30. Database Tables
+Manager Domain
+manager_preferences
+manager_delegations
+
+Team Domain
+team_assignments
+team_hierarchy_views
+
+Planning Domain
+headcount_plans
+succession_plans
+talent_reviews
+
+Analytics Domain
+manager_dashboards
+team_metrics
+manager_insights
+
+31. Permissions Matrix
+mss.access
+mss.team.view
+mss.team.manage
+mss.approvals.manage
+mss.performance.manage
+mss.learning.manage
+mss.analytics.view
+mss.ai.access
+
+32. Security Requirements
+Manager Scope Validation
+RBAC Enforcement
+Tenant Isolation
+Data Access Restrictions
+Audit Logging
+Field-Level Security
+
+33. Audit Requirements
+Approval Processed
+Feedback Submitted
+Goal Approved
+Recognition Granted
+Succession Plan Updated
+AI Query Executed
+Team Analytics Accessed
+
+Retention
+7 Years Minimum
+
+34. Performance Requirements
+Dashboard Load
+< 2 Seconds
+
+Approval Action
+< 500ms
+
+Team Analytics
+< 3 Seconds
+
+35. Compliance Requirements
+GDPR
+SOC 2
+ISO 27001
+Labor Regulations
+Data Privacy Requirements
+
+36. Future Enhancements
+Version 2
+Manager Super App
+AI Leadership Coach
+Workforce Digital Twin
+Predictive Workforce Planning
+AI Meeting Assistant
+AI Succession Advisor
+Burnout Prediction Engine
+Manager Command Center 2.0
+
+Success Metrics
+Approval SLA Compliance
+95%
+
+Manager Adoption
+90%
+
+Team Engagement Improvement
+15%
+
+Manager Satisfaction
+85%
+
+Conclusion
+The Manager Self-Service Module provides a comprehensive leadership platform that empowers managers to oversee teams, make informed workforce decisions, manage approvals, develop employees, and improve organizational performance.
+The module integrates team management, workforce planning, performance oversight, analytics, succession planning, and AI-powered decision support into a secure, scalable, and enterprise-grade management ecosystem while maintaining compliance, auditability, and tenant isolation.

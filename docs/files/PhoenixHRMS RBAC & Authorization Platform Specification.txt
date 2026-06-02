@@ -1,0 +1,427 @@
+PhoenixHRMS
+RBAC & Authorization Platform Specification
+Version: 1.0
+Status: Draft
+Module ID: AUTH
+Document Type: Platform Specification
+Related Documents:
+	•	09-security-architecture.md
+	•	10-multi-tenancy-design.md
+	•	15-employee-management-module.md
+	•	29-workflow-engine.md
+	•	06-system-architecture.md
+
+1. Platform Overview
+Purpose
+The RBAC & Authorization Platform provides centralized identity authorization, permission management, access governance, and policy enforcement across PhoenixHRMS.
+This platform determines:
+	•	Who can access a resource
+	•	What actions they can perform
+	•	Which data they can see
+	•	Which fields they can modify
+	•	Which tenants they belong to
+
+Business Objectives
+	•	Secure system access
+	•	Support enterprise authorization
+	•	Enable least-privilege access
+	•	Reduce security risks
+	•	Simplify permission management
+	•	Ensure compliance
+
+2. Authorization Vision
+User  ↓  Authentication  ↓  Authorization Engine  ↓  Policy Evaluation  ↓  Permission Validation  ↓  Resource Access  ↓  Audit Log
+
+3. Authorization Models
+RBAC
+Role-Based Access Control
+
+ABAC
+Attribute-Based Access Control
+
+PBAC
+Policy-Based Access Control
+
+Hybrid Authorization
+Combination of all models.
+
+4. Core Concepts
+User
+Authenticated identity.
+
+Role
+Collection of permissions.
+
+Permission
+Action allowed on a resource.
+
+Resource
+Protected object.
+Examples:
+Employee
+Payroll
+Leave Request
+Document
+Asset
+
+Policy
+Authorization rule.
+
+5. RBAC Architecture
+User  ↓  Role  ↓  Permissions  ↓  Resources  ↓  Actions
+
+Example:
+HR Manager  ↓  employee.view  employee.edit  leave.approve  payroll.view
+
+6. System Roles
+Platform Roles
+Platform Super Admin
+Platform Support
+Platform Auditor
+
+Tenant Roles
+Tenant Admin
+HR Admin
+HR Executive
+Manager
+Employee
+Recruiter
+Finance Manager
+Payroll Manager
+Trainer
+Auditor
+
+7. Custom Roles
+Features
+Create Roles
+Clone Roles
+Role Templates
+Role Versioning
+Role Import/Export
+
+Limits
+Tenant configurable.
+
+8. Permission Architecture
+Format:
+resource.action
+Examples:
+employee.view  employee.create  employee.edit  employee.delete
+leave.approve  payroll.process  document.sign
+
+9. Permission Categories
+Employee
+employee.*
+
+Attendance
+attendance.*
+
+Leave
+leave.*
+
+Payroll
+payroll.*
+
+Recruitment
+recruitment.*
+
+Learning
+learning.*
+
+Documents
+document.*
+
+Assets
+asset.*
+
+Analytics
+analytics.*
+
+AI
+ai.*
+
+10. Permission Inheritance
+Example:
+HR Manager  ↓  HR Executive  ↓  Employee
+
+Inherited permissions automatically granted.
+
+11. Resource-Level Security
+Purpose
+Restrict entire resources.
+
+Examples
+Can View Payroll
+Can View Documents
+Can View Assets
+Can Access Reports
+
+12. Row-Level Security
+Purpose
+Restrict data rows.
+
+Example
+Manager
+Can View
+Own Team Only
+
+Employee
+Can View
+Own Record Only
+
+HR Admin
+Can View
+All Employees
+
+13. Field-Level Security
+Purpose
+Restrict specific fields.
+
+Examples
+Salary
+Bank Account
+PAN Number
+National ID
+Tax Information
+Medical Information
+
+Example
+Employee  Can View Profile  Cannot View Salary
+
+14. Data Scope Control
+Scope Types
+Self
+Team
+Department
+Location
+Business Unit
+Organization
+Tenant
+Global
+
+Example
+Manager  Department Scope
+
+15. Attribute-Based Access Control
+Purpose
+Contextual authorization.
+
+Attributes
+Role
+Location
+Department
+Employment Type
+Grade
+Country
+Project
+Custom Attributes
+
+Example
+Location = India  AND  Department = HR  AND  Grade >= G5
+
+16. Policy Engine
+Purpose
+Evaluate authorization policies.
+
+Policy Structure
+IF Condition  THEN Allow  ELSE Deny
+
+Example
+Employee.ManagerId  =  CurrentUser.Id
+
+17. Approval-Based Access
+Purpose
+Temporary access grants.
+
+Workflow
+Request Access
+↓
+Approval
+↓
+Access Granted
+↓
+Expiry
+↓
+Revoked
+ ---  # 18. Delegated Access  ## Use Cases  Manager Leave  Temporary HR Coverage  Acting Manager  Project Assignments  ---  ## Features  Time-Bound Access  Automatic Revocation  Audit Tracking  ---  # 19. Just-In-Time Access  ## Purpose  Elevated access only when required.  ---  Workflow  Access Request  ↓  Approval  ↓  Temporary Access  ↓  Auto Expiry  ---  # 20. Multi-Tenant Authorization  ## Rules  Tenant Isolation Mandatory.  ---  Users cannot access:  Other Tenants  Other Tenant Data  Other Tenant APIs  Other Tenant Reports  ---  # 21. API Authorization  ## Enforcement  Every API protected.  ---  Validation Steps  ```text  Authentication  ↓  Permission Check  ↓  Policy Check  ↓  Tenant Validation  ↓  Response
+
+22. UI Authorization
+Features
+Menu Security
+Page Security
+Button Security
+Widget Security
+Field Security
+
+Example
+ No Permission  ↓  Hide UI Element
+
+23. Authorization Caching
+Purpose
+Improve performance.
+
+Cache Items
+Permissions
+Roles
+Policies
+Scopes
+
+Technology
+Redis
+
+24. Audit Logging
+Events
+Permission Granted
+Permission Revoked
+Role Assigned
+Role Removed
+Policy Changed
+Access Denied
+Access Approved
+
+25. Access Reviews
+Purpose
+Periodic security reviews.
+
+Review Frequency
+Monthly
+Quarterly
+Annually
+
+Activities
+Permission Audit
+Role Review
+Policy Validation
+
+26. Segregation of Duties (SoD)
+Purpose
+Prevent conflicts.
+
+Examples
+ Payroll Processor  Cannot  Approve Payroll
+ Recruiter  Cannot  Approve Own Hiring Request
+
+27. Privileged Access Management
+High-Risk Roles
+Tenant Admin
+Payroll Admin
+Security Admin
+Platform Admin
+
+Controls
+MFA
+Approval
+Monitoring
+Session Recording
+
+28. Authorization APIs
+Roles
+ GET /roles  POST /roles  PATCH /roles/{id}
+
+Permissions
+ GET /permissions  POST /permissions
+
+Policies
+ GET /policies  POST /policies
+
+Access Requests
+ POST /access-requests  GET /access-requests
+
+29. Database Tables
+Core Domain
+users
+roles
+permissions
+role_permissions
+user_roles
+
+Policy Domain
+policies
+policy_rules
+policy_conditions
+
+Delegation Domain
+delegations
+temporary_access
+
+Audit Domain
+access_logs
+authorization_logs
+permission_changes
+
+30. Permissions Matrix
+
+auth.view
+auth.manage_roles
+auth.manage_permissions
+auth.manage_policies
+auth.manage_delegations
+auth.audit
+auth.admin
+
+31. Security Requirements
+
+Least Privilege
+Zero Trust
+Tenant Isolation
+MFA Enforcement
+RBAC Enforcement
+ABAC Enforcement
+Policy Validation
+Audit Logging
+
+32. Compliance Requirements
+
+GDPR
+SOC 2
+ISO 27001
+NIST
+HIPAA Ready
+Data Privacy Regulations
+
+33. Dashboard Widgets
+
+Users
+Roles
+Permissions
+Policy Violations
+Access Requests
+Delegations
+Failed Access Attempts
+
+34. Performance Requirements
+
+Permission Check
+< 10ms
+
+Policy Evaluation
+< 50ms
+
+Authorization Cache Hit
+< 5ms
+
+35. Future Enhancements
+Version 2
+Graph-Based Authorization
+Relationship-Based Access Control (ReBAC)
+AI Access Recommendations
+Risk-Based Authorization
+Adaptive Access Control
+Continuous Authorization
+
+Success Metrics
+Authorization Accuracy
+100%
+
+Unauthorized Access
+0
+
+Permission Evaluation
+< 50ms
+
+Security Audit Compliance
+100%
+
+Conclusion
+The RBAC & Authorization Platform provides a centralized, scalable, secure, and enterprise-grade authorization framework that governs access to all PhoenixHRMS resources.
+The platform combines RBAC, ABAC, policy-based controls, field-level security, row-level security, delegated access, and multi-tenant isolation to ensure secure, compliant, and auditable access management across the entire platform.

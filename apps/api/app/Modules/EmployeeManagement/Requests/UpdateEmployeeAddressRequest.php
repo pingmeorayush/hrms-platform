@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Modules\EmployeeManagement\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
+
+class UpdateEmployeeAddressRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'type' => ['sometimes', Rule::in(['permanent', 'current', 'office'])],
+            'address_line_1' => ['sometimes', 'string', 'max:255'],
+            'address_line_2' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'city' => ['sometimes', 'string', 'max:100'],
+            'state' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'country' => ['sometimes', 'string', 'max:100'],
+            'postal_code' => ['sometimes', 'string', 'max:30'],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($this->validated() === []) {
+                    $validator->errors()->add('payload', 'At least one address field must be provided.');
+                }
+            },
+        ];
+    }
+}

@@ -1,0 +1,278 @@
+PhoenixHRMS
+OpenAPI 3.1 Specification Design
+Version: 1.0
+Status: Draft
+Document Type: API Contract Specification
+Related Documents:
+	•	13-api-standards.md
+	•	08-backend-architecture.md
+	•	11-database-design.md
+
+1. Purpose
+This document defines the OpenAPI specification structure for PhoenixHRMS.
+Objectives:
+	•	API Contract Definition
+	•	Frontend Integration Contract
+	•	Third-Party Integration Contract
+	•	SDK Generation
+	•	Documentation Generation
+	•	Automated Testing
+
+2. OpenAPI Version
+openapi: 3.1.0
+
+3. API Metadata
+info:   title: PhoenixHRMS API   description: Enterprise HRMS & Payroll Platform   version: 1.0.0
+
+4. Server Definitions
+Development
+servers:   - url: https://dev-api.phoenixhrms.com/api/v1
+
+Staging
+servers:   - url: https://staging-api.phoenixhrms.com/api/v1
+
+Production
+servers:   - url: https://api.phoenixhrms.com/api/v1
+
+5. Security Schemes
+Bearer Authentication
+components:   securitySchemes:     bearerAuth:       type: http       scheme: bearer
+
+Global Security
+security:   - bearerAuth: []
+
+6. API Domains
+Authentication
+Employee Management
+Attendance
+Leave Management
+Payroll
+Recruitment
+Performance
+Assets
+Documents
+Notifications
+Reports
+AI Assistant
+Administration
+Audit
+
+7. Common Response Schema
+SuccessResponse:   type: object   properties:     success:       type: boolean      message:       type: string      data:       type: object
+
+Error Response
+ErrorResponse:   type: object    properties:     success:       type: boolean      message:       type: string      errors:       type: object
+
+8. Pagination Schema
+PaginationMeta:   type: object    properties:     page:       type: integer      per_page:       type: integer      total:       type: integer      last_page:       type: integer
+
+9. Authentication APIs
+Base Path
+/api/v1/auth
+
+Endpoints
+POST /login  POST /logout  POST /refresh-token  POST /forgot-password  POST /reset-password  POST /verify-mfa
+
+Login Request
+LoginRequest:   type: object    required:     - email     - password    properties:     email:       type: string      password:       type: string
+
+Login Response
+LoginResponse:   properties:     access_token:       type: string      refresh_token:       type: string
+
+10. Employee APIs
+Base Path
+/api/v1/employees
+
+Endpoints
+GET /employees  POST /employees  GET /employees/{id}  PATCH /employees/{id}  DELETE /employees/{id}
+
+Additional Endpoints
+GET /employees/{id}/documents  GET /employees/{id}/attendance  GET /employees/{id}/leave-balance  GET /employees/{id}/payroll
+
+Employee Schema
+Employee:   type: object    properties:      id:       type: string      employee_code:       type: string      first_name:       type: string      last_name:       type: string      email:       type: string      department_id:       type: string
+
+11. Attendance APIs
+Base Path
+/api/v1/attendance
+
+Endpoints
+POST /attendance/check-in  POST /attendance/check-out  GET /attendance  GET /attendance/{id}  POST /attendance/corrections
+
+Attendance Schema
+Attendance:   properties:      employee_id:       type: string      attendance_date:       type: string      check_in:       type: string      check_out:       type: string      status:       type: string
+
+12. Leave APIs
+Base Path
+/api/v1/leave-requests
+
+Endpoints
+GET /leave-requests  POST /leave-requests  GET /leave-requests/{id}  PATCH /leave-requests/{id}  POST /leave-requests/{id}/approve  POST /leave-requests/{id}/reject
+
+Leave Request Schema
+LeaveRequest:   properties:      employee_id:       type: string      leave_type_id:       type: string      start_date:       type: string      end_date:       type: string      status:       type: string
+
+13. Payroll APIs
+Base Path
+/api/v1/payroll
+
+Endpoints
+GET /payroll-periods  POST /payroll-periods  POST /payroll/run  GET /payroll-runs  GET /payroll-runs/{id}  GET /payslips/{id}
+
+Payroll Run Schema
+PayrollRun:   properties:      employee_id:       type: string      gross_salary:       type: number      deductions:       type: number      net_salary:       type: number
+
+14. Recruitment APIs
+Base Path
+/api/v1/recruitment
+
+Endpoints
+GET /jobs  POST /jobs  GET /candidates  POST /candidates  POST /interviews  POST /offers
+
+Candidate Schema
+Candidate:   properties:      first_name:       type: string      last_name:       type: string      email:       type: string      phone:       type: string
+
+15. Performance APIs
+Base Path
+/api/v1/performance
+
+Endpoints
+GET /goals  POST /goals  GET /reviews  POST /reviews  POST /reviews/{id}/submit
+
+Goal Schema
+Goal:   properties:      title:       type: string      weight:       type: integer      due_date:       type: string
+
+16. Asset APIs
+Base Path
+/api/v1/assets
+
+Endpoints
+GET /assets  POST /assets  GET /assets/{id}  POST /assets/{id}/assign  POST /assets/{id}/return
+
+Asset Schema
+Asset:   properties:      asset_tag:       type: string      asset_type:       type: string      serial_number:       type: string
+
+17. Document APIs
+Base Path
+/api/v1/documents
+
+Endpoints
+GET /documents  POST /documents  GET /documents/{id}  DELETE /documents/{id}
+
+File Upload
+multipart/form-data
+
+18. Notification APIs
+Base Path
+/api/v1/notifications
+
+Endpoints
+GET /notifications  PATCH /notifications/{id}/read
+
+19. Report APIs
+Base Path
+/api/v1/reports
+
+Endpoints
+GET /reports/attendance  GET /reports/payroll  GET /reports/leave  GET /reports/recruitment  GET /reports/performance
+
+Export Endpoints
+POST /reports/export
+
+Response
+ReportExport:   properties:      file_url:       type: string
+
+20. AI APIs
+Base Path
+/api/v1/ai
+
+Endpoints
+POST /ai/chat  POST /ai/resume-analysis  POST /ai/attendance-insights  POST /ai/attrition-prediction
+
+AI Request
+AIRequest:   properties:      prompt:       type: string
+
+AI Response
+AIResponse:   properties:      response:       type: string      confidence:       type: number
+
+21. Audit APIs
+Base Path
+/api/v1/audit
+
+Endpoints
+GET /audit-logs  GET /audit-logs/{id}
+
+Audit Schema
+AuditLog:   properties:      user_id:       type: string      action:       type: string      entity_name:       type: string      entity_id:       type: string
+
+22. Admin APIs
+Base Path
+/api/v1/admin
+
+Endpoints
+GET /roles  POST /roles  GET /permissions  POST /users  PATCH /users/{id}
+
+23. Common Headers
+Required
+Authorization  X-Request-Id
+
+Optional
+Idempotency-Key
+
+24. Common Query Parameters
+Pagination
+?page=1  ?per_page=25
+
+Filtering
+?status=active
+
+Sorting
+?sort=name  ?sort=-created_at
+
+Search
+?search=john
+
+25. Standard Error Definitions
+Validation Error
+422 Validation Error
+
+Unauthorized
+401 Unauthorized
+
+Forbidden
+403 Forbidden
+
+Not Found
+404 Not Found
+
+Conflict
+409 Conflict
+
+Rate Limit
+429 Too Many Requests
+
+26. OpenAPI File Structure
+openapi/  ├── openapi.yaml  ├── paths/  │   ├── auth.yaml │   ├── employees.yaml │   ├── attendance.yaml │   ├── leave.yaml │   ├── payroll.yaml │   ├── recruitment.yaml │   ├── performance.yaml │   ├── assets.yaml │   ├── reports.yaml │   └── ai.yaml  ├── schemas/  │   ├── employee.yaml │   ├── payroll.yaml │   ├── leave.yaml │   ├── attendance.yaml │   └── common.yaml  └── responses/
+
+27. API Governance
+Every endpoint must include:
+✓ Summary
+✓ Description
+✓ Parameters
+✓ Request Body
+✓ Response Examples
+✓ Error Responses
+✓ Security Requirements
+✓ OpenAPI Validation
+
+28. Future Enhancements
+Version 2
+GraphQL Gateway
+Webhooks
+Public Developer APIs
+SDK Generation
+Developer Portal
+
+Conclusion
+The PhoenixHRMS OpenAPI specification serves as the single source of truth for all API contracts across frontend applications, backend services, mobile applications, integrations, testing frameworks, and future developer ecosystems.
+All implementation, testing, documentation, and integration work must conform to this specification.

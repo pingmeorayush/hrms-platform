@@ -1,0 +1,427 @@
+PhoenixHRMS
+Frontend Architecture Document
+Version: 1.0
+Status: Draft
+Document Type: Frontend Technical Architecture
+Related Documents:
+	•	00-overview.md
+	•	06-system-architecture.md
+	•	08-backend-architecture.md
+
+1. Purpose
+This document defines the frontend architecture of PhoenixHRMS.
+The frontend architecture must ensure:
+	•	Scalability
+	•	Maintainability
+	•	Reusability
+	•	Performance
+	•	Accessibility
+	•	Consistency
+This document acts as the authoritative reference for all frontend development.
+
+2. Frontend Goals
+The frontend must:
+	•	Support 1000+ screens
+	•	Support role-based UI
+	•	Support multi-tenancy
+	•	Support internationalization
+	•	Support accessibility standards
+	•	Remain maintainable over years
+
+3. Technology Stack
+Core
+React 19
+TypeScript
+Vite
+
+State Management
+Redux Toolkit
+React Query
+
+Forms
+React Hook Form
+Yup Validation
+
+UI Components
+Material UI
+
+Documentation
+Storybook
+
+Testing
+Vitest
+React Testing Library
+Playwright
+
+4. Architecture Principles
+
+FE-001
+Component Driven Development
+All UI built from reusable components.
+
+FE-002
+Feature Based Architecture
+Code organized by business domains.
+Not by file types.
+
+FE-003
+Strong Typing
+All APIs, DTOs and state objects must use TypeScript types.
+
+FE-004
+API Driven UI
+Frontend shall never contain business logic.
+Business rules belong to backend.
+
+FE-005
+Permission Driven Rendering
+UI visibility based on permissions.
+Not roles.
+
+5. Folder Structure
+src/  ├── app/ │ ├── modules/ │ ├── shared/ │ ├── layouts/ │ ├── routes/ │ ├── services/ │ ├── store/ │ ├── hooks/ │ ├── theme/ │ ├── assets/ │ ├── constants/ │ ├── utils/ │ └── tests/
+
+6. App Layer
+Purpose:
+Application initialization.
+Contents:
+app/  App.tsx  providers/  startup/  bootstrap/
+Responsibilities:
+	•	Application startup
+	•	Providers
+	•	Global initialization
+
+7. Module Architecture
+Every business domain gets a module.
+Example:
+modules/  employee/  attendance/  leave/  payroll/  recruitment/  performance/  assets/
+
+Example:
+employee/  components/  pages/  hooks/  services/  types/  validators/  routes/
+
+8. Shared Layer
+Contains reusable functionality.
+shared/  components/  hooks/  types/  constants/  validators/
+Examples:
+	•	DataTable
+	•	Modal
+	•	Button
+	•	Pagination
+
+9. Component Architecture
+
+Component Categories
+Base Components
+Reusable primitives.
+Examples:
+Button
+Input
+Select
+Checkbox
+
+Shared Components
+Reusable business-independent components.
+Examples:
+DataTable
+ConfirmationDialog
+FileUploader
+
+Module Components
+Specific to a business domain.
+Example:
+EmployeeCard
+LeaveBalanceWidget
+PayrollSummary
+
+10. Design System
+
+Purpose
+Create consistent UI.
+
+Typography
+Primary Font:
+Inter
+
+Font Sizes:
+12px  14px  16px  20px  24px  32px
+
+Spacing System
+Base Unit:
+8px
+Examples:
+8  16  24  32  40  48
+
+Border Radius
+4px  8px  12px
+
+11. Color System
+
+Primary
+Brand Blue
+
+Success
+Green
+
+Warning
+Amber
+
+Error
+Red
+
+Neutral
+Gray Scale
+
+All colors defined through theme tokens.
+Never hardcoded.
+
+12. Theming Architecture
+Support:
+	•	Light Mode
+	•	Dark Mode
+
+Structure:
+theme/  tokens/  light/  dark/
+
+Theme provider controls:
+	•	Colors
+	•	Typography
+	•	Spacing
+
+13. Routing Architecture
+React Router
+
+Structure:
+/auth  /dashboard  /employees  /attendance  /leaves  /payroll  /recruitment  /settings
+
+Protected Routes:
+Authentication required.
+
+Role-aware routes:
+Permission checks enforced.
+
+14. Authentication Architecture
+Login Flow:
+Login  ↓  API  ↓  Token  ↓  Store  ↓  Authenticated Routes
+
+Storage:
+Access Token
+Refresh Token
+Stored securely.
+
+15. Authorization Architecture
+Permission Based.
+Example:
+permissions = [  "employee.view",  "employee.create",  "employee.edit" ]
+
+Component Example:
+<Can permission="employee.create">    <CreateEmployeeButton /> </Can>
+
+16. State Management Strategy
+One of the most important sections.
+
+Use Redux For:
+Global Application State
+Examples:
+	•	Auth User
+	•	Permissions
+	•	Theme
+	•	Settings
+
+Use React Query For:
+Server State
+Examples:
+	•	Employees
+	•	Attendance
+	•	Payroll
+
+Use Local State For:
+UI State
+Examples:
+	•	Dialogs
+	•	Filters
+	•	Toggles
+
+17. React Query Architecture
+All API data managed through React Query.
+Benefits:
+	•	Caching
+	•	Refetching
+	•	Optimistic updates
+
+Query Keys:
+employees  employee-detail  attendance  leave-balance  payroll
+
+Example:
+['employees', companyId]
+
+18. Form Architecture
+All forms use:
+React Hook Form
+Yup
+
+Validation Levels:
+	•	UI Validation
+	•	API Validation
+
+Form Structure:
+form  schema  dto  service
+
+19. API Layer
+Structure:
+services/  api/  clients/  interceptors/
+
+Responsibilities:
+	•	API Calls
+	•	Retry Logic
+	•	Token Refresh
+
+20. Error Handling
+Global Error Handling Required.
+Examples:
+	•	API Failures
+	•	Validation Errors
+	•	Network Errors
+
+User Friendly Messages Required.
+No raw server errors.
+
+21. Notification Architecture
+Supported:
+	•	Toasts
+	•	Alerts
+	•	Dialogs
+
+Categories:
+Success
+Warning
+Error
+Info
+
+22. Dashboard Architecture
+Each role receives custom dashboard.
+Employee:
+	•	Attendance
+	•	Leave Balance
+	•	Payslips
+
+Manager:
+	•	Team Attendance
+	•	Approvals
+
+HR:
+	•	Workforce Metrics
+
+23. Data Table Architecture
+Common DataTable Component.
+Features:
+	•	Pagination
+	•	Sorting
+	•	Filtering
+	•	Export
+	•	Bulk Actions
+
+Used across all modules.
+
+24. File Upload Architecture
+Supported:
+	•	Documents
+	•	Resumes
+	•	Payslips
+
+Features:
+	•	Drag & Drop
+	•	Preview
+	•	Progress Tracking
+
+25. Accessibility Standards
+WCAG 2.1 AA
+Required:
+	•	Keyboard Navigation
+	•	Screen Reader Support
+	•	Color Contrast
+
+26. Internationalization
+Future Support:
+	•	English
+	•	Hindi
+	•	German
+	•	Spanish
+
+All text externalized.
+Never hardcoded.
+
+27. Testing Strategy
+
+Unit Tests
+Components
+Hooks
+Utilities
+
+Integration Tests
+Module workflows
+
+E2E Tests
+Critical user journeys
+Examples:
+	•	Login
+	•	Apply Leave
+	•	Run Payroll
+
+28. Storybook Standards
+Every shared component must include:
+	•	Documentation
+	•	Variants
+	•	Accessibility Notes
+
+Examples:
+Button Stories
+Input Stories
+DataTable Stories
+
+29. Performance Optimization
+Techniques:
+	•	Lazy Loading
+	•	Code Splitting
+	•	Memoization
+	•	Virtualization
+
+Large Tables:
+React Window
+
+Images:
+Lazy Loaded
+
+30. Security Considerations
+Frontend Security:
+	•	XSS Prevention
+	•	CSRF Protection
+	•	Secure Token Handling
+
+Sensitive Data:
+Never stored in localStorage.
+
+31. Frontend Coding Standards
+Naming:
+PascalCase
+Components:
+One responsibility only.
+
+Avoid:
+Business logic inside components.
+
+Prefer:
+Hooks
+Services
+Reusable abstractions
+
+32. Future Frontend Enhancements
+Version 2:
+	•	PWA
+	•	Offline Support
+	•	Mobile Apps
+	•	Advanced Analytics
+	•	AI Copilot UI
+
+Conclusion
+The PhoenixHRMS frontend architecture is designed to support enterprise-scale applications through a feature-based modular structure, strong typing, permission-driven UI, reusable design system, and scalable state management.
+All frontend development must adhere to the standards and patterns defined in this document to ensure long-term maintainability, consistency, and performance.

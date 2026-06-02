@@ -1,0 +1,2465 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 02 Employee and Organization Management API
+  version: 1.0.0
+  description: Initial tenant-scoped organization master and employee master APIs implemented during Sprint 02.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /organization/company-profile:
+    get:
+      operationId: getCompanyProfile
+      summary: Load the current tenant company profile
+      responses:
+        '200':
+          description: Company profile loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompanyProfile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    patch:
+      operationId: updateCompanyProfile
+      summary: Update the current tenant company profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyProfileUpdateRequest'
+      responses:
+        '200':
+          description: Company profile updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompanyProfile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/departments:
+    get:
+      operationId: listDepartments
+      summary: List tenant departments
+      responses:
+        '200':
+          description: Departments loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Department'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createDepartment
+      summary: Create a department
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMasterRequest'
+      responses:
+        '201':
+          description: Department created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Department'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/departments/{departmentId}:
+    patch:
+      operationId: updateDepartment
+      summary: Update a department
+      parameters:
+        - $ref: '#/components/parameters/DepartmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMasterRequest'
+      responses:
+        '200':
+          description: Department updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Department'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/designations:
+    get:
+      operationId: listDesignations
+      summary: List tenant designations
+      responses:
+        '200':
+          description: Designations loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Designation'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createDesignation
+      summary: Create a designation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMasterRequest'
+      responses:
+        '201':
+          description: Designation created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Designation'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/designations/{designationId}:
+    patch:
+      operationId: updateDesignation
+      summary: Update a designation
+      parameters:
+        - $ref: '#/components/parameters/DesignationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMasterRequest'
+      responses:
+        '200':
+          description: Designation updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Designation'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/locations:
+    get:
+      operationId: listLocations
+      summary: List tenant locations
+      responses:
+        '200':
+          description: Locations loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Location'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createLocation
+      summary: Create a location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationRequest'
+      responses:
+        '201':
+          description: Location created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Location'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/locations/{locationId}:
+    patch:
+      operationId: updateLocation
+      summary: Update a location
+      parameters:
+        - $ref: '#/components/parameters/LocationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationRequest'
+      responses:
+        '200':
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Location'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/cost-centers:
+    get:
+      operationId: listCostCenters
+      summary: List tenant cost centers
+      responses:
+        '200':
+          description: Cost centers loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CostCenter'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createCostCenter
+      summary: Create a cost center
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMasterRequest'
+      responses:
+        '201':
+          description: Cost center created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CostCenter'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/cost-centers/{costCenterId}:
+    patch:
+      operationId: updateCostCenter
+      summary: Update a cost center
+      parameters:
+        - $ref: '#/components/parameters/CostCenterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMasterRequest'
+      responses:
+        '200':
+          description: Cost center updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CostCenter'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/audit-history:
+    get:
+      operationId: listOrganizationAuditHistory
+      summary: List organization-structure audit history with optional entity filters
+      parameters:
+        - in: query
+          name: entity_type
+          schema:
+            type: string
+            enum: [company, department, designation, location, cost_center]
+        - in: query
+          name: entity_id
+          schema:
+            type: integer
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Organization audit history loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedAuditLogEntries'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees:
+    get:
+      operationId: listEmployees
+      summary: List tenant employees
+      parameters:
+        - in: query
+          name: search
+          description: Prefix search across employee code, email, first name, last name, or first-name plus last-name pairs.
+          schema:
+            type: string
+        - in: query
+          name: employment_status
+          description: Filter the directory by the employee lifecycle status.
+          schema:
+            type: string
+        - in: query
+          name: department_id
+          description: Filter the directory by the assigned department.
+          schema:
+            type: integer
+        - in: query
+          name: designation_id
+          description: Filter the directory by the assigned designation.
+          schema:
+            type: integer
+        - in: query
+          name: manager_id
+          description: Filter the directory by the assigned reporting manager.
+          schema:
+            type: integer
+        - in: query
+          name: per_page
+          description: Page size capped at 100 records.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Employees loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedEmployees'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createEmployee
+      summary: Create an employee master record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreateRequest'
+      responses:
+        '201':
+          description: Employee created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/bulk-import/validate:
+    post:
+      operationId: validateEmployeeBulkImport
+      summary: Validate a bulk employee onboarding intake without creating records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeBulkImportValidationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EmployeeBulkImportCsvValidationRequest'
+      responses:
+        '200':
+          description: Bulk import validation completed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeBulkImportValidationResult'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}:
+    patch:
+      operationId: updateEmployee
+      summary: Update editable employee profile fields
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateRequest'
+      responses:
+        '200':
+          description: Employee updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    get:
+      operationId: getEmployee
+      summary: Load a tenant employee by identifier
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /employees/{employeeId}/audit-history:
+    get:
+      operationId: listEmployeeAuditHistory
+      summary: List lifecycle audit history for an employee
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Employee audit history loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedAuditLogEntries'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /employees/{employeeId}/transfer:
+    post:
+      operationId: transferEmployee
+      summary: Record a department, manager, location, or cost-center transfer
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeTransferRequest'
+      responses:
+        '200':
+          description: Employee transfer recorded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/promote:
+    post:
+      operationId: promoteEmployee
+      summary: Record an employee promotion and updated designation assignment
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeePromotionRequest'
+      responses:
+        '200':
+          description: Employee promotion recorded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/terminate:
+    post:
+      operationId: terminateEmployee
+      summary: Terminate an employee while retaining the historical record
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeTerminationRequest'
+      responses:
+        '200':
+          description: Employee termination recorded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/contacts:
+    get:
+      operationId: listEmployeeContacts
+      summary: List employee profile contacts
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee contacts loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EmployeeContact'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    post:
+      operationId: createEmployeeContact
+      summary: Create an employee profile contact
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeContactCreateRequest'
+      responses:
+        '201':
+          description: Employee contact created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeContact'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/contacts/{contactId}:
+    patch:
+      operationId: updateEmployeeContact
+      summary: Update an employee profile contact
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/ContactId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeContactUpdateRequest'
+      responses:
+        '200':
+          description: Employee contact updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeContact'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/addresses:
+    get:
+      operationId: listEmployeeAddresses
+      summary: List employee addresses
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee addresses loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EmployeeAddress'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    post:
+      operationId: createEmployeeAddress
+      summary: Create an employee address record
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeAddressCreateRequest'
+      responses:
+        '201':
+          description: Employee address created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeAddress'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/addresses/{addressId}:
+    patch:
+      operationId: updateEmployeeAddress
+      summary: Update an employee address record
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/AddressId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeAddressUpdateRequest'
+      responses:
+        '200':
+          description: Employee address updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeAddress'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/emergency-contacts:
+    get:
+      operationId: listEmployeeEmergencyContacts
+      summary: List employee emergency contacts
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee emergency contacts loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EmployeeEmergencyContact'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    post:
+      operationId: createEmployeeEmergencyContact
+      summary: Create an employee emergency contact
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeEmergencyContactCreateRequest'
+      responses:
+        '201':
+          description: Employee emergency contact created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeEmergencyContact'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/emergency-contacts/{emergencyContactId}:
+    patch:
+      operationId: updateEmployeeEmergencyContact
+      summary: Update an employee emergency contact
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/EmergencyContactId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeEmergencyContactUpdateRequest'
+      responses:
+        '200':
+          description: Employee emergency contact updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeEmergencyContact'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/onboarding-status:
+    get:
+      operationId: listIncompleteEmployeeOnboardingStatus
+      summary: List employees with incomplete onboarding progress
+      responses:
+        '200':
+          description: Incomplete onboarding status loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EmployeeOnboardingStatus'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /employees/{employeeId}/onboarding-tasks:
+    get:
+      operationId: listEmployeeOnboardingTasks
+      summary: List an employee onboarding checklist with derived progress
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee onboarding tasks loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/EmployeeOnboardingTask'
+                          summary:
+                            $ref: '#/components/schemas/EmployeeOnboardingTaskSummary'
+                        required: [items, summary]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    post:
+      operationId: createEmployeeOnboardingTask
+      summary: Create an employee onboarding checklist task
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeOnboardingTaskCreateRequest'
+      responses:
+        '201':
+          description: Employee onboarding task created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeOnboardingTask'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/onboarding-tasks/{taskId}:
+    patch:
+      operationId: updateEmployeeOnboardingTask
+      summary: Update an employee onboarding checklist task
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeOnboardingTaskUpdateRequest'
+      responses:
+        '200':
+          description: Employee onboarding task updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeOnboardingTask'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/documents:
+    get:
+      operationId: listEmployeeDocuments
+      summary: List employee documents stored in the private employee record
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee documents loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EmployeeDocument'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    post:
+      operationId: createEmployeeDocument
+      summary: Upload an employee document with approved file-type constraints
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EmployeeDocumentCreateRequest'
+      responses:
+        '201':
+          description: Employee document uploaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeDocument'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/documents/{documentId}/download:
+    get:
+      operationId: downloadEmployeeDocument
+      summary: Download an employee document from private storage
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Employee document download stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /employees/{employeeId}/bank-accounts:
+    get:
+      operationId: listEmployeeBankAccounts
+      summary: List employee bank accounts with permission-sensitive field visibility
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee bank accounts loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeBankAccountCollection'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    post:
+      operationId: createEmployeeBankAccount
+      summary: Create an encrypted employee bank-account record
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeBankAccountCreateRequest'
+      responses:
+        '201':
+          description: Employee bank account created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeBankAccount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /employees/{employeeId}/bank-accounts/{bankAccountId}:
+    patch:
+      operationId: updateEmployeeBankAccount
+      summary: Update an employee bank-account record
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/BankAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeBankAccountUpdateRequest'
+      responses:
+        '200':
+          description: Employee bank account updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeBankAccount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  parameters:
+    DepartmentId:
+      in: path
+      name: departmentId
+      required: true
+      schema:
+        type: integer
+    DesignationId:
+      in: path
+      name: designationId
+      required: true
+      schema:
+        type: integer
+    LocationId:
+      in: path
+      name: locationId
+      required: true
+      schema:
+        type: integer
+    CostCenterId:
+      in: path
+      name: costCenterId
+      required: true
+      schema:
+        type: integer
+    EmployeeId:
+      in: path
+      name: employeeId
+      required: true
+      schema:
+        type: integer
+    BankAccountId:
+      in: path
+      name: bankAccountId
+      required: true
+      schema:
+        type: integer
+    ContactId:
+      in: path
+      name: contactId
+      required: true
+      schema:
+        type: integer
+    AddressId:
+      in: path
+      name: addressId
+      required: true
+      schema:
+        type: integer
+    EmergencyContactId:
+      in: path
+      name: emergencyContactId
+      required: true
+      schema:
+        type: integer
+    DocumentId:
+      in: path
+      name: documentId
+      required: true
+      schema:
+        type: integer
+    TaskId:
+      in: path
+      name: taskId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required or the token is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: The authenticated user lacks the required permission or tenant context.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: The requested resource does not exist in the current tenant scope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data: {}
+      required: [success, message, data]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required: [success, message, errors]
+    AuditLogUser:
+      type: object
+      properties:
+        id:
+          type: [integer, 'null']
+        name:
+          type: [string, 'null']
+        email:
+          type: [string, 'null']
+          format: email
+      required: [id, name, email]
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        event_type:
+          type: string
+        entity_type:
+          type: [string, 'null']
+        entity_id:
+          type: [string, 'null']
+        ip_address:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+        user:
+          oneOf:
+            - $ref: '#/components/schemas/AuditLogUser'
+            - type: 'null'
+      required: [id, event_type, metadata]
+    PaginatedAuditLogEntries:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogEntry'
+        meta:
+          $ref: '#/components/schemas/PaginatedMeta'
+      required: [items, meta]
+    CompanyProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        subscription_plan:
+          type: [string, 'null']
+        timezone:
+          type: string
+        currency:
+          type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, uuid, name, slug, status, timezone, currency]
+    CompanyProfileUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        subscription_plan:
+          type: [string, 'null']
+        timezone:
+          type: string
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+      required: [name, timezone, currency]
+    OrganizationMasterRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [code, name]
+    LocationRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        address_line_1:
+          type: [string, 'null']
+        address_line_2:
+          type: [string, 'null']
+        city:
+          type: [string, 'null']
+        state:
+          type: [string, 'null']
+        country:
+          type: [string, 'null']
+        postal_code:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [code, name, timezone, currency]
+    Department:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, status]
+    Designation:
+      allOf:
+        - $ref: '#/components/schemas/Department'
+    CostCenter:
+      allOf:
+        - $ref: '#/components/schemas/Department'
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        currency:
+          type: string
+        address_line_1:
+          type: [string, 'null']
+        address_line_2:
+          type: [string, 'null']
+        city:
+          type: [string, 'null']
+        state:
+          type: [string, 'null']
+        country:
+          type: [string, 'null']
+        postal_code:
+          type: [string, 'null']
+        status:
+          type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, timezone, currency, status]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, employee_code, full_name, email]
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        first_name:
+          type: string
+        middle_name:
+          type: [string, 'null']
+        last_name:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: [string, 'null']
+        date_of_birth:
+          type: [string, 'null']
+          format: date
+        gender:
+          type: [string, 'null']
+        marital_status:
+          type: [string, 'null']
+        date_of_joining:
+          type: string
+          format: date
+        employment_type:
+          type: string
+        employment_status:
+          type: string
+        termination_reason:
+          type: [string, 'null']
+        terminated_at:
+          type: [string, 'null']
+          format: date-time
+        department:
+          $ref: '#/components/schemas/Department'
+        designation:
+          $ref: '#/components/schemas/Designation'
+        manager:
+          oneOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        location:
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+            - type: 'null'
+        cost_center:
+          oneOf:
+            - $ref: '#/components/schemas/CostCenter'
+            - type: 'null'
+        user_id:
+          type: [integer, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee_code
+        - first_name
+        - last_name
+        - full_name
+        - email
+        - date_of_joining
+        - employment_type
+        - employment_status
+        - department
+        - designation
+    EmployeeCreateRequest:
+      type: object
+      properties:
+        employee_code:
+          type: [string, 'null']
+        first_name:
+          type: string
+        middle_name:
+          type: [string, 'null']
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: [string, 'null']
+        date_of_birth:
+          type: [string, 'null']
+          format: date
+        gender:
+          type: [string, 'null']
+        marital_status:
+          type: [string, 'null']
+        date_of_joining:
+          type: string
+          format: date
+        employment_type:
+          type: string
+        employment_status:
+          type: [string, 'null']
+        department_id:
+          type: integer
+        designation_id:
+          type: integer
+        manager_id:
+          type: [integer, 'null']
+        location_id:
+          type: [integer, 'null']
+        cost_center_id:
+          type: [integer, 'null']
+        user_id:
+          type: [integer, 'null']
+      required:
+        - first_name
+        - last_name
+        - email
+        - date_of_joining
+        - employment_type
+        - department_id
+        - designation_id
+    EmployeeUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        middle_name:
+          type: [string, 'null']
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: [string, 'null']
+        date_of_birth:
+          type: [string, 'null']
+          format: date
+        gender:
+          type: [string, 'null']
+        marital_status:
+          type: [string, 'null']
+        employment_type:
+          type: string
+        user_id:
+          type: [integer, 'null']
+      minProperties: 1
+    EmployeeBulkImportValidationRequest:
+      type: object
+      properties:
+        rows:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/EmployeeCreateRequest'
+      required: [rows]
+    EmployeeBulkImportCsvValidationRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: CSV file with a header row that maps to employee create fields.
+      required: [file]
+    EmployeeBulkImportValidationRowResult:
+      type: object
+      properties:
+        row_number:
+          type: integer
+        status:
+          type: string
+          enum: [valid, invalid]
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required: [row_number, status, errors]
+    EmployeeBulkImportValidationResult:
+      type: object
+      properties:
+        processed:
+          type: integer
+        success_count:
+          type: integer
+        failed_count:
+          type: integer
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeBulkImportValidationRowResult'
+      required: [processed, success_count, failed_count, rows]
+    EmployeeTransferRequest:
+      type: object
+      properties:
+        effective_date:
+          type: string
+          format: date
+        department_id:
+          type: integer
+        manager_id:
+          type: [integer, 'null']
+        location_id:
+          type: [integer, 'null']
+        cost_center_id:
+          type: [integer, 'null']
+        notes:
+          type: [string, 'null']
+      required: [effective_date]
+    EmployeePromotionRequest:
+      type: object
+      properties:
+        effective_date:
+          type: string
+          format: date
+        designation_id:
+          type: integer
+        department_id:
+          type: integer
+        manager_id:
+          type: [integer, 'null']
+        location_id:
+          type: [integer, 'null']
+        cost_center_id:
+          type: [integer, 'null']
+        notes:
+          type: [string, 'null']
+      required: [effective_date, designation_id]
+    EmployeeTerminationRequest:
+      type: object
+      properties:
+        termination_date:
+          type: string
+          format: date
+        reason:
+          type: string
+        notes:
+          type: [string, 'null']
+      required: [termination_date, reason]
+    EmployeeContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        type:
+          type: string
+          enum: [email, phone, mobile, whatsapp, other]
+        label:
+          type: [string, 'null']
+        value:
+          type: string
+        is_primary:
+          type: boolean
+        status:
+          type: [string, 'null']
+          enum: [active, inactive, null]
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee_id
+        - type
+        - value
+        - is_primary
+    EmployeeContactCreateRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [email, phone, mobile, whatsapp, other]
+        label:
+          type: [string, 'null']
+          maxLength: 100
+        value:
+          type: string
+          maxLength: 255
+        is_primary:
+          type: boolean
+        status:
+          type: string
+          enum: [active, inactive]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [type, value]
+    EmployeeContactUpdateRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [email, phone, mobile, whatsapp, other]
+        label:
+          type: [string, 'null']
+          maxLength: 100
+        value:
+          type: string
+          maxLength: 255
+        is_primary:
+          type: boolean
+        status:
+          type: string
+          enum: [active, inactive]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      minProperties: 1
+    EmployeeAddress:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        type:
+          type: string
+          enum: [permanent, current, office]
+        address_line_1:
+          type: string
+        address_line_2:
+          type: [string, 'null']
+        city:
+          type: string
+        state:
+          type: [string, 'null']
+        country:
+          type: string
+        postal_code:
+          type: string
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee_id
+        - type
+        - address_line_1
+        - city
+        - country
+        - postal_code
+    EmployeeAddressCreateRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [permanent, current, office]
+        address_line_1:
+          type: string
+          maxLength: 255
+        address_line_2:
+          type: [string, 'null']
+          maxLength: 255
+        city:
+          type: string
+          maxLength: 100
+        state:
+          type: [string, 'null']
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        postal_code:
+          type: string
+          maxLength: 30
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [type, address_line_1, city, country, postal_code]
+    EmployeeAddressUpdateRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [permanent, current, office]
+        address_line_1:
+          type: string
+          maxLength: 255
+        address_line_2:
+          type: [string, 'null']
+          maxLength: 255
+        city:
+          type: string
+          maxLength: 100
+        state:
+          type: [string, 'null']
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        postal_code:
+          type: string
+          maxLength: 30
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      minProperties: 1
+    EmployeeEmergencyContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        name:
+          type: string
+        relationship:
+          type: string
+        phone_number:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+        address:
+          type: [string, 'null']
+        priority:
+          type: [integer, 'null']
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee_id
+        - name
+        - relationship
+        - phone_number
+    EmployeeEmergencyContactCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        relationship:
+          type: string
+          maxLength: 100
+        phone_number:
+          type: string
+          maxLength: 50
+        email:
+          type: [string, 'null']
+          format: email
+        address:
+          type: [string, 'null']
+          maxLength: 1000
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 9
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [name, relationship, phone_number]
+    EmployeeEmergencyContactUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        relationship:
+          type: string
+          maxLength: 100
+        phone_number:
+          type: string
+          maxLength: 50
+        email:
+          type: [string, 'null']
+          format: email
+        address:
+          type: [string, 'null']
+          maxLength: 1000
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 9
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      minProperties: 1
+    EmployeeOnboardingTask:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+          enum: [hr, it, manager, department, compliance, training, other]
+        task_type:
+          type: [string, 'null']
+          enum: [read_policy, submit_documents, complete_training, attend_session, meet_manager, setup_equipment, complete_forms, other, null]
+        assignee_type:
+          type: string
+          enum: [employee, manager, hr, it_team, facilities, security, other]
+        status:
+          type: string
+          enum: [pending, in_progress, completed, skipped]
+        sort_order:
+          type: integer
+        due_date:
+          type: [string, 'null']
+          format: date
+        completed_at:
+          type: [string, 'null']
+          format: date-time
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee_id
+        - title
+        - category
+        - assignee_type
+        - status
+        - sort_order
+    EmployeeOnboardingTaskSummary:
+      type: object
+      properties:
+        total_count:
+          type: integer
+        completed_count:
+          type: integer
+        skipped_count:
+          type: integer
+        pending_count:
+          type: integer
+        in_progress_count:
+          type: integer
+        incomplete_count:
+          type: integer
+        progress_percentage:
+          type: integer
+        is_complete:
+          type: boolean
+      required:
+        - total_count
+        - completed_count
+        - skipped_count
+        - pending_count
+        - in_progress_count
+        - incomplete_count
+        - progress_percentage
+        - is_complete
+    EmployeeOnboardingStatusSummary:
+      type: object
+      properties:
+        total_count:
+          type: integer
+        closed_count:
+          type: integer
+        incomplete_count:
+          type: integer
+        progress_percentage:
+          type: integer
+        is_complete:
+          type: boolean
+      required: [total_count, closed_count, incomplete_count, progress_percentage, is_complete]
+    EmployeeOnboardingStatus:
+      type: object
+      properties:
+        employee:
+          type: object
+          properties:
+            id:
+              type: integer
+            employee_code:
+              type: string
+            full_name:
+              type: string
+            email:
+              type: string
+              format: email
+            date_of_joining:
+              type: [string, 'null']
+              format: date
+            department:
+              type: [string, 'null']
+            designation:
+              type: [string, 'null']
+          required: [id, employee_code, full_name, email]
+        summary:
+          $ref: '#/components/schemas/EmployeeOnboardingStatusSummary'
+      required: [employee, summary]
+    EmployeeOnboardingTaskCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 150
+        category:
+          type: string
+          enum: [hr, it, manager, department, compliance, training, other]
+        task_type:
+          type: [string, 'null']
+          enum: [read_policy, submit_documents, complete_training, attend_session, meet_manager, setup_equipment, complete_forms, other, null]
+        assignee_type:
+          type: string
+          enum: [employee, manager, hr, it_team, facilities, security, other]
+        status:
+          type: string
+          enum: [pending, in_progress, completed, skipped]
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 999
+        due_date:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [title, category, assignee_type]
+    EmployeeOnboardingTaskUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 150
+        category:
+          type: string
+          enum: [hr, it, manager, department, compliance, training, other]
+        task_type:
+          type: [string, 'null']
+          enum: [read_policy, submit_documents, complete_training, attend_session, meet_manager, setup_equipment, complete_forms, other, null]
+        assignee_type:
+          type: string
+          enum: [employee, manager, hr, it_team, facilities, security, other]
+        status:
+          type: string
+          enum: [pending, in_progress, completed, skipped]
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 999
+        due_date:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      minProperties: 1
+    EmployeeDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        document_type:
+          type: string
+        original_file_name:
+          type: string
+        mime_type:
+          type: string
+        file_size_bytes:
+          type: integer
+        expiry_date:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+        download_url:
+          type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee_id
+        - document_type
+        - original_file_name
+        - mime_type
+        - file_size_bytes
+        - download_url
+    EmployeeDocumentCreateRequest:
+      type: object
+      properties:
+        document_type:
+          type: string
+          maxLength: 100
+        expiry_date:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        file:
+          type: string
+          format: binary
+          description: Supported file types are PDF, DOCX, PNG, and JPG/JPEG up to 10 MB.
+      required: [document_type, file]
+    EmployeeBankAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        account_holder_name:
+          type: string
+        bank_name:
+          type: string
+        branch_name:
+          type: [string, 'null']
+        account_number:
+          type: string
+        ifsc_code:
+          type: [string, 'null']
+        routing_number:
+          type: [string, 'null']
+        iban:
+          type: [string, 'null']
+        swift_code:
+          type: [string, 'null']
+        status:
+          type: string
+        is_primary:
+          type: boolean
+        verified_at:
+          type: [string, 'null']
+          format: date-time
+        notes:
+          type: [string, 'null']
+        sensitive_access:
+          type: string
+          enum: [full, masked]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee_id
+        - account_holder_name
+        - bank_name
+        - account_number
+        - status
+        - is_primary
+        - sensitive_access
+    EmployeeBankAccountCreateRequest:
+      type: object
+      properties:
+        account_holder_name:
+          type: string
+        bank_name:
+          type: string
+        branch_name:
+          type: [string, 'null']
+        account_number:
+          type: string
+        ifsc_code:
+          type: [string, 'null']
+        routing_number:
+          type: [string, 'null']
+        iban:
+          type: [string, 'null']
+        swift_code:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+        is_primary:
+          type: boolean
+        verified_at:
+          type: [string, 'null']
+          format: date-time
+        notes:
+          type: [string, 'null']
+      required:
+        - account_holder_name
+        - bank_name
+        - account_number
+    EmployeeBankAccountUpdateRequest:
+      type: object
+      properties:
+        account_holder_name:
+          type: string
+        bank_name:
+          type: string
+        branch_name:
+          type: [string, 'null']
+        account_number:
+          type: string
+        ifsc_code:
+          type: [string, 'null']
+        routing_number:
+          type: [string, 'null']
+        iban:
+          type: [string, 'null']
+        swift_code:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+        is_primary:
+          type: boolean
+        verified_at:
+          type: [string, 'null']
+          format: date-time
+        notes:
+          type: [string, 'null']
+      minProperties: 1
+    EmployeeBankAccountCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeBankAccount'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+          required: [total]
+      required: [items, meta]
+    PaginatedMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    PaginatedEmployees:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+        meta:
+          $ref: '#/components/schemas/PaginatedMeta'
+      required: [items, meta]
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: token

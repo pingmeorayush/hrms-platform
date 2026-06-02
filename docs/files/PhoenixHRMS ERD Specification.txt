@@ -1,0 +1,428 @@
+PhoenixHRMS
+Entity Relationship Diagram (ERD) Specification
+Version: 1.0
+Status: Draft
+Document Type: Database Relationship Architecture
+Related Documents:
+	•	06-system-architecture.md
+	•	10-multi-tenancy-design.md
+	•	11-database-design.md
+
+1. Purpose
+This document defines all entity relationships within PhoenixHRMS.
+Objectives:
+	•	Define entity ownership
+	•	Define cardinality
+	•	Define aggregate boundaries
+	•	Define foreign key relationships
+	•	Define cascading rules
+	•	Support implementation
+
+2. ERD Standards
+
+Cardinality Notation
+Symbol
+Meaning
+1:1
+One To One
+1:N
+One To Many
+N:N
+Many To Many
+
+Ownership Rules
+Parent entities own child entities.
+Examples:
+Company owns Employees
+Employee owns Documents
+Payroll Run owns Payroll Items
+
+Foreign Key Naming
+employee_id  company_id  department_id  role_id
+
+3. Enterprise ERD
+High-Level System View
+Company │ ├── Users ├── Roles ├── Departments ├── Designations ├── Locations ├── Employees │ ├── Attendance ├── Leave ├── Payroll ├── Recruitment ├── Performance ├── Assets ├── Documents ├── Notifications ├── Audit Logs └── AI Records
+
+4. Tenant Domain ERD
+
+Company Aggregate
+Company │ ├── Users ├── Departments ├── Designations ├── Locations ├── Employees ├── Jobs ├── Assets ├── Documents ├── Notifications └── Audit Logs
+
+Relationship Definitions
+Company → Employees
+1:N
+Company → Departments
+1:N
+Company → Payroll Periods
+1:N
+Company → Leave Types
+1:N
+Company → Assets
+1:N
+
+5. Identity & Access ERD
+
+Entities
+Users  Roles  Permissions  UserRoles  RolePermissions
+
+Diagram
+Users  │  │ N:N  │  ▼ UserRoles  │  ▼ Roles  │  │ N:N  ▼ RolePermissions  │  ▼ Permissions
+
+Relationships
+Users ↔ Roles
+N:N
+Roles ↔ Permissions
+N:N
+
+Cascade Rules
+Role Delete
+↓
+Restricted
+
+Permission Delete
+↓
+Restricted
+
+User Delete
+↓
+Soft Delete
+
+6. Organizational Structure ERD
+
+Entities
+Departments  Designations  Locations  Employees
+
+Diagram
+Department     │     │ 1:N     ▼ Employees  Designation     │     │ 1:N     ▼ Employees  Location     │     │ 1:N     ▼ Employees
+
+Relationships
+Department → Employees
+1:N
+Designation → Employees
+1:N
+Location → Employees
+1:N
+
+Department Hierarchy
+Department  │  │ 1:N  ▼ Department
+Self-reference hierarchy.
+
+7. Employee Domain ERD
+
+Entities
+Employees  Addresses  EmergencyContacts  BankAccounts  Documents  EmployeeHistories
+
+Diagram
+Employee │ ├── Addresses ├── Emergency Contacts ├── Bank Accounts ├── Documents └── Employment History
+
+Relationships
+Employee → Addresses
+1:N
+Employee → Emergency Contacts
+1:N
+Employee → Documents
+1:N
+Employee → Bank Accounts
+1:N
+Employee → Employee History
+1:N
+
+Manager Relationship
+Employee  │  │ manager_id  ▼ Employee
+Self-referencing relationship.
+
+Cardinality
+Manager → Employees
+1:N
+
+8. Attendance Domain ERD
+
+Entities
+Employees  Shifts  AttendanceRecords  AttendanceCorrections
+
+Diagram
+Shift  │  │ 1:N  ▼ AttendanceRecords  │  │ N:1  ▼ Employee
+
+Relationships
+Employee → Attendance Records
+1:N
+Shift → Attendance Records
+1:N
+Attendance Record → Corrections
+1:N
+
+Attendance Aggregate
+Root:
+Attendance Record
+Children:
+Attendance Corrections
+
+9. Leave Domain ERD
+
+Entities
+LeaveTypes  LeaveBalances  LeaveRequests  LeaveApprovals
+
+Diagram
+Employee  │  ├── LeaveBalances  │  └── LeaveRequests          │          ▼ LeaveApprovals
+
+Relationships
+Employee → Leave Balances
+1:N
+Employee → Leave Requests
+1:N
+Leave Request → Approvals
+1:N
+Leave Type → Leave Balances
+1:N
+
+Approval Workflow
+Leave Request  ↓  Approval  ↓  Approval  ↓  Final Decision
+Multi-step workflow supported.
+
+10. Payroll Domain ERD
+One of the most important domains.
+
+Entities
+SalaryStructures  SalaryComponents  PayrollPeriods  PayrollRuns  PayrollItems  Payslips
+
+Diagram
+Employee  │  ▼ SalaryStructure  PayrollPeriod  │  ▼ PayrollRun  │  ▼ PayrollItems  │  ▼ SalaryComponents
+
+Relationships
+Employee → Salary Structure
+1:N
+Payroll Period → Payroll Runs
+1:N
+Payroll Run → Payroll Items
+1:N
+Salary Component → Payroll Items
+1:N
+Payroll Run → Payslip
+1:1
+
+Aggregate Root
+Payroll Run
+
+Children
+Payroll Items
+Payslip
+
+11. Recruitment Domain ERD
+
+Entities
+Jobs  Candidates  Resumes  Interviews  InterviewFeedback
+
+Diagram
+Job  │  ▼ Candidate  │  ▼ Resume  Candidate  │  ▼ Interview  │  ▼ Interview Feedback
+
+Relationships
+Job → Candidates
+1:N
+Candidate → Resumes
+1:N
+Candidate → Interviews
+1:N
+Interview → Feedback
+1:N
+
+12. Performance Domain ERD
+
+Entities
+Goals  EmployeeGoals  PerformanceReviews  ReviewRatings
+
+Diagram
+Goal  │  ▼ EmployeeGoal  Employee  │  ▼ PerformanceReview  │  ▼ ReviewRating
+
+Relationships
+Goal → Employee Goals
+1:N
+Employee → Reviews
+1:N
+Review → Ratings
+1:N
+
+13. Asset Management ERD
+
+Entities
+Assets  AssetAssignments  Employees
+
+Diagram
+Asset  │  ▼ AssetAssignment  │  ▼ Employee
+
+Relationships
+Asset → Assignments
+1:N
+Employee → Assignments
+1:N
+
+Business Rule
+Only one active assignment allowed.
+
+14. Document Domain ERD
+
+Entities
+Documents  DocumentAccessLogs
+
+Diagram
+Document  │  ▼ DocumentAccessLog
+
+Relationships
+Document → Access Logs
+1:N
+
+15. Notification Domain ERD
+
+Entities
+Notifications  NotificationTemplates
+
+Diagram
+NotificationTemplate  │  ▼ Notification
+
+Relationships
+Template → Notifications
+1:N
+
+16. Audit Domain ERD
+
+Entities
+AuditLogs  Users
+
+Diagram
+User  │  ▼ AuditLog
+
+Relationships
+User → Audit Logs
+1:N
+
+Audit Structure
+User  Action  Entity  Entity ID  Old Values  New Values
+
+17. AI Domain ERD
+
+Entities
+AIRequests  AIPredictions
+
+Diagram
+User  │  ▼ AIRequest  Company  │  ▼ AIPrediction
+
+Relationships
+User → AI Requests
+1:N
+Company → AI Predictions
+1:N
+
+18. Cross-Domain Relationships
+
+Employee → User
+1:1
+Optional
+
+Employee → Payroll
+1:N
+
+Employee → Attendance
+1:N
+
+Employee → Leave
+1:N
+
+Employee → Reviews
+1:N
+
+Employee → Assets
+1:N
+
+Employee → Documents
+1:N
+
+Employee is the central business entity.
+
+19. Cascade Rules
+
+Delete Company
+↓
+Restricted
+
+Delete Employee
+↓
+Soft Delete
+
+Delete Payroll Period
+↓
+Restricted
+
+Delete Payroll Run
+↓
+Restricted
+
+Delete Leave Request
+↓
+Soft Delete
+
+Delete Audit Log
+↓
+Prohibited
+
+20. Aggregate Boundaries
+DDD Aggregate Roots
+
+Employee
+Owns:
+Addresses
+Documents
+Contacts
+History
+
+Payroll Run
+Owns:
+Payroll Items
+Payslip
+
+Leave Request
+Owns:
+Approvals
+
+Candidate
+Owns:
+Resumes
+Interviews
+
+21. High Volume Entities
+Tables expected to exceed millions of rows:
+AttendanceRecords  AuditLogs  Notifications  PayrollItems
+
+Partitioning Recommended.
+
+22. Future ERP Relationships
+Future Domains
+Inventory  CRM  Finance  LMS  Projects  Helpdesk
+All attach to:
+Company
+Employee
+User
+
+23. Data Ownership Matrix
+Entity
+Owner
+Employee
+Company
+Attendance
+Employee
+Payroll
+Employee
+Leave
+Employee
+Candidate
+Company
+Asset
+Company
+Document
+Company
+Audit Log
+System
+
+Conclusion
+The PhoenixHRMS ERD architecture establishes clear ownership, relationships, aggregate boundaries, and data integrity rules across all domains.
+The Employee entity serves as the primary business aggregate, while Company acts as the tenant root aggregate.
+These relationships provide the foundation for migrations, repositories, APIs, services, reporting, auditing, and future ERP expansion.

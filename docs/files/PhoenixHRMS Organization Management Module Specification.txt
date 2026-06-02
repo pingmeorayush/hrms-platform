@@ -1,0 +1,486 @@
+PhoenixHRMS
+Organization Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: ORG
+Document Type: Core Functional Module Specification
+Related Documents:
+	•	10-multi-tenancy-design.md
+	•	15-employee-management-module.md
+	•	18-payroll-management-module.md
+	•	25-reporting-analytics-module.md
+	•	30-rbac-authorization-platform.md
+
+1. Module Overview
+Purpose
+The Organization Management Module serves as the foundational structure of PhoenixHRMS by defining how companies, legal entities, business units, departments, locations, reporting lines, and workforce structures are organized.
+Every employee, payroll record, leave policy, workflow, asset, document, and report ultimately belongs to an organizational structure.
+This module provides the master organizational hierarchy used across the entire platform.
+
+Business Objectives
+	•	Model enterprise organizational structures
+	•	Support multi-company environments
+	•	Enable workforce segmentation
+	•	Improve governance
+	•	Support reporting hierarchies
+	•	Enable organizational scalability
+
+2. Organization Architecture
+Tenant  ↓  Company  ↓  Legal Entity  ↓  Business Unit  ↓  Division  ↓  Department  ↓  Team  ↓  Employee
+
+3. Module Scope
+Included
+Organization Structure
+Companies
+Legal Entities
+Business Units
+Divisions
+Departments
+Teams
+Locations
+Cost Centers
+Reporting Structures
+Organization Charts
+Matrix Organizations
+Organization Analytics
+Workforce Planning Structures
+
+Excluded
+Employee Personal Records
+Payroll Processing
+Recruitment Operations
+
+4. Multi-Company Management
+Purpose
+Support multiple companies under a single tenant.
+
+Examples
+Phoenix Group  ├── Phoenix Technologies Pvt Ltd  ├── Phoenix Consulting Pvt Ltd  ├── Phoenix Healthcare Pvt Ltd
+
+Features
+Independent Policies
+Independent Payroll
+Independent Reporting
+Shared Services Support
+Cross-Company Transfers
+
+5. Legal Entity Management
+Purpose
+Represent legally registered organizations.
+
+Fields
+Legal Entity Name
+Registration Number
+Tax Number
+Country
+Currency
+Registered Address
+Status
+
+Usage
+Payroll
+Taxation
+Compliance
+Regulatory Reporting
+
+6. Business Unit Management
+Purpose
+Represent strategic business segments.
+
+Examples
+Technology  Consulting  Operations  Healthcare  Finance
+
+Features
+Budget Ownership
+Headcount Planning
+P&L Alignment
+Performance Tracking
+
+7. Division Management
+Purpose
+Large organizational grouping.
+
+Examples
+Technology  ├── Engineering  ├── Product  ├── QA
+
+Features
+Hierarchical Management
+Reporting Support
+Budget Allocation
+
+8. Department Management
+Purpose
+Operational workforce grouping.
+
+Examples
+Human Resources  Engineering  Finance  Sales  Marketing  Customer Support
+
+Features
+Department Head
+Department Budget
+Department Policies
+Department Reporting
+
+9. Team Management
+Purpose
+Smallest organizational unit.
+
+Examples
+Engineering  ├── Backend Team  ├── Frontend Team  ├── DevOps Team
+
+Features
+Team Lead
+Team Objectives
+Capacity Planning
+Workforce Analytics
+
+10. Cost Center Management
+Purpose
+Financial accountability.
+
+Fields
+Cost Center Code
+Name
+Owner
+Budget
+Department
+Business Unit
+Status
+
+Usage
+Payroll Allocation
+Expense Tracking
+Budget Reporting
+Financial Analytics
+
+11. Location Management
+Purpose
+Represent physical workplaces.
+
+Location Types
+Head Office
+Regional Office
+Branch Office
+Warehouse
+Factory
+Remote Workforce Hub
+
+Fields
+Country
+State
+City
+Address
+Timezone
+Currency
+Location Head
+
+12. Geographic Hierarchy
+Structure
+Country  ↓  Region  ↓  State  ↓  City  ↓  Location
+
+Benefits
+Regional Reporting
+Compliance
+Workforce Planning
+Localization
+
+13. Reporting Structures
+Purpose
+Define managerial hierarchy.
+
+Structure
+CEO  ↓  VP  ↓  Director  ↓  Manager  ↓  Employee
+
+Features
+Dynamic Reporting
+Reporting History
+Temporary Reporting
+Delegated Reporting
+
+14. Matrix Organization Support
+Purpose
+Support multiple reporting relationships.
+
+Example
+Employee  ↓  Functional Manager  +  Project Manager
+
+Benefits
+Project Organizations
+Consulting Companies
+Global Teams
+Cross-Functional Structures
+
+15. Organizational Hierarchies
+Hierarchy Types
+Management Hierarchy
+Functional Hierarchy
+Project Hierarchy
+Geographic Hierarchy
+Cost Center Hierarchy
+Custom Hierarchies
+
+16. Organization Chart
+Purpose
+Visualize workforce structure.
+
+Features
+Interactive Org Chart
+Drill Down
+Search
+Employee Profile Preview
+Export
+Historical View
+
+17. Organization Versions
+Purpose
+Track organizational changes.
+
+Events
+Department Creation
+Department Closure
+Reorganization
+Merger
+Acquisition
+Transfer
+
+Features
+Version History
+Effective Dates
+Rollback
+Audit Tracking
+
+18. Workforce Planning Structure
+Purpose
+Support future workforce planning.
+
+Components
+Current Headcount
+Planned Headcount
+Vacant Positions
+Future Positions
+Budget Allocation
+
+19. Position Management
+Position Structure
+Organization  ↓  Position  ↓  Employee
+
+Features
+Position Creation
+Position Vacancy
+Position Approval
+Position History
+Position Budget
+
+20. Vacancy Management
+Purpose
+Track open organizational positions.
+
+Statuses
+Approved
+Vacant
+Recruiting
+Filled
+Closed
+
+21. Headcount Management
+Metrics
+Current Headcount
+Budgeted Headcount
+Available Headcount
+Open Positions
+Contractors
+Interns
+
+22. Organizational Transfers
+Transfer Types
+Department Transfer
+Location Transfer
+Business Unit Transfer
+Promotion
+Demotion
+Role Change
+
+Workflow
+Request
+↓
+Approval
+↓
+Execution
+↓
+Audit
+
+23. Reorganization Management
+Purpose
+Handle structural changes.
+
+Examples
+Department Merge
+Department Split
+Company Merger
+Business Unit Restructuring
+Location Consolidation
+
+Features
+Impact Analysis
+Approval Workflow
+Effective Dates
+Audit Trail
+
+24. Organizational Policies
+Assignment Levels
+Company
+Legal Entity
+Business Unit
+Division
+Department
+Location
+
+Examples
+Leave Policies
+Attendance Policies
+Payroll Policies
+Benefits Policies
+
+25. Organizational Analytics
+Metrics
+Headcount
+Growth Rate
+Span Of Control
+Department Distribution
+Location Distribution
+Manager Ratios
+Workforce Cost
+
+26. Reports
+Organization Structure Report
+Department Report
+Headcount Report
+Vacancy Report
+Cost Center Report
+Location Report
+Manager Hierarchy Report
+Workforce Planning Report
+
+Formats
+PDF
+Excel
+CSV
+
+27. Organization APIs
+Companies
+GET /companies  POST /companies  PATCH /companies/{id}
+
+Legal Entities
+GET /legal-entities  POST /legal-entities
+
+Departments
+GET /departments  POST /departments
+
+Locations
+GET /locations  POST /locations
+
+Org Charts
+GET /org-chart
+
+28. Database Tables
+Organization Domain
+organizations
+companies
+legal_entities
+business_units
+divisions
+departments
+teams
+
+Location Domain
+locations
+regions
+countries
+
+Cost Center Domain
+cost_centers
+cost_center_allocations
+
+Position Domain
+positions
+position_history
+vacancies
+
+Reporting Domain
+reporting_relationships
+matrix_relationships
+
+29. Permissions Matrix
+organization.view
+organization.manage
+company.manage
+department.manage
+location.manage
+position.manage
+headcount.manage
+organization.admin
+
+30. Security Requirements
+Tenant Isolation
+RBAC Enforcement
+Hierarchy Validation
+Data Ownership Controls
+Audit Logging
+Change Approval Controls
+
+31. Audit Requirements
+Company Created
+Department Created
+Department Modified
+Position Created
+Transfer Processed
+Reorganization Executed
+Location Added
+Hierarchy Modified
+
+Retention
+10 Years Minimum
+
+32. Performance Requirements
+Org Chart Load
+< 3 Seconds
+
+Department Search
+< 1 Second
+
+Hierarchy Query
+< 2 Seconds
+
+33. Compliance Requirements
+Labor Regulations
+Corporate Governance
+Tax Jurisdiction Mapping
+Location Compliance
+Workforce Reporting Requirements
+
+34. Future Enhancements
+Version 2
+AI Organization Designer
+Workforce Digital Twin
+Span-of-Control Optimization
+Org Health Analytics
+Workforce Scenario Planning
+Org Simulation Engine
+Organization Copilot
+
+Success Metrics
+Hierarchy Accuracy
+100%
+
+Position Accuracy
+99%
+
+Headcount Accuracy
+100%
+
+Org Chart Availability
+99.99%
+
+Conclusion
+The Organization Management Module provides the foundational enterprise structure for PhoenixHRMS by managing companies, legal entities, business units, departments, locations, positions, reporting structures, and workforce hierarchies.
+The module enables scalable workforce organization, governance, planning, reporting, and compliance while maintaining flexibility, auditability, security, and tenant isolation across the platform.

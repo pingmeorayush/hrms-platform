@@ -1,0 +1,513 @@
+PhoenixHRMS
+Mobile App Platform Specification
+Version: 1.0
+Status: Draft
+Module ID: MOB
+Document Type: Platform Specification
+Related Documents:
+	•	07-frontend-architecture.md
+	•	09-security-architecture.md
+	•	24-notification-communication-module.md
+	•	26-ai-copilot-module.md
+
+1. Platform Overview
+Purpose
+The Mobile App Platform provides enterprise-grade mobile experiences for employees, managers, HR teams, recruiters, and executives.
+The platform enables workforce access from anywhere while maintaining security, performance, compliance, and usability.
+
+Business Objectives
+	•	Improve employee experience
+	•	Increase workforce mobility
+	•	Support remote work
+	•	Enable self-service
+	•	Improve manager responsiveness
+	•	Increase platform adoption
+
+2. Platform Vision
+Web Application  ↓  Mobile Application  ↓  Mobile Workforce Platform  ↓  Digital Workplace
+
+3. Mobile Personas
+
+Employee
+Self-service activities.
+
+Manager
+Team management activities.
+
+HR
+HR operations.
+
+Recruiter
+Hiring activities.
+
+Executive
+Workforce insights.
+
+Contractor
+Limited access workforce.
+
+4. Mobile Applications
+
+Employee App
+Primary workforce application.
+
+Manager App
+Team supervision.
+
+HR App
+Operational HR management.
+
+Executive App
+Analytics and decision support.
+
+Future:
+Unified application with role-based experiences.
+
+5. Technology Architecture
+
+Framework
+React Native
+
+Languages
+TypeScript
+
+Platforms
+iOS
+Android
+
+State Management
+Redux Toolkit
+RTK Query
+
+Offline Storage
+SQLite
+Encrypted Storage
+
+6. Mobile Architecture
+Mobile App  ↓  Offline Data Layer  ↓  API Gateway  ↓  Backend Services  ↓  Database
+
+Design Principles
+Offline First
+Secure By Default
+API Driven
+Role Aware
+AI Ready
+
+7. Authentication
+
+Methods
+Email + Password
+SSO
+Biometric Login
+MFA
+Magic Links
+
+Providers
+Microsoft Entra ID
+Google Workspace
+Okta
+Auth0
+Custom SSO
+
+8. Biometric Authentication
+
+Supported
+Face ID
+Touch ID
+Android Biometrics
+Fingerprint
+
+Use Cases
+Login
+Approvals
+Sensitive Actions
+Document Access
+
+9. Mobile Security
+
+Controls
+App Encryption
+Secure Storage
+Certificate Pinning
+Jailbreak Detection
+Root Detection
+Session Protection
+Device Binding
+
+Security Levels
+Standard
+Enhanced
+Enterprise
+
+10. Device Management
+
+Features
+Registered Devices
+Device Trust
+Remote Logout
+Device Inventory
+Session Monitoring
+
+Admin Controls
+Block Device
+Wipe Session
+Force Reauthentication
+
+11. Employee Self-Service
+
+Features
+Profile Management
+Attendance
+Leave Requests
+Payslips
+Documents
+Learning
+Notifications
+AI Copilot
+
+Goal
+90% HR self-service adoption.
+
+12. Attendance Features
+
+Mobile Check-In
+GPS Validation
+Geo-Fencing
+Photo Verification
+QR Code Check-In
+Offline Check-In
+
+Mobile Check-Out
+Supported.
+
+13. Leave Management Features
+
+Mobile Leave Requests
+Submit Leave
+View Balance
+Approve Leave
+Leave Calendar
+Leave History
+
+14. Payroll Features
+
+Mobile Payroll
+Payslips
+Tax Documents
+Salary History
+Compensation Summary
+Payroll Notifications
+
+Security
+Sensitive data protected.
+
+15. Learning Features
+
+LMS Mobile
+Course Catalog
+Learning Paths
+Video Learning
+Assessments
+Certificates
+Learning Progress
+
+Offline Learning
+Supported.
+
+16. Recruitment Features
+
+Recruiter App
+Candidate Search
+Interview Scheduling
+Candidate Reviews
+Offer Management
+Hiring Analytics
+
+17. Performance Features
+
+Mobile Performance
+Goals
+Feedback
+Reviews
+Development Plans
+Recognition
+
+18. Asset Management Features
+
+Mobile Asset Tracking
+Assigned Assets
+Asset Requests
+Returns
+QR Scanning
+Asset Verification
+
+19. Document Management Features
+
+Mobile Documents
+View Documents
+Upload Documents
+Digital Signature
+Approvals
+Search
+
+Offline Access
+Configurable.
+
+20. Push Notifications
+
+Types
+Approvals
+Reminders
+Announcements
+Payroll Alerts
+Learning Alerts
+Security Alerts
+
+Features
+Deep Links
+Action Buttons
+Priority Levels
+
+21. Mobile AI Copilot
+
+Employee Use Cases
+Leave Questions
+Policy Questions
+Payslip Assistance
+Learning Recommendations
+
+Manager Use Cases
+Team Analytics
+Approvals
+Performance Insights
+
+Executive Use Cases
+Workforce Insights
+Attrition Risk
+Headcount Trends
+
+22. Offline Capabilities
+
+Offline Supported Features
+View Profile
+Leave Requests
+Attendance Capture
+Learning Content
+Document Access
+Task Lists
+
+Synchronization
+Automatic Sync
+Conflict Resolution
+Retry Queue
+
+23. Offline Architecture
+User Action  ↓  Local Storage  ↓  Sync Queue  ↓  Network Available  ↓  Server Sync
+
+Conflict Handling
+Last Write Wins
+Manual Resolution
+Business Rule Resolution
+
+24. Mobile Analytics
+
+Metrics
+Daily Active Users
+Monthly Active Users
+Feature Usage
+Session Duration
+Crash Rate
+Retention Rate
+
+25. Mobile Reporting
+
+Reports
+App Adoption
+Usage Analytics
+Device Analytics
+Crash Reports
+Feature Usage Reports
+
+26. Mobile Notifications Center
+
+Features
+Read Status
+Search
+Filter
+Archive
+Deep Linking
+
+Categories
+HR
+Payroll
+Leave
+Learning
+Recruitment
+System
+
+27. Mobile UX Principles
+
+Design Goals
+Simple
+Fast
+Accessible
+Consistent
+Responsive
+
+Guidelines
+One-Hand Usage
+Minimal Data Entry
+Large Touch Targets
+Progressive Disclosure
+
+28. Accessibility
+
+Standards
+WCAG 2.2
+
+Features
+Screen Readers
+Large Fonts
+High Contrast
+Voice Assistance
+Keyboard Navigation
+
+29. Mobile APIs
+
+Authentication
+POST /mobile/auth/login  POST /mobile/auth/logout
+
+Sync
+POST /mobile/sync  GET /mobile/config
+
+Notifications
+GET /mobile/notifications
+
+Devices
+GET /mobile/devices  POST /mobile/devices/register
+
+30. Database Tables
+Device Domain
+mobile_devices
+device_sessions
+device_tokens
+
+Offline Domain
+sync_queue
+offline_actions
+sync_logs
+
+Notification Domain
+mobile_notifications
+notification_preferences
+
+Analytics Domain
+mobile_events
+app_sessions
+crash_reports
+
+31. Permissions Matrix
+
+mobile.access
+mobile.attendance
+mobile.leave
+mobile.payroll
+mobile.learning
+mobile.documents
+mobile.ai
+mobile.device.manage
+
+32. Security Requirements
+
+Encryption At Rest
+Encryption In Transit
+Biometric Authentication
+Root Detection
+Certificate Pinning
+Session Protection
+Tenant Isolation
+
+33. Audit Requirements
+
+Mobile Login
+Biometric Authentication
+Attendance Submission
+Document Access
+Approval Actions
+AI Usage
+Device Registration
+
+Retention
+7 Years Minimum
+
+34. Integrations
+
+Employee Module
+Attendance Module
+Leave Module
+Payroll Module
+Learning Module
+Recruitment Module
+Document Module
+Notification Module
+AI Module
+
+35. Dashboard Widgets
+
+Pending Approvals
+Attendance Today
+Leave Balance
+Upcoming Reviews
+Learning Progress
+Recent Notifications
+AI Recommendations
+
+36. Performance Requirements
+
+App Launch
+< 2 Seconds
+
+API Response
+< 2 Seconds
+
+Push Delivery
+< 5 Seconds
+
+Offline Sync
+< 30 Seconds
+
+37. Compliance Requirements
+
+GDPR
+SOC 2
+ISO 27001
+Mobile Security Standards
+Data Privacy Regulations
+
+38. Future Enhancements
+Version 2
+Voice Assistant
+Wearable Devices
+Apple Watch App
+Android Wear Support
+Mobile Workforce Assistant
+Offline AI
+Mobile Knowledge Graph
+Field Workforce Optimization
+
+Success Metrics
+Mobile Adoption
+80%
+
+Mobile DAU
+60%
+
+Crash Free Sessions
+99.9%
+
+Self-Service Completion
+90%
+
+Conclusion
+The Mobile App Platform provides a secure, scalable, and enterprise-grade digital workplace experience that enables employees, managers, HR teams, recruiters, and executives to access PhoenixHRMS anywhere, anytime.
+The platform integrates workforce operations, self-service, analytics, AI assistance, and enterprise mobility capabilities into a unified mobile ecosystem while maintaining performance, security, compliance, accessibility, and tenant isolation.

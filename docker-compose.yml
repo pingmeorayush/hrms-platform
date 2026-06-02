@@ -1,0 +1,105 @@
+services:
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      args:
+        UID: ${LOCAL_UID:-1000}
+        GID: ${LOCAL_GID:-1000}
+    working_dir: /var/www/html
+    init: true
+    restart: unless-stopped
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      FRONTEND_URL: http://localhost:5173
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/html/database/database.sqlite
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      SANCTUM_STATEFUL_DOMAINS: localhost:5173,127.0.0.1:5173,localhost:8000,127.0.0.1:8000
+      RUN_MIGRATIONS: "1"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/api:/var/www/html
+      - api_vendor:/var/www/html/vendor
+      - api_composer_cache:/tmp/composer
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/up >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  queue:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      args:
+        UID: ${LOCAL_UID:-1000}
+        GID: ${LOCAL_GID:-1000}
+    working_dir: /var/www/html
+    init: true
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      FRONTEND_URL: http://localhost:5173
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/html/database/database.sqlite
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      SANCTUM_STATEFUL_DOMAINS: localhost:5173,127.0.0.1:5173,localhost:8000,127.0.0.1:8000
+      RUN_MIGRATIONS: "0"
+    command: ["php", "artisan", "queue:work", "--tries=1", "--timeout=0", "--verbose"]
+    volumes:
+      - ./apps/api:/var/www/html
+      - api_vendor:/var/www/html/vendor
+      - api_composer_cache:/tmp/composer
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        UID: ${LOCAL_UID:-1000}
+        GID: ${LOCAL_GID:-1000}
+    working_dir: /usr/src/app
+    init: true
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+      VITE_API_PROXY_TARGET: http://api:8000
+      VITE_HOST: 0.0.0.0
+      VITE_PORT: "5173"
+      CHOKIDAR_USEPOLLING: "true"
+      NPM_CONFIG_CACHE: /tmp/npm-cache
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/web:/usr/src/app
+      - web_node_modules:/usr/src/app/node_modules
+      - web_npm_cache:/tmp/npm-cache
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:5173 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  api_vendor:
+  api_composer_cache:
+  web_node_modules:
+  web_npm_cache:

@@ -1,0 +1,350 @@
+PhoenixHRMS
+Database Design Document
+Version: 1.0
+Status: Draft
+Document Type: Database Architecture Specification
+Related Documents:
+	•	06-system-architecture.md
+	•	08-backend-architecture.md
+	•	10-multi-tenancy-design.md
+
+1. Purpose
+This document defines the database architecture of PhoenixHRMS.
+Objectives:
+	•	Data consistency
+	•	Scalability
+	•	Multi-tenancy
+	•	Auditability
+	•	Reporting support
+	•	Compliance support
+
+2. Database Technology
+Primary Database:
+PostgreSQL 17+
+
+Reasons:
+	•	ACID Compliance
+	•	Strong indexing
+	•	JSON support
+	•	Full text search
+	•	Partitioning support
+	•	Enterprise reliability
+
+3. Design Principles
+
+DB-001
+UUID Primary Keys
+Every table uses UUID.
+Example:
+id UUID PRIMARY KEY
+Benefits:
+	•	Security
+	•	Distributed systems readiness
+	•	Future microservices support
+
+DB-002
+Multi-Tenant By Design
+Every business table contains:
+company_id UUID
+
+DB-003
+Soft Deletes
+Important business tables use:
+deleted_at TIMESTAMP
+
+DB-004
+Auditability
+Critical entities maintain history.
+
+DB-005
+Normalization First
+Target:
+3NF
+Exceptions allowed for reporting optimization.
+
+4. Core Entity Relationship Model
+Company │ ├── Users ├── Employees ├── Departments ├── Designations ├── Attendance ├── Leave Requests ├── Payrolls ├── Candidates ├── Reviews ├── Assets ├── Documents └── Audit Logs
+
+5. Common Columns
+All business tables contain:
+id UUID  company_id UUID  created_at TIMESTAMP  updated_at TIMESTAMP  deleted_at TIMESTAMP NULL  created_by UUID  updated_by UUID
+
+6. Tenant Tables
+
+companies
+Purpose:
+Tenant Root Entity
+
+Columns:
+id UUID PK  name VARCHAR(255)  slug VARCHAR(255)  timezone VARCHAR(100)  currency VARCHAR(20)  locale VARCHAR(20)  status VARCHAR(20)  subscription_plan_id UUID  created_at updated_at
+Indexes:
+UNIQUE(slug)
+
+subscription_plans
+id UUID PK  name VARCHAR(100)  employee_limit INTEGER  storage_limit_gb INTEGER  price DECIMAL
+
+7. Identity & Access Tables
+
+users
+Purpose:
+Authentication Entity
+
+Columns:
+id UUID PK  company_id UUID  employee_id UUID NULL  email VARCHAR(255)  password VARCHAR(255)  last_login_at TIMESTAMP  is_active BOOLEAN  mfa_enabled BOOLEAN
+Indexes:
+UNIQUE(company_id,email)
+
+roles
+id UUID PK  company_id UUID  name VARCHAR(100)  description TEXT
+
+permissions
+id UUID PK  name VARCHAR(255)  module VARCHAR(100)
+
+role_permissions
+role_id UUID  permission_id UUID
+
+user_roles
+user_id UUID  role_id UUID
+
+8. Organizational Structure
+
+departments
+id UUID  company_id UUID  name VARCHAR(255)  code VARCHAR(50)  parent_department_id UUID NULL  manager_id UUID NULL
+
+Indexes:
+(company_id,name)
+
+designations
+id UUID  company_id UUID  name VARCHAR(255)  level INTEGER
+
+locations
+id UUID  company_id UUID  name VARCHAR(255)  country VARCHAR(100)  state VARCHAR(100)  city VARCHAR(100)
+
+9. Employee Domain
+
+employees
+Purpose:
+Master Employee Record
+
+Columns:
+id UUID  company_id UUID  employee_code VARCHAR(50)  first_name VARCHAR(100)  middle_name VARCHAR(100)  last_name VARCHAR(100)  email VARCHAR(255)  phone VARCHAR(50)  date_of_birth DATE  gender VARCHAR(20)  marital_status VARCHAR(20)  date_of_joining DATE  employment_status VARCHAR(50)  department_id UUID  designation_id UUID  manager_id UUID NULL  location_id UUID  user_id UUID NULL
+
+Indexes:
+(employee_code)  (email)  (company_id)
+
+employee_addresses
+id UUID  employee_id UUID  type VARCHAR(20)  line1  line2  city  state  country  postal_code
+Types:
+Permanent
+Current
+
+employee_emergency_contacts
+id UUID  employee_id UUID  name  relationship  phone
+
+employee_bank_accounts
+id UUID  employee_id UUID  bank_name  account_number  ifsc_code  account_holder_name
+Encrypted Fields Required.
+
+employee_documents
+id UUID  employee_id UUID  document_type  file_path  expiry_date
+
+employee_histories
+Purpose:
+Track transfers and changes.
+
+Columns:
+employee_id  change_type  old_value  new_value  effective_date
+
+10. Attendance Domain
+
+shifts
+id UUID  company_id UUID  name  start_time  end_time  grace_minutes
+
+attendance_records
+Critical High Volume Table
+
+Columns:
+id UUID  company_id UUID  employee_id UUID  attendance_date DATE  check_in_time TIMESTAMP  check_out_time TIMESTAMP  worked_minutes INTEGER  status VARCHAR(50)
+
+Indexes:
+(employee_id,attendance_date)  (company_id,attendance_date)
+
+Potential Partitioning Candidate.
+
+attendance_corrections
+id UUID  attendance_record_id UUID  requested_by UUID  approved_by UUID  reason TEXT
+
+11. Leave Domain
+
+leave_types
+id UUID  company_id UUID  name  days_allowed  carry_forward_limit
+
+leave_balances
+employee_id UUID  leave_type_id UUID  available_days DECIMAL
+
+leave_requests
+id UUID  employee_id UUID  leave_type_id UUID  start_date  end_date  reason  status
+
+leave_approvals
+id UUID  leave_request_id UUID  approver_id UUID  decision  comments
+
+12. Payroll Domain
+
+salary_structures
+id UUID  employee_id UUID  effective_from  ctc  basic_salary
+
+salary_components
+id UUID  company_id UUID  name  component_type  formula
+Types:
+Earning
+Deduction
+Employer Contribution
+
+payroll_periods
+id UUID  company_id UUID  month  year  status
+
+payroll_runs
+id UUID  payroll_period_id UUID  employee_id UUID  gross_salary  net_salary  total_deductions
+
+payroll_items
+id UUID  payroll_run_id UUID  salary_component_id UUID  amount
+
+payslips
+id UUID  payroll_run_id UUID  file_path
+
+13. Recruitment Domain
+
+jobs
+id UUID  company_id UUID  title  department_id UUID  status
+
+candidates
+id UUID  company_id UUID  first_name  last_name  email  phone
+
+candidate_resumes
+id UUID  candidate_id UUID  file_path
+
+interviews
+id UUID  candidate_id UUID  scheduled_at  interviewer_id UUID
+
+interview_feedback
+id UUID  interview_id UUID  rating  comments
+
+14. Performance Domain
+
+goals
+id UUID  company_id UUID  title  weight
+
+employee_goals
+employee_id UUID  goal_id UUID  progress_percentage
+
+performance_reviews
+id UUID  employee_id UUID  review_period
+
+review_ratings
+id UUID  performance_review_id UUID  rating
+
+15. Asset Domain
+
+assets
+id UUID  company_id UUID  asset_tag  asset_type  serial_number
+
+asset_assignments
+id UUID  asset_id UUID  employee_id UUID  assigned_at  returned_at
+
+16. Document Domain
+
+documents
+id UUID  company_id UUID  name  category  file_path
+
+document_access_logs
+id UUID  document_id UUID  accessed_by UUID  accessed_at
+
+17. Notification Domain
+
+notifications
+id UUID  company_id UUID  recipient_id UUID  channel  status
+
+notification_templates
+id UUID  company_id UUID  template_name
+
+18. Audit Domain
+
+audit_logs
+One of the most important tables.
+
+Columns:
+id UUID  company_id UUID  user_id UUID  action  entity_name  entity_id  old_values JSONB  new_values JSONB  ip_address  created_at
+
+Indexes:
+(company_id)  (user_id)  (created_at)
+
+19. AI Domain
+
+ai_requests
+id UUID  company_id UUID  user_id UUID  prompt  response  model
+
+ai_predictions
+id UUID  company_id UUID  prediction_type  confidence_score  result_json JSONB
+
+20. Reporting Domain
+
+report_exports
+id UUID  company_id UUID  report_name  generated_by  file_path
+
+21. Database Indexing Strategy
+Primary Indexes:
+company_id  employee_id  department_id  created_at
+
+Composite Indexes:
+(company_id,status)  (employee_id,date)  (company_id,created_at)
+
+22. Partitioning Strategy
+Candidate Tables:
+attendance_records
+audit_logs
+notifications
+
+Partition By:
+Month
+Year
+
+23. Archival Strategy
+Archive After:
+5 Years
+Examples:
+Attendance
+Notifications
+Audit Logs
+
+24. Data Retention
+Payroll:
+10 Years
+Employee:
+7 Years
+Audit:
+7 Years
+
+25. Future ERP Expansion
+Future Domains:
+Procurement
+Inventory
+CRM
+Learning Management
+Finance
+Project Management
+Helpdesk
+
+Estimated Database Size
+Version 1:
+50–60 Tables
+
+Version 2:
+100+ Tables
+
+Version 3:
+150+ Tables
+
+Conclusion
+The PhoenixHRMS database architecture is designed around PostgreSQL, multi-tenancy, auditability, scalability, and future ERP expansion.
+The schema follows strict normalization principles while maintaining flexibility for reporting, analytics, payroll processing, and AI-driven insights.
+All future migrations, models, repositories, APIs, and reporting layers must align with the structures and principles defined in this document.

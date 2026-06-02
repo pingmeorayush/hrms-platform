@@ -1,0 +1,547 @@
+PhoenixHRMS
+Employee Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: EMP
+Document Type: Functional Module Specification
+Related Documents:
+	•	01-product-requirements.md
+	•	03-user-stories.md
+	•	04-business-rules.md
+	•	11-database-design.md
+	•	14-openapi-spec.md
+
+1. Module Overview
+Purpose
+The Employee Management Module serves as the central repository for all employee-related information within PhoenixHRMS.
+This module manages:
+	•	Employee lifecycle
+	•	Employee profiles
+	•	Organizational hierarchy
+	•	Employee documents
+	•	Employee bank information
+	•	Employee contacts
+	•	Employee history
+	•	Onboarding
+	•	Transfers
+	•	Promotions
+	•	Offboarding
+
+Business Value
+Benefits:
+	•	Centralized employee records
+	•	Reduced administrative effort
+	•	Compliance support
+	•	Auditability
+	•	Workforce visibility
+	•	Accurate downstream payroll processing
+
+2. Module Scope
+
+Included
+Employee Master Data
+Employee Profiles
+Employee Contacts
+Employee Addresses
+Employee Documents
+Emergency Contacts
+Bank Accounts
+Employment History
+Reporting Hierarchy
+Onboarding
+Transfers
+Promotions
+Termination
+Employee Search
+Employee Directory
+Bulk Import
+Bulk Export
+Audit Tracking
+
+Excluded
+Attendance
+Leave
+Payroll
+Performance
+Recruitment
+These belong to separate modules.
+
+3. Employee Lifecycle
+
+Lifecycle States
+Draft  ↓  Pending Approval  ↓  Active  ↓  Probation  ↓  Confirmed  ↓  Transferred  ↓  Promoted  ↓  Resigned  ↓  Terminated  ↓  Archived
+
+State Definitions
+Draft
+Employee record created but incomplete.
+
+Active
+Employee officially onboarded.
+
+Probation
+Employee serving probation period.
+
+Confirmed
+Probation successfully completed.
+
+Resigned
+Employee submitted resignation.
+
+Terminated
+Employment ended.
+
+Archived
+Historical record retained.
+
+4. Employee Master Record
+
+Core Employee Information
+Employee Code
+First Name
+Middle Name
+Last Name
+Preferred Name
+Gender
+Date Of Birth
+Marital Status
+Nationality
+Email
+Phone
+Photo
+
+Employment Information
+Date Of Joining
+Employment Type
+Employment Status
+Department
+Designation
+Location
+Reporting Manager
+Cost Center
+Grade
+Band
+Probation End Date
+
+System Information
+User Account
+Role
+Permissions
+Last Login
+Account Status
+
+5. Employment Types
+Supported Types
+Full-Time
+Part-Time
+Contract
+Consultant
+Intern
+Temporary
+Freelancer
+Vendor Resource
+
+Configurable Per Tenant.
+
+6. Employee Creation Workflow
+
+Standard Flow
+HR Executive  ↓  Create Employee  ↓  Validation  ↓  Approval  ↓  Employee Record Created  ↓  User Account Created  ↓  Welcome Notification  ↓  Audit Entry
+
+Validation Rules
+Mandatory Fields:
+First Name
+Last Name
+Email
+Department
+Designation
+Date Of Joining
+Employment Type
+
+7. Employee Onboarding
+
+Purpose
+Digitize employee joining process.
+
+Onboarding Checklist
+Offer Accepted
+Documents Uploaded
+Bank Account Added
+Emergency Contact Added
+Equipment Assigned
+Training Assigned
+Policies Accepted
+Account Activated
+
+Progress Tracking
+Percentage Completion
+Example:
+75% Complete
+
+8. Employee Profile
+
+Sections
+Personal Information
+Employment Information
+Documents
+Contacts
+Bank Details
+History
+Assets
+Audit Trail
+
+Editable Fields
+Configurable by tenant.
+
+Approval workflow available.
+
+9. Employee Address Management
+
+Address Types
+Permanent Address
+Current Address
+Office Address
+
+Fields
+Address Line 1
+Address Line 2
+City
+State
+Country
+Postal Code
+
+Multiple addresses supported.
+
+10. Emergency Contacts
+
+Fields
+Name
+Relationship
+Phone Number
+Email
+Address
+Priority
+
+Multiple contacts supported.
+
+11. Employee Bank Information
+
+Fields
+Bank Name
+Branch
+Account Holder Name
+Account Number
+IFSC Code
+SWIFT Code
+UPI ID
+
+Security
+Encrypted At Rest
+Role Restricted
+Audit Logged
+
+12. Employee Documents
+
+Supported Categories
+Government ID
+Passport
+Driving License
+Resume
+Offer Letter
+Contract
+Educational Certificates
+Experience Letters
+Medical Documents
+Other
+
+Supported Formats
+PDF
+PNG
+JPG
+DOCX
+
+Features
+Versioning
+Expiry Tracking
+Download Control
+Access Logging
+
+13. Employee Hierarchy
+
+Reporting Structure
+Employee
+↓
+Manager
+↓
+Department Head
+↓
+HR Director
+
+Features
+Org Chart
+Reporting Tree
+Hierarchy Search
+Span Of Control Analytics
+
+14. Transfers
+
+Transfer Types
+Department Transfer
+Location Transfer
+Manager Transfer
+Business Unit Transfer
+
+Workflow
+Request  ↓  Approval  ↓  Effective Date  ↓  Transfer Executed  ↓  History Created
+
+History Retention
+Mandatory.
+
+15. Promotions
+
+Promotion Attributes
+Old Designation
+New Designation
+Old Grade
+New Grade
+Old Salary
+New Salary
+Effective Date
+Reason
+
+Workflow
+Manager Recommendation  ↓  HR Approval  ↓  Promotion Execution  ↓  History Creation
+
+16. Employee Separation
+
+Separation Types
+Resignation
+Termination
+Retirement
+Contract End
+Death
+Abandonment
+
+Workflow
+Separation Request  ↓  Approvals  ↓  Asset Clearance  ↓  Final Settlement  ↓  Exit Interview  ↓  Termination  ↓  Archive
+
+17. Employee Search
+
+Search Fields
+Employee Code
+Name
+Email
+Department
+Designation
+Manager
+Location
+Status
+
+Advanced Filters
+Joining Date
+Employment Type
+Probation Status
+Gender
+Grade
+Band
+
+18. Employee Directory
+
+Features
+Global Search
+Employee Cards
+Employee Profiles
+Org Chart Navigation
+Contact Directory
+
+Visibility Rules
+Tenant Configurable.
+
+19. Bulk Import
+
+Formats
+CSV
+Excel
+
+Supported Operations
+Create Employees
+Update Employees
+Assign Departments
+Assign Managers
+
+Validation
+Row-Level Validation
+Error Reports
+Rollback Support
+
+20. Bulk Export
+
+Formats
+CSV
+Excel
+PDF
+
+Filters Supported
+Department
+Location
+Status
+Employment Type
+
+21. Employee History
+
+Tracks:
+Department Changes
+Designation Changes
+Manager Changes
+Location Changes
+Salary Changes
+Status Changes
+
+Immutable
+History records cannot be modified.
+
+22. Audit Requirements
+
+Audit Events
+Employee Created
+Employee Updated
+Transfer Executed
+Promotion Executed
+Termination Executed
+Document Downloaded
+Bank Details Modified
+
+Retention:
+7 Years Minimum
+
+23. Permissions Matrix
+
+Employee View
+employee.view
+
+Employee Create
+employee.create
+
+Employee Edit
+employee.edit
+
+Employee Delete
+employee.delete
+
+Employee Export
+employee.export
+
+Employee Import
+employee.import
+
+Employee Manage Documents
+employee.document.manage
+
+Employee Manage Bank Accounts
+employee.bank.manage
+
+24. Reports
+
+Employee Headcount
+Department Headcount
+New Joiners
+Separations
+Probation Status
+Promotion Report
+Transfer Report
+Diversity Report
+Workforce Distribution
+
+25. Dashboard Widgets
+
+Total Employees
+Active Employees
+New Joiners
+Employees On Probation
+Pending Onboarding
+Pending Approvals
+Upcoming Work Anniversaries
+Upcoming Birthdays
+
+26. Notifications
+
+Employee Created
+Profile Updated
+Document Expiry
+Probation Ending
+Promotion Approved
+Transfer Approved
+Termination Process Started
+
+27. APIs
+
+Employee APIs
+GET /employees  POST /employees  GET /employees/{id}  PATCH /employees/{id}  DELETE /employees/{id}
+
+Document APIs
+GET /employees/{id}/documents  POST /employees/{id}/documents
+
+History APIs
+GET /employees/{id}/history
+
+Hierarchy APIs
+GET /employees/{id}/hierarchy
+
+28. Database Tables
+Primary Tables
+employees
+employee_addresses
+employee_emergency_contacts
+employee_bank_accounts
+employee_documents
+employee_histories
+
+Reference Tables
+departments
+designations
+locations
+
+29. Security Requirements
+
+Sensitive Fields
+Account Number
+Government IDs
+Medical Documents
+Personal Contact Information
+
+Controls
+Encryption
+RBAC
+Audit Logging
+Access Restrictions
+
+30. Success Metrics
+
+Employee Creation Time
+< 5 Minutes
+
+Search Response Time
+< 1 Second
+
+Profile Update Success Rate
+99%
+
+Data Accuracy
+99.9%
+
+31. Future Enhancements
+Version 2
+Employee Self-Service
+Digital Signatures
+Employee Timeline
+Custom Fields
+Employee Skills Matrix
+Talent Profiles
+Internal Mobility
+Succession Planning
+Employee Mentorship
+Career Pathing
+
+Conclusion
+The Employee Management Module serves as the foundational domain of PhoenixHRMS and acts as the system of record for all workforce information.
+All downstream modules including Attendance, Leave, Payroll, Performance, Assets, Reports, and AI depend on the integrity and accuracy of this module.
+The module is designed to support organizations ranging from small businesses to enterprise-scale workforces while maintaining security, auditability, scalability, and compliance.

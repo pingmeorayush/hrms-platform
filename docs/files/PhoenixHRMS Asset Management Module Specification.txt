@@ -1,0 +1,532 @@
+PhoenixHRMS
+Asset Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: AST
+Document Type: Functional Module Specification
+Related Documents:
+	•	15-employee-management-module.md
+	•	18-payroll-management-module.md
+	•	11-database-design.md
+	•	14-openapi-spec.md
+
+1. Module Overview
+Purpose
+The Asset Management Module manages organizational assets throughout their complete lifecycle.
+The module provides:
+	•	Asset Inventory
+	•	Asset Assignment
+	•	Asset Tracking
+	•	Maintenance Management
+	•	Asset Audits
+	•	Asset Recovery
+	•	Exit Clearance
+	•	Asset Analytics
+
+Business Objectives
+	•	Reduce asset loss
+	•	Improve asset visibility
+	•	Streamline asset assignments
+	•	Improve compliance
+	•	Optimize asset utilization
+	•	Support audits
+
+2. Module Scope
+
+Included
+Asset Catalog
+Asset Inventory
+Asset Assignment
+Asset Requests
+Asset Transfers
+Maintenance Tracking
+Warranty Tracking
+Asset Audits
+Asset Recovery
+Asset Disposal
+Software License Tracking
+Exit Clearance
+Asset Analytics
+
+Excluded
+Procurement Purchasing
+Accounting Ledger Posting
+These integrate externally.
+
+3. Asset Lifecycle
+Asset Requested  ↓  Procured  ↓  Received  ↓  Registered  ↓  Assigned  ↓  In Use  ↓  Maintenance  ↓  Returned  ↓  Reassigned  ↓  Disposed  ↓  Archived
+
+4. Asset Categories
+
+IT Assets
+Laptop
+Desktop
+Monitor
+Mobile Phone
+Tablet
+Printer
+Server
+Network Equipment
+Software License
+
+Non-IT Assets
+Furniture
+Vehicle
+Uniform
+Safety Equipment
+Access Card
+Office Equipment
+Machinery
+Tools
+
+Custom Categories
+Tenant Configurable.
+
+5. Asset Registry
+
+Purpose
+Centralized inventory repository.
+
+Asset Attributes
+Asset Tag
+Asset Name
+Asset Category
+Manufacturer
+Model
+Serial Number
+Purchase Date
+Purchase Cost
+Current Value
+Status
+Location
+Custodian
+
+Unique Asset Tag
+Required.
+
+6. Asset Classification
+
+Types
+Consumable
+Reusable
+Fixed Asset
+Leased Asset
+Rental Asset
+Licensed Asset
+Digital Asset
+
+Example
+```text id=“n1f0kq” Laptop
+Reusable Asset
+License
+Digital Asset
+ ---  # 7. Asset Status Management  ---  ## Statuses  Requested  Ordered  Received  Available  Assigned  In Maintenance  Lost  Damaged  Returned  Disposed  Archived  ---  ## Workflow Driven  Status changes controlled by rules.  ---  # 8. Asset Assignment  ---  ## Purpose  Allocate assets to employees.  ---  ## Assignment Types  Permanent  Temporary  Project Based  Shared Asset  ---  ## Assignment Fields  Employee  Assigned Date  Expected Return Date  Condition  Notes  ---  # 9. Asset Request Management  ---  ## Workflow  ```text Employee  ↓  Manager Approval  ↓  IT/Admin Approval  ↓  Assignment
+
+Request Types
+New Asset
+Replacement
+Upgrade
+Temporary Asset
+Additional Asset
+
+10. Asset Transfers
+
+Transfer Types
+Employee Transfer
+Department Transfer
+Location Transfer
+Project Transfer
+
+Workflow
+Request
+↓
+Approval
+↓
+Transfer
+↓
+Audit Entry
+
+11. Asset Returns
+
+Use Cases
+Replacement
+Transfer
+Repair
+Employee Exit
+
+Return Checklist
+Physical Inspection
+Condition Verification
+Accessories Returned
+Data Wipe Verification
+Approval
+
+12. Exit Clearance Integration
+
+Purpose
+Ensure asset recovery before employee exit.
+
+Workflow
+Employee Resignation
+↓
+Asset Verification
+↓
+Return Confirmation
+↓
+Clearance Approval
+↓
+Final Settlement
+
+Blocking Rules
+Pending Assets
+↓
+Exit Clearance Blocked
+
+13. Maintenance Management
+
+Maintenance Types
+Preventive
+Corrective
+Emergency
+Scheduled
+Vendor Service
+
+Maintenance Fields
+Issue
+Priority
+Vendor
+Cost
+Resolution
+Completion Date
+
+14. Warranty Management
+
+Warranty Attributes
+Vendor
+Start Date
+End Date
+Coverage
+Contact Information
+
+Features
+Warranty Alerts
+Expiry Notifications
+Claim Tracking
+
+15. Software License Management
+
+License Types
+Per User
+Per Device
+Subscription
+Enterprise
+Volume License
+
+License Fields
+License Key
+Vendor
+Seats
+Expiry Date
+Renewal Date
+Cost
+
+Compliance Tracking
+License Utilization
+Overuse Detection
+Renewal Alerts
+
+16. Asset Audits
+
+Purpose
+Verify inventory accuracy.
+
+Audit Types
+Physical Audit
+Random Audit
+Department Audit
+Annual Audit
+Compliance Audit
+
+Audit Results
+Verified
+Missing
+Damaged
+Mismatch
+
+17. Asset Depreciation
+
+Purpose
+Track asset value.
+
+Methods
+Straight Line
+Reducing Balance
+Custom
+
+Fields
+Purchase Cost
+Current Value
+Depreciation Rate
+Residual Value
+
+18. Asset Disposal
+
+Disposal Methods
+Sale
+Scrap
+Donation
+Return To Vendor
+Recycling
+
+Approval Workflow
+Asset Owner
+↓
+Finance
+↓
+Administration
+↓
+Disposed
+
+19. Asset Recovery
+
+Triggers
+Employee Exit
+Contract End
+Department Transfer
+Asset Recall
+
+Recovery Tracking
+Pending
+Collected
+Verified
+Closed
+
+20. Asset Reservations
+
+Purpose
+Reserve shared assets.
+
+Examples
+Projector
+Meeting Equipment
+Pool Vehicles
+Shared Devices
+
+Features
+Booking
+Approval
+Scheduling
+Conflict Detection
+
+21. Asset Analytics
+
+Metrics
+Asset Utilization
+Assignment Rate
+Asset Loss Rate
+Maintenance Cost
+License Utilization
+Asset Age
+Asset Value
+Recovery Success Rate
+
+22. Asset Reports
+
+Asset Inventory Report
+Assigned Assets Report
+Department Assets Report
+Maintenance Report
+Warranty Expiry Report
+License Utilization Report
+Asset Depreciation Report
+Asset Disposal Report
+Exit Clearance Report
+
+Formats
+PDF
+Excel
+CSV
+
+23. Asset Notifications
+
+Asset Assigned
+Asset Returned
+Warranty Expiring
+Maintenance Scheduled
+Maintenance Overdue
+License Expiring
+Audit Scheduled
+Recovery Required
+
+24. Asset APIs
+
+Assets
+```http id=“g7m9ke” GET /assets
+POST /assets
+PATCH /assets/{id}
+ ---  Assignments  ```http id="f4t8zs" GET /asset-assignments  POST /asset-assignments
+
+Requests
+```http id=“v2k1mw” GET /asset-requests
+POST /asset-requests
+ ---  Maintenance  ```http id="x5c3qp" GET /maintenance  POST /maintenance
+
+Audits
+```http id=“l8n6dh” GET /asset-audits
+POST /asset-audits ```
+
+25. Database Tables
+Asset Domain
+assets
+asset_categories
+asset_models
+asset_statuses
+
+Assignment Domain
+asset_assignments
+asset_returns
+asset_transfers
+
+Request Domain
+asset_requests
+asset_request_approvals
+
+Maintenance Domain
+asset_maintenance
+maintenance_vendors
+
+Warranty Domain
+asset_warranties
+
+License Domain
+software_licenses
+license_assignments
+
+Audit Domain
+asset_audits
+asset_audit_results
+
+Depreciation Domain
+asset_depreciation
+
+Disposal Domain
+asset_disposals
+
+26. Permissions Matrix
+
+asset.view
+asset.create
+asset.edit
+asset.assign
+asset.return
+asset.transfer
+asset.dispose
+asset.audit
+asset.manage_maintenance
+asset.manage_licenses
+asset.analytics.view
+asset.export
+
+27. Security Requirements
+
+Asset Ownership Validation
+Software License Security
+Data Wipe Verification
+RBAC Enforcement
+Audit Logging
+Tenant Isolation
+
+28. Audit Requirements
+
+Asset Created
+Asset Assigned
+Asset Returned
+Asset Transferred
+Maintenance Logged
+Audit Completed
+License Assigned
+Asset Disposed
+
+Retention
+7 Years Minimum
+
+29. Integrations
+
+Employee Module
+Payroll Module
+Procurement Systems
+Finance Systems
+Helpdesk Systems
+Notification Module
+AI Module
+
+30. AI Asset Features
+
+Asset Utilization Forecasting
+Maintenance Prediction
+Replacement Recommendations
+License Optimization
+Asset Lifecycle Analysis
+Risk Detection
+
+Governance
+Recommendations only.
+Human approval required.
+
+31. Dashboard Widgets
+
+Total Assets
+Assigned Assets
+Available Assets
+Maintenance Due
+Warranty Expiring
+License Expiring
+Asset Utilization %
+Pending Recoveries
+
+32. Performance Requirements
+
+Asset Search
+< 1 Second
+
+Assignment Processing
+< 2 Seconds
+
+Inventory Reports
+< 5 Seconds
+
+33. Compliance Requirements
+
+Asset Traceability
+License Compliance
+Audit Readiness
+Data Security Controls
+Exit Clearance Controls
+
+34. Future Enhancements
+Version 2
+RFID Tracking
+QR Code Scanning
+IoT Asset Monitoring
+Automated Discovery
+Mobile Asset App
+Predictive Maintenance
+Smart Inventory Optimization
+Enterprise Asset Marketplace
+
+Success Metrics
+Asset Recovery Rate
+98%
+
+Inventory Accuracy
+99%
+
+License Compliance
+100%
+
+Asset Assignment SLA
+< 24 Hours
+
+Conclusion
+The Asset Management Module provides a complete enterprise-grade asset lifecycle management platform capable of managing physical assets, digital assets, software licenses, and operational equipment across the organization.
+The module integrates inventory management, assignments, maintenance, audits, depreciation, recovery, and compliance into a unified asset ecosystem while maintaining scalability, security, auditability, and tenant isolation.

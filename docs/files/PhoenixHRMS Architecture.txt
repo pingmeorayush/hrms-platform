@@ -1,0 +1,435 @@
+PhoenixHRMS
+System Architecture Document
+Version: 1.0
+Status: Draft
+Document Type: Technical Architecture Specification
+Related Documents:
+	•	00-overview.md
+	•	01-product-requirements.md
+	•	04-business-rules.md
+	•	05-non-functional-requirements.md
+
+1. Purpose
+This document defines the overall architecture of PhoenixHRMS.
+It describes:
+	•	System structure
+	•	Technology decisions
+	•	Component interactions
+	•	Data flow
+	•	Security architecture
+	•	Scalability strategy
+This document serves as the master engineering blueprint.
+
+2. Architecture Goals
+The architecture must support:
+	•	Enterprise scalability
+	•	Security
+	•	Maintainability
+	•	Extensibility
+	•	High availability
+	•	Multi-tenancy
+	•	AI integrations
+	•	Future microservice migration
+
+3. Architectural Principles
+AP-001
+Single Responsibility
+Every module shall have one responsibility.
+
+AP-002
+Separation of Concerns
+UI, business logic, and persistence must remain separated.
+
+AP-003
+Domain Driven Design
+Business domains shall be isolated.
+Examples:
+	•	Employee Domain
+	•	Payroll Domain
+	•	Attendance Domain
+
+AP-004
+API First
+All business functionality exposed through APIs.
+Frontend consumes same APIs.
+
+AP-005
+Event Driven
+Cross-module communication uses events.
+
+AP-006
+Security By Default
+Every request authenticated and authorized.
+
+4. High-Level Architecture
+System Architecture:
+┌─────────────────────────┐ │      React Frontend     │ └────────────┬────────────┘              │              ▼ ┌─────────────────────────┐ │       API Layer         │ └────────────┬────────────┘              │              ▼ ┌─────────────────────────┐ │    Application Layer    │ └────────────┬────────────┘              │              ▼ ┌─────────────────────────┐ │      Domain Layer       │ └────────────┬────────────┘              │              ▼ ┌─────────────────────────┐ │ Infrastructure Layer    │ └────────────┬────────────┘              │    ┌─────────┴──────────┐    ▼                    ▼ PostgreSQL           Redis
+
+5. Technology Stack
+Frontend
+React 19
+TypeScript
+Vite
+Redux Toolkit
+React Query
+React Hook Form
+Yup
+Material UI
+Storybook
+
+Backend
+PHP 8.3
+Laravel 12
+Laravel Sanctum
+Laravel Queues
+Laravel Events
+Laravel Notifications
+Spatie Permission
+
+Database
+PostgreSQL
+Primary datastore.
+
+Cache
+Redis
+Used for:
+	•	Sessions
+	•	Queues
+	•	Cache
+	•	Rate Limiting
+
+Storage
+AWS S3
+Used for:
+	•	Documents
+	•	Payslips
+	•	Attachments
+
+6. Architectural Style
+Architecture Pattern:
+Modular Monolith
+
+Why Modular Monolith
+Advantages:
+	•	Simple deployment
+	•	Easy debugging
+	•	Lower operational cost
+	•	Faster development
+
+Migration Path
+Future:
+Modular Monolith  ↓  Service Extraction  ↓  Microservices
+Modules can be separated independently.
+
+7. Layered Architecture
+
+Presentation Layer
+Responsibilities:
+	•	UI rendering
+	•	User interactions
+	•	Form validation
+Technology:
+React
+
+API Layer
+Responsibilities:
+	•	Authentication
+	•	Authorization
+	•	Request validation
+Technology:
+Laravel Controllers
+
+Application Layer
+Responsibilities:
+	•	Use Cases
+	•	Orchestration
+	•	Transaction Management
+Examples:
+CreateEmployeeService
+RunPayrollService
+ApproveLeaveService
+
+Domain Layer
+Responsibilities:
+Business Rules
+Entities
+Policies
+Examples:
+Employee
+Attendance
+Payroll
+Leave
+
+Infrastructure Layer
+Responsibilities:
+Database
+Cache
+Queues
+External Integrations
+
+8. Domain Architecture
+Modules:
+Employee Attendance Leave Payroll Recruitment Performance Asset Document Analytics Notification Audit AI
+Each domain contains:
+Controllers  Services  Repositories  Policies  DTOs  Events  Listeners  Tests
+
+9. Module Boundaries
+Employee Module
+Responsible for:
+	•	Employee lifecycle
+Not responsible for:
+	•	Payroll calculations
+
+Payroll Module
+Responsible for:
+	•	Salary processing
+Not responsible for:
+	•	Employee profile management
+
+Attendance Module
+Responsible for:
+	•	Attendance tracking
+Not responsible for:
+	•	Payroll generation
+
+10. Request Lifecycle
+Example:
+Create Employee
+Frontend  ↓  API Request  ↓  Controller  ↓  Request Validator  ↓  Service  ↓  Repository  ↓  Database  ↓  Response
+
+11. Event Architecture
+Events decouple modules.
+Example:
+Employee Created
+↓
+EmployeeCreated Event
+↓
+Send Welcome Email
+↓
+Generate Employee Code
+↓
+Audit Log
+↓
+Notify HR
+
+Example:
+Leave Approved
+↓
+LeaveApproved Event
+↓
+Update Leave Balance
+↓
+Send Notification
+↓
+Create Audit Entry
+
+12. Queue Architecture
+Long-running operations use queues.
+Examples:
+	•	Payroll generation
+	•	Email delivery
+	•	PDF generation
+	•	AI processing
+
+Queue Flow:
+Request  ↓  Queue  ↓  Worker  ↓  Processing  ↓  Result
+
+13. Multi-Tenancy Architecture
+Strategy:
+Shared Database
+Shared Schema
+Tenant Isolation By:
+company_id
+
+Example:
+employees
+company_id = 1
+employees
+company_id = 2
+
+Rules:
+Every business entity contains:
+company_id
+
+14. Authentication Architecture
+Supported:
+	•	Email Login
+	•	Password Login
+	•	MFA
+Future:
+	•	Google SSO
+	•	Azure AD
+	•	SAML
+
+Authentication Flow
+Login  ↓  Credential Validation  ↓  Token Creation  ↓  Session Tracking  ↓  Dashboard Access
+
+15. Authorization Architecture
+Model:
+RBAC
+Role Based Access Control
+
+Structure:
+User  ↓  Role  ↓  Permissions
+Example:
+Manager
+Permissions:
+	•	Approve Leave
+	•	View Team
+
+Employee
+Permissions:
+	•	View Own Data
+
+16. Notification Architecture
+Channels:
+	•	Email
+	•	SMS
+	•	WhatsApp
+	•	In-App
+
+Flow:
+Event  ↓  Notification Service  ↓  Channel Selection  ↓  Delivery
+
+17. Audit Architecture
+Every critical action audited.
+Examples:
+	•	Employee Created
+	•	Leave Approved
+	•	Payroll Run
+
+Audit Structure
+User  Action  Entity  Entity ID  Timestamp  Old Value  New Value
+
+18. Reporting Architecture
+Reports generated from:
+	•	Operational Data
+	•	Aggregated Data
+Large reports processed asynchronously.
+
+19. AI Architecture
+AI Services:
+Resume Scoring
+Attendance Analysis
+Attrition Prediction
+HR Assistant
+
+Architecture:
+Application  ↓  AI Service  ↓  LLM Provider  ↓  Response  ↓  Audit Log
+
+Rules:
+AI never executes critical actions automatically.
+Human approval required.
+
+20. Caching Strategy
+Redis Cache
+Used For:
+	•	Settings
+	•	Permissions
+	•	Dashboards
+	•	Lookup Data
+
+Cache Pattern
+Cache Aside
+
+Flow:
+Request  ↓  Cache  ↓  Miss  ↓  Database  ↓  Cache Store
+
+21. Database Strategy
+Primary Database:
+PostgreSQL
+
+Design Principles
+	•	UUID Primary Keys
+	•	Soft Deletes
+	•	Foreign Keys
+	•	Auditability
+
+Indexing Strategy
+Indexes:
+	•	employee_code
+	•	email
+	•	company_id
+	•	attendance_date
+
+22. External Integrations
+Future Integrations
+Payroll:
+	•	Bank APIs
+Communication:
+	•	Twilio
+	•	WhatsApp
+Identity:
+	•	Azure AD
+Storage:
+	•	AWS S3
+
+23. Deployment Architecture
+Cloudflare  ↓  Load Balancer  ↓  Application Servers  ↓  Redis  ↓  PostgreSQL  ↓  S3 Storage
+
+24. Security Architecture
+Layers:
+Network Security
+↓
+Application Security
+↓
+Authorization
+↓
+Data Encryption
+↓
+Audit Logging
+
+Principles:
+	•	Least Privilege
+	•	Zero Trust
+	•	Defense In Depth
+
+25. Monitoring Architecture
+Metrics:
+	•	CPU
+	•	Memory
+	•	Response Time
+	•	Error Rate
+
+Tools:
+Prometheus
+Grafana
+OpenTelemetry
+
+26. Disaster Recovery Architecture
+Primary Region
+↓
+Replication
+↓
+Backup Region
+
+Recovery Targets
+RPO:
+15 Minutes
+RTO:
+4 Hours
+
+27. Future Architecture Evolution
+Current:
+Modular Monolith
+
+Future:
+Employee Service  Attendance Service  Payroll Service  Recruitment Service  AI Service
+Extractable independently.
+
+28. Architecture Decision Records (ADR)
+Major architecture decisions shall be documented.
+Examples:
+ADR-001
+Why PostgreSQL
+ADR-002
+Why Modular Monolith
+ADR-003
+Why Shared Database Multi-Tenancy
+ADR-004
+Why Redis
+
+Conclusion
+PhoenixHRMS shall be implemented as a secure, scalable, multi-tenant, event-driven Modular Monolith architecture.
+This design provides enterprise-grade reliability while maintaining simplicity, cost efficiency, and future scalability.
+All implementation decisions must align with this architecture document.

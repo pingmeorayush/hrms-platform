@@ -1,0 +1,526 @@
+PhoenixHRMS
+Leave Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: LEAVE
+Document Type: Functional Module Specification
+Related Documents:
+	•	04-business-rules.md
+	•	11-database-design.md
+	•	16-attendance-management-module.md
+	•	14-openapi-spec.md
+
+1. Module Overview
+Purpose
+The Leave Management Module is responsible for planning, requesting, approving, tracking, accruing, and reporting employee leave.
+The module provides:
+	•	Leave policies
+	•	Leave requests
+	•	Leave balances
+	•	Leave approvals
+	•	Leave accruals
+	•	Carry forward
+	•	Encashment
+	•	Compliance tracking
+
+Business Objectives
+	•	Reduce manual leave administration
+	•	Enforce company policies
+	•	Improve workforce planning
+	•	Integrate with payroll
+	•	Ensure legal compliance
+
+2. Module Scope
+
+Included
+Leave Types
+Leave Policies
+Leave Balances
+Leave Requests
+Approval Workflows
+Accrual Engine
+Carry Forward
+Leave Encashment
+Holiday Integration
+Sandwich Leave
+Loss Of Pay (LOP)
+Leave Calendar
+Leave Reports
+Leave Analytics
+
+Excluded
+Payroll Calculation
+Attendance Recording
+These modules consume leave information.
+
+3. Leave Lifecycle
+Leave Policy Created  ↓  Leave Accrued  ↓  Leave Available  ↓  Employee Requests Leave  ↓  Approval Workflow  ↓  Approved  ↓  Attendance Updated  ↓  Payroll Consumed  ↓  Archived
+
+4. Leave Types
+
+Standard Leave Types
+Annual Leave
+Casual Leave
+Sick Leave
+Maternity Leave
+Paternity Leave
+Bereavement Leave
+Marriage Leave
+Compensatory Off
+Unpaid Leave
+Work From Home Leave
+Study Leave
+Sabbatical Leave
+Optional Holiday
+Restricted Holiday
+
+Tenant Custom Types
+Unlimited support.
+Example:
+Exam Leave  Volunteer Leave  Festival Leave
+
+5. Leave Policy Engine
+
+Purpose
+Defines how leave behaves.
+
+Policy Components
+Leave Type
+Eligibility
+Accrual Rules
+Carry Forward Rules
+Encashment Rules
+Approval Workflow
+Restrictions
+Expiry Rules
+
+Policy Example
+Annual Leave  24 Days Per Year  Accrual Monthly  Carry Forward 10 Days  Encashment Allowed
+
+6. Leave Eligibility Rules
+
+Eligibility Based On:
+Employment Type
+Department
+Location
+Designation
+Grade
+Gender
+Tenure
+
+Example
+Maternity Leave  Only Female Employees  Minimum 6 Months Service
+
+7. Leave Accrual Engine
+
+Purpose
+Automatically generates leave balances.
+
+Accrual Methods
+Yearly
+Monthly
+Quarterly
+Custom
+
+Example
+24 Days Annual Leave  Monthly Accrual  24 / 12  =  2 Days Per Month
+
+Accrual Events
+Employee Join
+Policy Assignment
+Scheduled Job
+Manual Adjustment
+
+8. Leave Balance Management
+
+Balance Types
+Available
+Consumed
+Pending
+Expired
+Encashed
+Carried Forward
+
+Real-Time Calculation
+Balance always computed dynamically.
+
+9. Leave Request Workflow
+
+Standard Flow
+Employee  ↓  Manager  ↓  HR  ↓  Approved
+
+Alternative Flows
+Single Approval
+Dual Approval
+Multi-Level Approval
+Custom Workflow Builder
+
+10. Leave Request Form
+
+Fields
+Leave Type
+Start Date
+End Date
+Half Day
+Reason
+Attachment
+Emergency Contact
+Delegate Employee
+
+Optional Fields
+Travel Details
+Medical Certificate
+Supporting Documents
+
+11. Leave Duration Calculation
+
+Supported Units
+Full Day
+Half Day
+Hourly Leave
+Custom Units
+
+Examples
+09:00 AM  to  01:00 PM  =  4 Hours Leave
+
+12. Half-Day Leave
+
+Supported Types
+First Half
+Second Half
+Custom Hours
+
+Rules configurable.
+
+13. Hourly Leave
+
+Use Cases
+Medical Appointment
+Personal Work
+Emergency
+
+Supported:
+Minutes
+Hours
+Partial Day
+
+14. Multi-Day Leave
+
+Features
+Date Range Validation
+Holiday Exclusion
+Weekend Handling
+Policy-Based Counting
+
+15. Sandwich Leave Rules
+
+Purpose
+Handle weekends/holidays between leave days.
+
+Example
+Friday Leave  Saturday Weekend  Sunday Weekend  Monday Leave
+
+Policy:
+Count Weekend
+OR
+Ignore Weekend
+
+Configurable Per Tenant.
+
+16. Holiday Integration
+
+Leave engine integrates with:
+Holiday Calendar
+
+Options
+Exclude Holidays
+Include Holidays
+Policy Controlled
+
+17. Leave Approval Workflow
+
+Workflow
+Employee  ↓  Manager  ↓  Department Head  ↓  HR  ↓  Approved
+
+Actions
+Approve
+Reject
+Request Changes
+Delegate
+Escalate
+
+18. Auto Approval Rules
+
+Examples
+Sick Leave  <= 1 Day  Auto Approve
+
+Rules configurable.
+
+19. Leave Cancellation
+
+Pending Leave
+↓
+Employee Cancels
+
+Approved Leave
+↓
+Approval Required
+
+Audit retained.
+
+20. Leave Modification
+
+Supported Before Leave Start.
+
+Workflow
+Modification Request
+↓
+Approval
+↓
+Balance Recalculation
+
+21. Carry Forward Engine
+
+Purpose
+Move unused leave into next period.
+
+Example
+Unused = 15  Maximum Carry Forward = 10  Carry = 10  Expire = 5
+
+Expiry Support
+Example
+Carry Forward Expires  After 90 Days
+
+22. Leave Encashment
+
+Purpose
+Convert leave to monetary value.
+
+Rules
+Allowed Leave Types
+Minimum Balance
+Maximum Encashment
+Tax Treatment
+
+Workflow
+Request
+↓
+Approval
+↓
+Payroll Integration
+
+23. Loss Of Pay (LOP)
+
+Generated When:
+Leave Balance Insufficient
+Unpaid Leave Applied
+Unauthorized Absence
+
+Output
+Payroll Deduction
+
+24. Leave Calendar
+
+Views
+Monthly
+Weekly
+Yearly
+Team Calendar
+Department Calendar
+Organization Calendar
+
+25. Team Leave Planning
+
+Manager Features
+Upcoming Leaves
+Team Availability
+Overlap Detection
+Workforce Capacity
+
+26. Leave Analytics
+
+Metrics
+Leave Utilization
+Average Leave Days
+Absenteeism
+Department Trends
+Carry Forward Trends
+LOP Trends
+
+27. Leave Reports
+
+Employee Leave Balance
+Leave Utilization
+Leave Requests
+Leave Approvals
+Leave Rejections
+Carry Forward
+Leave Encashment
+LOP Report
+Department Leave Trends
+
+Formats
+PDF
+Excel
+CSV
+
+28. Leave Notifications
+
+Leave Submitted
+Leave Approved
+Leave Rejected
+Leave Cancelled
+Leave Reminder
+Balance Low
+Carry Forward Expiry
+Encashment Approved
+
+29. Leave APIs
+
+Leave Types
+GET /leave-types  POST /leave-types  PATCH /leave-types/{id}
+
+Leave Requests
+GET /leave-requests  POST /leave-requests  PATCH /leave-requests/{id}
+
+Approvals
+POST /leave-requests/{id}/approve  POST /leave-requests/{id}/reject
+
+Balances
+GET /leave-balances  GET /leave-balances/{employeeId}
+
+30. Database Tables
+Core Tables
+leave_types
+leave_policies
+leave_balances
+leave_requests
+leave_approvals
+
+Accrual Tables
+leave_accruals
+leave_adjustments
+leave_carry_forwards
+
+Encashment Tables
+leave_encashments
+
+Calendar Tables
+holiday_calendars
+holiday_groups
+
+31. Permissions Matrix
+
+leave.view
+leave.request
+leave.cancel
+leave.approve
+leave.reject
+leave.manage_policy
+leave.manage_balance
+leave.manage_accrual
+leave.manage_encashment
+leave.analytics.view
+leave.export
+
+32. Security Requirements
+
+Tenant Isolation
+Workflow Validation
+Policy Enforcement
+Balance Integrity
+Audit Logging
+RBAC Enforcement
+
+33. Audit Requirements
+
+Leave Requested
+Leave Modified
+Leave Cancelled
+Leave Approved
+Leave Rejected
+Balance Adjusted
+Accrual Generated
+Carry Forward Executed
+Encashment Processed
+
+Retention
+7 Years Minimum
+
+34. Integrations
+
+Employee Module
+Attendance Module
+Payroll Module
+Notification Module
+Analytics Module
+AI Module
+
+35. Payroll Integration
+
+Outputs
+Approved Leave
+Unpaid Leave
+LOP Days
+Encashment Amount
+Carry Forward
+
+Consumed By Payroll Engine.
+
+36. Attendance Integration
+
+Approved Leave
+↓
+Attendance Generated
+
+Status
+On Leave
+Half Day Leave
+WFH Leave
+
+37. Dashboard Widgets
+
+Available Balance
+Pending Requests
+Upcoming Leave
+Team Leave Calendar
+Carry Forward Expiry
+Leave Utilization
+
+38. Compliance Support
+
+Maternity Leave
+Paternity Leave
+Medical Leave
+Government Leave
+Country-Specific Rules
+
+Configurable Per Tenant.
+
+39. Future Enhancements
+Version 2
+AI Leave Forecasting
+Workforce Capacity Planning
+Predictive Leave Trends
+Leave Recommendation Engine
+Advanced Workflow Builder
+Leave Bot Assistant
+Cross-Tenant Benchmarking
+Mobile Offline Leave Requests
+
+Success Metrics
+Leave Approval SLA
+< 24 Hours
+
+Balance Accuracy
+99.99%
+
+Accrual Accuracy
+100%
+
+Payroll Leave Accuracy
+99.99%
+
+Conclusion
+The Leave Management Module provides a highly configurable, enterprise-grade leave administration platform capable of supporting diverse organizational policies, compliance requirements, and workforce structures.
+The module serves as the authoritative source for leave eligibility, balances, approvals, accruals, carry forwards, encashments, and payroll-impacting leave calculations while maintaining auditability, scalability, and tenant isolation.

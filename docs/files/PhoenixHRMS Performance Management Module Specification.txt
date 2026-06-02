@@ -1,0 +1,543 @@
+PhoenixHRMS
+Performance Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: PERF
+Document Type: Functional Module Specification
+Related Documents:
+	•	15-employee-management-module.md
+	•	18-payroll-management-module.md
+	•	19-recruitment-management-module.md
+	•	14-openapi-spec.md
+
+1. Module Overview
+Purpose
+The Performance Management Module helps organizations measure, manage, improve, and reward employee performance.
+The module provides:
+	•	Goal Management
+	•	KPI Tracking
+	•	Performance Reviews
+	•	Continuous Feedback
+	•	Competency Assessment
+	•	Development Planning
+	•	Talent Reviews
+	•	Succession Planning
+
+Business Objectives
+	•	Improve employee performance
+	•	Increase goal alignment
+	•	Standardize performance reviews
+	•	Support promotions and compensation decisions
+	•	Identify future leaders
+	•	Improve employee engagement
+
+2. Module Scope
+
+Included
+Goal Management
+OKRs
+KPIs
+Performance Reviews
+360-Degree Reviews
+Continuous Feedback
+Competency Frameworks
+Development Plans
+Calibration
+Talent Reviews
+Succession Planning
+Performance Analytics
+AI Insights
+
+Excluded
+Payroll Calculation
+Recruitment Activities
+Attendance Tracking
+These consume performance outputs.
+
+3. Performance Lifecycle
+```text id=“c3pn7k” Goal Creation
+↓
+Goal Alignment
+↓
+Performance Tracking
+↓
+Continuous Feedback
+↓
+Review Cycle
+↓
+Evaluation
+↓
+Calibration
+↓
+Development Plan
+↓
+Compensation Review
+↓
+Succession Planning
+ ---  # 4. Goal Management  ---  ## Purpose  Define measurable employee objectives.  ---  ## Goal Types  Individual Goals  Team Goals  Department Goals  Organization Goals  Strategic Goals  Project Goals  ---  ## Goal Attributes  Title  Description  Owner  Weight  Priority  Target Date  Progress %  Status  ---  ## Goal Statuses  Draft  Active  At Risk  Completed  Cancelled  Archived  ---  # 5. Objectives & Key Results (OKRs)  ---  ## Structure  ```text id="s0y4x4" Objective  ↓  Key Results  ↓  Progress
+
+Objective Example
+Increase Customer Satisfaction
+
+Key Results
+NPS > 80
+Reduce Ticket Resolution Time
+Improve Customer Retention
+
+Features
+Goal Alignment
+Progress Tracking
+Auto Rollup
+Visibility Controls
+
+6. KPI Management
+
+KPI Types
+Financial
+Operational
+Behavioral
+Leadership
+Customer
+Project
+Custom
+
+KPI Attributes
+Name
+Target
+Actual
+Weight
+Thresholds
+Measurement Frequency
+
+KPI Status
+On Track
+At Risk
+Exceeded
+Missed
+
+7. Continuous Performance Tracking
+
+Purpose
+Track performance throughout the year.
+
+Features
+Progress Updates
+Milestone Tracking
+Achievement Logging
+Evidence Attachments
+Manager Comments
+
+8. Continuous Feedback
+
+Feedback Types
+Peer Feedback
+Manager Feedback
+Direct Report Feedback
+Project Feedback
+Recognition
+Constructive Feedback
+
+Feedback Visibility
+Public
+Private
+Manager Only
+HR Only
+
+9. Check-In Meetings
+
+Purpose
+Regular performance discussions.
+
+Frequencies
+Weekly
+Monthly
+Quarterly
+Custom
+
+Agenda
+Goals
+Challenges
+Development
+Support Required
+Career Discussions
+
+10. Performance Review Cycles
+
+Review Types
+Annual Review
+Quarterly Review
+Probation Review
+Project Review
+Promotion Review
+Custom Review
+
+Review Statuses
+Draft
+Self Assessment
+Manager Review
+Calibration
+Finalized
+Published
+
+11. Self Assessments
+
+Employee Inputs
+Achievements
+Challenges
+Goal Progress
+Development Activities
+Future Goals
+
+Attachments Supported
+Documents
+Certificates
+Evidence Files
+
+12. Manager Assessments
+
+Evaluation Areas
+Goal Achievement
+Behavior
+Competencies
+Leadership
+Potential
+Overall Performance
+
+Rating Scale
+1–5
+1–10
+Custom
+
+13. 360-Degree Reviews
+
+Feedback Sources
+Manager
+Peers
+Direct Reports
+Stakeholders
+Customers
+
+Features
+Anonymous Feedback
+Weighted Scoring
+Questionnaires
+Comments
+
+14. Competency Framework
+
+Competency Categories
+Technical
+Leadership
+Communication
+Problem Solving
+Collaboration
+Innovation
+Customer Focus
+
+Levels
+Beginner
+Intermediate
+Advanced
+Expert
+
+15. Competency Assessments
+
+Inputs
+Self Rating
+Manager Rating
+Peer Rating
+
+Outputs
+Competency Score
+Gap Analysis
+Development Plan
+
+16. Performance Ratings
+
+Rating Models
+Numeric
+Letter Grade
+Descriptive
+Custom
+
+Example
+```text id=“1j9p1q” 5 - Outstanding
+4 - Exceeds Expectations
+3 - Meets Expectations
+2 - Needs Improvement
+1 - Unsatisfactory
+ ---  # 17. Calibration  ---  ## Purpose  Ensure rating consistency.  ---  ## Participants  Managers  HR  Leadership  ---  ## Features  Calibration Sessions  Rating Distribution  Comparison Views  Bias Detection  ---  # 18. Development Plans  ---  ## Components  Development Goals  Training Plans  Mentorship  Stretch Assignments  Certification Goals  ---  ## Tracking  Progress %  Completion Status  Target Date  ---  # 19. Individual Development Plans (IDP)  ---  ## Sections  Strengths  Improvement Areas  Career Aspirations  Learning Objectives  Development Activities  ---  # 20. Talent Reviews  ---  ## Purpose  Evaluate talent across organization.  ---  ## Criteria  Performance  Potential  Leadership  Critical Skills  Succession Readiness  ---  # 21. 9-Box Talent Matrix  ---  Structure  ```text id="8q7i0v" Performance  ↓  Potential
+
+Categories
+High Performer
+Future Leader
+Core Contributor
+Under Performer
+Emerging Talent
+
+22. Succession Planning
+
+Purpose
+Prepare future leaders.
+
+Features
+Critical Positions
+Successor Identification
+Readiness Assessment
+Development Tracking
+Risk Analysis
+
+Readiness Levels
+Ready Now
+Ready In 1 Year
+Ready In 2 Years
+Long Term
+
+23. Promotion Recommendations
+
+Inputs
+Performance Ratings
+Competency Scores
+Potential Ratings
+Manager Recommendations
+
+Outputs
+Promotion Eligibility
+Development Recommendations
+
+24. Performance Improvement Plans (PIP)
+
+Purpose
+Support underperforming employees.
+
+Components
+Issues Identified
+Improvement Goals
+Actions
+Timeline
+Review Schedule
+
+Outcomes
+Successful Completion
+Extension
+Termination Recommendation
+
+25. Employee Recognition
+
+Recognition Types
+Achievement
+Innovation
+Leadership
+Customer Excellence
+Teamwork
+Values Recognition
+
+Features
+Badges
+Points
+Awards
+Recognition Feed
+
+26. Performance Analytics
+
+Metrics
+Goal Completion %
+Average Rating
+High Performer %
+Low Performer %
+Competency Gaps
+Promotion Rate
+PIP Rate
+Succession Coverage
+
+27. AI Performance Features
+
+Features
+Goal Recommendations
+Performance Summaries
+Review Draft Assistance
+Competency Gap Analysis
+Career Path Suggestions
+Promotion Readiness Insights
+Succession Risk Analysis
+
+Governance
+AI recommendations only.
+Human decision required.
+
+28. Performance Reports
+
+Goal Progress Report
+Performance Distribution
+Calibration Report
+Competency Gap Report
+Talent Review Report
+Succession Report
+Promotion Readiness Report
+Recognition Report
+
+Formats
+PDF
+Excel
+CSV
+
+29. Performance Notifications
+
+Goal Assigned
+Goal Due Soon
+Feedback Requested
+Review Cycle Started
+Review Submitted
+Calibration Scheduled
+Development Plan Assigned
+Recognition Awarded
+
+30. Performance APIs
+
+Goals
+```http id=“gq5sm8” GET /goals
+POST /goals
+PATCH /goals/{id}
+ ---  Reviews  ```http id="4p7syl" GET /reviews  POST /reviews  PATCH /reviews/{id}
+
+Feedback
+```http id=“t8egm6” POST /feedback
+GET /feedback
+ ---  Development Plans  ```http id="j8r6ii" GET /development-plans  POST /development-plans
+
+31. Database Tables
+Goals Domain
+goals
+goal_key_results
+employee_goals
+goal_progress
+
+Review Domain
+performance_reviews
+review_cycles
+review_ratings
+review_comments
+
+Feedback Domain
+feedback_requests
+feedback_responses
+
+Competency Domain
+competencies
+competency_levels
+competency_assessments
+
+Talent Domain
+talent_reviews
+succession_plans
+successor_candidates
+
+Development Domain
+development_plans
+development_activities
+pip_plans
+
+32. Permissions Matrix
+
+performance.view
+performance.manage_goals
+performance.manage_reviews
+performance.manage_feedback
+performance.manage_competencies
+performance.manage_talent_reviews
+performance.manage_succession
+performance.analytics.view
+performance.export
+
+33. Security Requirements
+
+Confidential Review Data
+Role-Based Visibility
+Manager Access Controls
+Anonymous Feedback Protection
+Audit Logging
+Tenant Isolation
+
+34. Audit Requirements
+
+Goal Created
+Goal Updated
+Review Submitted
+Rating Changed
+Calibration Completed
+Development Plan Created
+PIP Initiated
+Promotion Recommended
+
+Retention
+7 Years Minimum
+
+35. Integrations
+
+Employee Module
+Payroll Module
+Learning Management System
+Recruitment Module
+Notification Module
+AI Module
+
+36. Compensation Integration
+
+Performance Outputs
+↓
+Salary Increment Recommendations
+Bonus Eligibility
+Promotion Recommendations
+Retention Actions
+
+Consumed by Compensation Processes.
+
+37. Dashboard Widgets
+
+Goals On Track
+Goals At Risk
+Pending Reviews
+Review Completion %
+High Performers
+Competency Gaps
+Succession Coverage
+Recognition Activity
+
+38. Performance Requirements
+
+Goal Updates
+< 1 Second
+
+Review Submission
+< 2 Seconds
+
+Analytics Loading
+< 3 Seconds
+
+39. Future Enhancements
+Version 2
+AI Performance Coach
+Career Path Navigator
+Organizational Network Analysis
+Behavioral Analytics
+Skills Marketplace
+Internal Gig Platform
+Advanced Talent Intelligence
+Predictive Attrition Modeling
+
+Success Metrics
+Review Completion Rate
+95%
+
+Goal Alignment Rate
+90%
+
+Development Plan Completion
+80%
+
+Succession Coverage
+85%
+
+Conclusion
+The Performance Management Module provides a comprehensive enterprise-grade talent performance platform that enables organizations to align strategy, measure outcomes, develop employees, identify future leaders, and drive workforce excellence.
+The module integrates goals, reviews, competencies, feedback, development planning, talent reviews, and succession planning into a unified performance ecosystem while maintaining scalability, auditability, security, and tenant isolation.

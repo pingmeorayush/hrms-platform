@@ -1,0 +1,527 @@
+PhoenixHRMS
+Attendance Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: ATT
+Document Type: Functional Module Specification
+Related Documents:
+	•	04-business-rules.md
+	•	11-database-design.md
+	•	15-employee-management-module.md
+	•	14-openapi-spec.md
+
+1. Module Overview
+Purpose
+The Attendance Management Module is responsible for recording, validating, monitoring, and analyzing employee attendance.
+The module serves as the authoritative source for:
+	•	Working hours
+	•	Presence
+	•	Absence
+	•	Overtime
+	•	Shift compliance
+	•	Payroll attendance calculations
+
+Business Objectives
+	•	Accurate attendance tracking
+	•	Payroll-ready attendance data
+	•	Workforce visibility
+	•	Compliance support
+	•	Attendance analytics
+	•	Reduced manual effort
+
+2. Module Scope
+
+Included
+Attendance Tracking
+Shift Management
+Shift Rosters
+Work Schedules
+Check-In
+Check-Out
+Attendance Corrections
+Attendance Approvals
+Work From Home
+Geo-Fencing
+Biometric Integration
+Holiday Calendars
+Overtime Management
+Timesheets
+Attendance Reports
+Attendance Analytics
+
+Excluded
+Payroll Processing
+Leave Processing
+These modules consume attendance data.
+
+3. Attendance Lifecycle
+Scheduled  ↓  Check-In  ↓  Working  ↓  Check-Out  ↓  Calculated  ↓  Approved  ↓  Payroll Locked  ↓  Archived
+
+4. Attendance Statuses
+
+Present
+Employee worked normally.
+
+Absent
+No attendance record.
+
+Half Day
+Worked below threshold.
+
+Late
+Check-in after grace period.
+
+Early Departure
+Check-out before shift end.
+
+Work From Home
+Approved remote work attendance.
+
+Holiday
+Organization holiday.
+
+Weekend
+Scheduled non-working day.
+
+On Leave
+Attendance generated from approved leave.
+
+Overtime
+Attendance exceeds required hours.
+
+5. Attendance Policies
+
+Purpose
+Defines attendance rules per tenant.
+
+Policy Attributes
+Working Hours
+Grace Period
+Half-Day Threshold
+Late Threshold
+Overtime Eligibility
+Weekend Rules
+Holiday Rules
+WFH Rules
+Geo-Fence Rules
+
+Example
+Working Hours = 8  Grace Period = 15 Minutes  Half Day = Less Than 4 Hours  Overtime = After 8 Hours
+
+6. Shift Management
+
+Purpose
+Manage employee schedules.
+
+Shift Types
+General Shift
+Morning Shift
+Evening Shift
+Night Shift
+Rotational Shift
+Split Shift
+Custom Shift
+
+Shift Attributes
+Name
+Code
+Start Time
+End Time
+Break Duration
+Grace Minutes
+Working Hours
+
+7. Shift Assignment
+
+Assignment Types
+Individual Assignment
+Department Assignment
+Location Assignment
+Bulk Assignment
+
+Effective Dating
+Shift assignments are effective-dated.
+
+Example:
+Shift A  01-Jan-2026  to  31-Mar-2026
+
+8. Shift Rosters
+
+Purpose
+Manage rotating schedules.
+
+Features
+Weekly Roster
+Monthly Roster
+Shift Rotation
+Bulk Scheduling
+Conflict Detection
+
+Example
+Monday Morning  Tuesday Morning  Wednesday Night
+
+9. Check-In / Check-Out
+
+Methods
+Web Portal
+Mobile App
+Biometric Device
+QR Code
+Kiosk
+API
+
+Check-In Data
+Employee
+Timestamp
+Location
+IP Address
+Device
+Latitude
+Longitude
+
+Check-Out Data
+Timestamp
+Location
+Device
+
+10. Geo-Fencing
+
+Purpose
+Ensure attendance from approved locations.
+
+Rules
+Allowed Radius
+Allowed Locations
+Restricted Locations
+
+Example
+Office Location  Radius = 100m
+
+Outcomes
+Inside Radius
+↓
+Attendance Accepted
+Outside Radius
+↓
+Flagged
+
+11. Biometric Integration
+
+Supported Devices
+ZKTeco
+eSSL
+Suprema
+Generic API Devices
+
+Synchronization
+Real-Time
+Scheduled
+Manual
+
+Data Flow
+Biometric Device  ↓  Attendance Sync Service  ↓  Attendance Records
+
+12. Work From Home
+
+Purpose
+Track remote attendance.
+
+Workflow
+WFH Request
+↓
+Approval
+↓
+Attendance Eligible
+↓
+Check-In
+↓
+Check-Out
+
+Controls
+Manager Approval
+Location Verification
+Activity Tracking (Future)
+
+13. Attendance Corrections
+
+Use Cases
+Forgot Check-In
+Forgot Check-Out
+Wrong Attendance
+Device Failure
+
+Workflow
+Employee Request  ↓  Manager Approval  ↓  HR Approval  ↓  Attendance Updated  ↓  Audit Logged
+
+Rules
+Original record retained.
+Correction history maintained.
+
+14. Attendance Calculation Engine
+
+Responsibilities
+Calculate:
+Worked Hours
+Late Minutes
+Overtime
+Half-Day
+Attendance Status
+
+Formula
+Worked Hours
+Check-Out  -  Check-In  -  Break Time
+
+15. Break Management
+
+Break Types
+Lunch
+Tea
+Custom Break
+
+Features
+Break Start
+Break End
+Break Duration
+
+Compliance
+Break limits configurable.
+
+16. Overtime Management
+
+Eligibility
+Configurable.
+
+Overtime Types
+Regular OT
+Weekend OT
+Holiday OT
+Night OT
+
+Overtime Workflow
+Attendance Calculated
+↓
+OT Generated
+↓
+Manager Approval
+↓
+Payroll Consumption
+
+Rules
+Configurable formulas.
+
+17. Holiday Management
+
+Holiday Types
+National
+Regional
+Company Holiday
+Optional Holiday
+
+Fields
+Name
+Date
+Location
+Applicable Departments
+
+Multi-Tenant Support
+Tenant-specific calendars.
+
+18. Weekend Rules
+
+Supported:
+Saturday-Sunday
+Friday-Saturday
+Sunday Only
+Custom
+
+Per Tenant Configuration.
+
+19. Timesheets
+
+Purpose
+Track effort allocation.
+
+Fields
+Date
+Project
+Task
+Hours
+Comments
+
+Approval Workflow
+Employee
+↓
+Manager
+↓
+Approved
+
+20. Attendance Analytics
+
+Metrics
+Attendance %
+Late %
+Absenteeism %
+Overtime Hours
+Average Working Hours
+Shift Compliance
+
+Dashboards
+Employee Dashboard
+Manager Dashboard
+HR Dashboard
+Executive Dashboard
+
+21. Attendance Reports
+
+Daily Attendance
+Monthly Attendance
+Late Arrivals
+Absenteeism
+Overtime
+Shift Compliance
+Attendance Corrections
+Attendance Trends
+
+Export Formats
+PDF
+Excel
+CSV
+
+22. Attendance Notifications
+
+Check-In Reminder
+Check-Out Reminder
+Late Arrival Alert
+Missing Attendance Alert
+Correction Approved
+Correction Rejected
+Overtime Approved
+
+23. Attendance APIs
+
+Core APIs
+GET /attendance  POST /attendance/check-in  POST /attendance/check-out  GET /attendance/{id}
+
+Correction APIs
+POST /attendance/corrections  GET /attendance/corrections  PATCH /attendance/corrections/{id}
+
+Shift APIs
+GET /shifts  POST /shifts  PATCH /shifts/{id}
+
+Roster APIs
+GET /rosters  POST /rosters
+
+24. Database Tables
+Core Tables
+attendance_records
+attendance_corrections
+attendance_policies
+attendance_devices
+
+Shift Tables
+shifts
+shift_assignments
+shift_rosters
+
+Calendar Tables
+holidays
+holiday_groups
+
+Timesheet Tables
+timesheets
+timesheet_entries
+
+25. Permissions Matrix
+
+attendance.view
+attendance.create
+attendance.edit
+attendance.approve
+attendance.correct
+attendance.manage_shift
+attendance.manage_roster
+attendance.export
+attendance.analytics.view
+
+26. Security Requirements
+
+Geo-Fencing Validation
+IP Tracking
+Device Tracking
+Audit Logging
+Tenant Isolation
+Attendance Tamper Detection
+
+27. Audit Requirements
+
+Attendance Created
+Attendance Updated
+Correction Submitted
+Correction Approved
+Shift Assigned
+Roster Changed
+Overtime Approved
+
+Retention
+7 Years Minimum
+
+28. Integrations
+
+Payroll Module
+Leave Module
+Employee Module
+Notification Module
+AI Module
+Biometric Devices
+Mobile Application
+
+29. Performance Requirements
+
+Check-In Response
+< 2 Seconds
+
+Attendance Search
+< 1 Second
+
+Attendance Calculation
+10,000 Employees
+< 10 Minutes
+
+30. Dashboard Widgets
+
+Present Today
+Absent Today
+Late Today
+Employees Working
+Pending Corrections
+Overtime Hours
+Attendance Rate
+
+31. Future Enhancements
+Version 2
+Facial Recognition
+AI Attendance Anomalies
+Geo-Tracking
+Activity Monitoring
+Work Pattern Analysis
+Predictive Absenteeism
+Mobile Offline Attendance
+Beacon-Based Attendance
+Smart Shift Recommendations
+
+Success Metrics
+Attendance Accuracy
+99.9%
+
+Attendance Processing
+< 10 Minutes
+
+Attendance Correction SLA
+< 24 Hours
+
+Payroll Attendance Accuracy
+99.99%
+
+Conclusion
+The Attendance Management Module provides a scalable, secure, and enterprise-grade attendance platform capable of supporting office, remote, hybrid, and field workforces.
+It serves as the primary source of attendance truth for payroll, analytics, compliance, workforce planning, and employee productivity management while maintaining strong auditability, configurability, and tenant isolation.

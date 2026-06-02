@@ -1,0 +1,472 @@
+PhoenixHRMS
+Backend Architecture Document
+Version: 1.0
+Status: Draft
+Document Type: Backend Technical Architecture
+Related Documents:
+	•	06-system-architecture.md
+	•	07-frontend-architecture.md
+	•	11-database-design.md
+
+1. Purpose
+This document defines the backend architecture of PhoenixHRMS.
+The backend is responsible for:
+	•	Business logic
+	•	Validation
+	•	Security
+	•	Data persistence
+	•	Integrations
+	•	Event processing
+	•	Reporting
+	•	Payroll processing
+The backend shall act as the authoritative source of truth.
+
+2. Backend Goals
+The backend must provide:
+	•	Scalability
+	•	Maintainability
+	•	Testability
+	•	Security
+	•	Extensibility
+	•	Multi-tenancy
+	•	High performance
+
+3. Technology Stack
+Core
+PHP 8.3
+Laravel 12
+
+Database
+PostgreSQL
+
+Cache
+Redis
+
+Queue
+Redis Queue
+
+Storage
+AWS S3
+
+Authentication
+Laravel Sanctum
+
+Authorization
+Spatie Permission
+
+API Documentation
+OpenAPI 3.1
+Swagger
+
+4. Architectural Principles
+
+BE-001
+Business Logic Must Not Exist In Controllers
+Controllers only coordinate requests.
+
+BE-002
+Business Logic Belongs To Services
+Examples:
+CreateEmployeeService
+RunPayrollService
+ApproveLeaveService
+
+BE-003
+Persistence Logic Belongs To Repositories
+Repositories abstract database operations.
+
+BE-004
+Cross-Domain Communication Uses Events
+Modules communicate via events.
+Not direct dependencies.
+
+BE-005
+Everything Is Auditable
+Every critical operation creates audit logs.
+
+5. Project Structure
+app/  Modules/  Shared/  Infrastructure/  Domain/  Application/  Interfaces/  Providers/
+
+6. Module Architecture
+Each business domain becomes a module.
+Example:
+Modules/  Employee/  Attendance/  Leave/  Payroll/  Recruitment/  Performance/  Asset/  Document/  Notification/  Audit/  AI/
+
+7. Module Structure
+Example:
+Employee/  Controllers/  Services/  Repositories/  Models/  DTOs/  Policies/  Events/  Listeners/  Jobs/  Requests/  Resources/  Tests/
+
+8. Layered Architecture
+
+Presentation Layer
+Responsibilities:
+	•	Controllers
+	•	Requests
+	•	Resources
+Purpose:
+Handle HTTP communication.
+
+Application Layer
+Responsibilities:
+	•	Use Cases
+	•	Services
+	•	DTO Mapping
+Examples:
+CreateEmployeeService
+TerminateEmployeeService
+
+Domain Layer
+Responsibilities:
+	•	Business Rules
+	•	Policies
+	•	Domain Events
+
+Infrastructure Layer
+Responsibilities:
+	•	Database
+	•	Cache
+	•	Queues
+	•	External APIs
+
+9. Controller Architecture
+Controllers must remain thin.
+Example:
+Bad:
+Controller {    // payroll calculations }
+Good:
+Controller {    $service->run(); }
+
+Controller Responsibilities:
+	•	Authentication
+	•	Request Validation
+	•	Service Invocation
+	•	Response Formatting
+
+10. Service Layer
+The service layer contains business logic.
+Examples:
+CreateEmployeeService  UpdateEmployeeService  ApproveLeaveService  GeneratePayrollService  ScheduleInterviewService
+
+Service Responsibilities:
+	•	Validation
+	•	Workflow orchestration
+	•	Event dispatching
+	•	Transaction management
+
+11. Repository Pattern
+Repositories abstract database access.
+Example:
+EmployeeRepository  LeaveRepository  PayrollRepository
+
+Benefits:
+	•	Testability
+	•	Flexibility
+	•	Consistency
+
+Example:
+EmployeeRepository {     findById()      findByEmail()      create()      update() }
+
+12. DTO Architecture
+Data Transfer Objects used between layers.
+Example:
+CreateEmployeeDTO {     firstName     lastName     email }
+
+Benefits:
+	•	Strong typing
+	•	Consistency
+	•	Validation
+
+13. Request Validation
+Every endpoint must use Form Requests.
+Example:
+CreateEmployeeRequest
+Responsibilities:
+	•	Input validation
+	•	Authorization checks
+
+14. API Resources
+All responses must use Resources.
+Example:
+EmployeeResource
+Purpose:
+Consistent API responses.
+
+15. Transaction Strategy
+Critical workflows use transactions.
+Examples:
+	•	Payroll
+	•	Leave Approval
+	•	Employee Creation
+
+Example:
+DB::transaction()
+
+Guarantees:
+Atomicity
+Consistency
+Rollback Support
+
+16. Domain Events
+Events decouple modules.
+Examples:
+EmployeeCreated  LeaveApproved  PayrollCompleted  InterviewScheduled
+
+17. Event Flow
+Example:
+Employee Created
+↓
+EmployeeCreated Event
+↓
+WelcomeEmailListener
+↓
+AuditListener
+↓
+NotificationListener
+
+Benefits:
+Loose coupling.
+
+18. Listener Architecture
+Listeners react to events.
+Examples:
+CreateAuditLogListener  SendEmailListener  SyncAnalyticsListener
+
+Listeners must be idempotent.
+
+19. Queue Architecture
+Long-running operations must be queued.
+Examples:
+	•	Payroll Generation
+	•	Email Sending
+	•	PDF Creation
+	•	AI Analysis
+
+Queue Flow:
+Request  ↓  Job  ↓  Queue  ↓  Worker  ↓  Result
+
+20. Job Architecture
+Examples:
+GeneratePayrollJob  GeneratePayslipJob  AnalyzeResumeJob  SendNotificationJob
+
+Rules:
+Jobs must:
+	•	Be retryable
+	•	Be idempotent
+
+21. Multi-Tenancy Architecture
+Strategy:
+Shared Database
+Shared Schema
+
+Isolation Key:
+company_id
+
+Every business table contains:
+company_id
+
+Global scopes enforce isolation.
+Example:
+TenantScope
+
+22. Authentication Architecture
+Technology:
+Laravel Sanctum
+
+Flow:
+Login
+↓
+Token Creation
+↓
+Authenticated Request
+↓
+Authorization
+
+Supported:
+	•	Password Login
+	•	MFA
+Future:
+	•	SSO
+	•	SAML
+
+23. Authorization Architecture
+RBAC
+Role Based Access Control
+
+Structure:
+User
+↓
+Role
+↓
+Permission
+
+Example:
+employee.create  employee.edit  employee.delete
+
+Policies enforce permissions.
+Example:
+EmployeePolicy
+
+24. Audit Architecture
+Every critical action logged.
+Stored:
+User  Action  Entity  Old Values  New Values  Timestamp
+
+Examples:
+	•	Salary Changes
+	•	Leave Approvals
+	•	Role Changes
+
+25. Notification Architecture
+Channels:
+	•	Email
+	•	SMS
+	•	WhatsApp
+	•	In-App
+
+Flow:
+Event  ↓  Notification Service  ↓  Channel  ↓  Delivery
+
+26. Caching Architecture
+Technology:
+Redis
+
+Cache Types:
+Configuration Cache
+Permission Cache
+Dashboard Cache
+Report Cache
+
+Pattern:
+Cache Aside
+
+27. Search Architecture
+Phase 1:
+PostgreSQL Full Text Search
+
+Phase 2:
+ElasticSearch
+OpenSearch
+
+Search Targets:
+	•	Employees
+	•	Candidates
+	•	Documents
+
+28. File Storage Architecture
+Storage:
+AWS S3
+
+File Categories:
+Documents
+Payslips
+Resumes
+Offer Letters
+Contracts
+
+Security:
+Private Buckets
+Signed URLs
+
+29. Payroll Engine Architecture
+Separate domain.
+Structure:
+Payroll  Calculator  Formula Engine  Deduction Engine  Tax Engine  Payslip Generator
+
+Rules configurable.
+No hardcoded payroll logic.
+
+30. AI Module Architecture
+Services:
+Resume Analysis
+Attendance Insights
+Attrition Prediction
+HR Assistant
+
+Flow:
+Application  ↓  AI Service  ↓  Provider  ↓  Response  ↓  Audit
+
+AI must never execute actions automatically.
+
+31. Error Handling
+Global exception handler.
+Categories:
+Validation
+Authorization
+Business Rules
+Infrastructure
+
+Standardized response:
+{   "success": false,   "message": "",   "errors": [] }
+
+32. Logging Architecture
+Structured JSON logs.
+Required Fields:
+	•	Request ID
+	•	User ID
+	•	Tenant ID
+	•	Timestamp
+
+33. API Versioning
+Current:
+/api/v1
+Future:
+/api/v2
+
+Backward compatibility required.
+
+34. Testing Architecture
+Unit Tests
+Service Tests
+Repository Tests
+Feature Tests
+Integration Tests
+
+Target Coverage:
+80%+
+
+35. Security Architecture
+Layers:
+Authentication
+↓
+Authorization
+↓
+Validation
+↓
+Encryption
+↓
+Audit
+
+Principles:
+Least Privilege
+Zero Trust
+Defense In Depth
+
+36. Observability
+Metrics:
+	•	API Latency
+	•	Error Rate
+	•	Queue Depth
+	•	Payroll Processing Time
+
+Tools:
+Prometheus
+Grafana
+OpenTelemetry
+
+37. Future Evolution
+Future service extraction:
+Employee Service  Attendance Service  Payroll Service  Recruitment Service  AI Service
+Architecture remains migration-ready.
+
+38. Architecture Decision Records
+Examples:
+ADR-001 Why Laravel
+ADR-002 Why PostgreSQL
+ADR-003 Why Redis
+ADR-004 Why Shared Schema Multi-Tenancy
+ADR-005 Why Modular Monolith
+
+Conclusion
+The PhoenixHRMS backend architecture is designed as a secure, scalable, event-driven modular monolith built on Laravel.
+The architecture prioritizes maintainability, auditability, testability, and future scalability while remaining practical for a growing SaaS product.
+All backend implementation must conform to the standards, patterns, and architectural principles defined in this document.

@@ -1,0 +1,527 @@
+PhoenixHRMS
+User Stories & Acceptance Criteria
+Version: 1.0
+Status: Draft
+Related Documents:
+	•	00-overview.md
+	•	01-product-requirements.md
+	•	02-user-personas.md
+
+Purpose
+This document defines all user stories for PhoenixHRMS.
+Each user story describes:
+	•	Business need
+	•	User goal
+	•	Expected outcome
+	•	Acceptance criteria
+	•	Priority
+	•	Sprint assignment
+
+Story Template
+Story ID
+Unique identifier.
+Example:
+HRMS-AUTH-001
+
+Persona
+Who performs the action.
+Example:
+Employee
+Manager
+HR Executive
+
+User Story
+Format:
+As a Persona
+I want [Action]
+So that Business Value
+
+Acceptance Criteria
+Conditions that must be satisfied.
+
+Priority
+High
+Medium
+Low
+
+Sprint
+Assigned implementation sprint.
+
+EPIC 1
+Authentication & Security
+
+Story ID
+HRMS-AUTH-001
+Persona
+Employee
+User Story
+As an employee
+I want to log in securely
+So that I can access my HR portal.
+Business Value
+Provides secure platform access.
+Acceptance Criteria
+	•	User enters email and password.
+	•	System validates credentials.
+	•	Successful login redirects to dashboard.
+	•	Invalid credentials show error.
+	•	Login attempts are audited.
+Edge Cases
+	•	Invalid password.
+	•	Locked account.
+	•	Disabled account.
+Priority
+Critical
+Sprint
+Sprint 1
+
+Story ID
+HRMS-AUTH-002
+Persona
+Employee
+User Story
+As an employee
+I want to reset my password
+So that I can regain access.
+Acceptance Criteria
+	•	Reset link expires after configurable duration.
+	•	Token is single use.
+	•	Password policy enforced.
+Priority
+High
+Sprint
+Sprint 1
+
+Story ID
+HRMS-AUTH-003
+Persona
+Administrator
+User Story
+As an administrator
+I want to enforce MFA
+So that account security improves.
+Acceptance Criteria
+	•	MFA configurable.
+	•	Supports email OTP.
+	•	Supports authenticator app.
+Priority
+High
+Sprint
+Sprint 1
+
+EPIC 2
+Employee Management
+
+Story ID
+HRMS-EMP-001
+Persona
+HR Executive
+User Story
+As an HR Executive
+I want to create employee records
+So that employees can be onboarded.
+Acceptance Criteria
+	•	Employee code generated automatically.
+	•	Email uniqueness validated.
+	•	Department required.
+	•	Designation required.
+Business Rules
+Employee code cannot be modified after creation.
+Priority
+Critical
+Sprint
+Sprint 2
+
+Story ID
+HRMS-EMP-002
+Persona
+HR Executive
+User Story
+As an HR Executive
+I want to upload employee documents
+So that records remain centralized.
+Acceptance Criteria
+	•	Supports PDF.
+	•	Supports images.
+	•	File size limits configurable.
+Priority
+High
+Sprint
+Sprint 2
+
+Story ID
+HRMS-EMP-003
+Persona
+Employee
+User Story
+As an employee
+I want to update my profile
+So that my information remains accurate.
+Acceptance Criteria
+	•	Editable fields configurable.
+	•	Changes audited.
+	•	HR approval optional.
+Priority
+High
+Sprint
+Sprint 2
+
+Story ID
+HRMS-EMP-004
+Persona
+HR Manager
+User Story
+As an HR Manager
+I want to transfer employees
+So that organizational changes are tracked.
+Acceptance Criteria
+	•	Department history retained.
+	•	Manager history retained.
+	•	Audit logs created.
+Priority
+Medium
+Sprint
+Sprint 2
+
+EPIC 3
+Attendance Management
+
+Story ID
+HRMS-ATT-001
+Persona
+Employee
+User Story
+As an employee
+I want to check in
+So that attendance is recorded.
+Acceptance Criteria
+	•	Employee active.
+	•	Check-in timestamp recorded.
+	•	Duplicate check-in prevented.
+Priority
+Critical
+Sprint
+Sprint 3
+
+Story ID
+HRMS-ATT-002
+Persona
+Employee
+User Story
+As an employee
+I want to check out
+So that my working hours are calculated.
+Acceptance Criteria
+	•	Check-in exists.
+	•	Check-out timestamp recorded.
+	•	Total hours calculated.
+Priority
+Critical
+Sprint
+Sprint 3
+
+Story ID
+HRMS-ATT-003
+Persona
+Manager
+User Story
+As a manager
+I want to approve attendance corrections
+So that records remain accurate.
+Acceptance Criteria
+	•	Original value retained.
+	•	Corrected value stored.
+	•	Approval history maintained.
+Priority
+Medium
+Sprint
+Sprint 3
+
+EPIC 4
+Leave Management
+
+Story ID
+HRMS-LV-001
+Persona
+Employee
+User Story
+As an employee
+I want to request leave
+So that I can notify the organization.
+Acceptance Criteria
+	•	Leave balance validated.
+	•	Dates validated.
+	•	Workflow initiated.
+Priority
+Critical
+Sprint
+Sprint 4
+
+Story ID
+HRMS-LV-002
+Persona
+Manager
+User Story
+As a manager
+I want to approve leave requests
+So that team planning remains effective.
+Acceptance Criteria
+	•	Approval recorded.
+	•	Employee notified.
+	•	Audit entry created.
+Priority
+Critical
+Sprint
+Sprint 4
+
+Story ID
+HRMS-LV-003
+Persona
+HR Manager
+User Story
+As HR
+I want to configure leave policies
+So that company policies are enforced.
+Acceptance Criteria
+	•	Leave types configurable.
+	•	Carry-forward rules configurable.
+	•	Encashment rules configurable.
+Priority
+High
+Sprint
+Sprint 4
+
+EPIC 5
+Payroll
+
+Story ID
+HRMS-PAY-001
+Persona
+Payroll Officer
+User Story
+As a payroll officer
+I want to create payroll runs
+So that salaries are processed.
+Acceptance Criteria
+	•	Attendance validated.
+	•	Leave validated.
+	•	Salary structures validated.
+Priority
+Critical
+Sprint
+Sprint 5
+
+Story ID
+HRMS-PAY-002
+Persona
+Payroll Officer
+User Story
+As a payroll officer
+I want salary deductions calculated
+So that payroll remains accurate.
+Acceptance Criteria
+	•	Tax calculated.
+	•	PF calculated.
+	•	ESI calculated.
+	•	Professional tax calculated.
+Priority
+Critical
+Sprint
+Sprint 5
+
+Story ID
+HRMS-PAY-003
+Persona
+Employee
+User Story
+As an employee
+I want to download my payslip
+So that I can verify salary payments.
+Acceptance Criteria
+	•	PDF generated.
+	•	Download enabled.
+	•	Historical access available.
+Priority
+High
+Sprint
+Sprint 5
+
+EPIC 6
+Recruitment
+
+Story ID
+HRMS-REC-001
+Persona
+Recruiter
+User Story
+As a recruiter
+I want to create job openings
+So that candidates can apply.
+Acceptance Criteria
+	•	Department required.
+	•	Hiring manager assigned.
+	•	Status tracked.
+Priority
+High
+Sprint
+Sprint 6
+
+Story ID
+HRMS-REC-002
+Persona
+Recruiter
+User Story
+As a recruiter
+I want to manage candidate pipelines
+So that hiring remains organized.
+Acceptance Criteria
+	•	Candidate stages configurable.
+	•	History maintained.
+	•	Interview notes stored.
+Priority
+High
+Sprint
+Sprint 6
+
+EPIC 7
+Performance Management
+
+Story ID
+HRMS-PERF-001
+Persona
+Manager
+User Story
+As a manager
+I want to assign goals
+So that employee performance can be measured.
+Acceptance Criteria
+	•	Goal deadlines required.
+	•	Goal weights configurable.
+	•	Progress tracked.
+Priority
+High
+Sprint
+Sprint 7
+
+Story ID
+HRMS-PERF-002
+Persona
+Employee
+User Story
+As an employee
+I want to submit self-assessments
+So that my achievements are documented.
+Acceptance Criteria
+	•	Review period enforced.
+	•	Comments supported.
+	•	Submission history retained.
+Priority
+Medium
+Sprint
+Sprint 7
+
+EPIC 8
+Reporting & Analytics
+
+Story ID
+HRMS-RPT-001
+Persona
+HR Director
+User Story
+As an HR Director
+I want workforce analytics
+So that strategic decisions improve.
+Acceptance Criteria
+	•	Attrition metrics available.
+	•	Headcount trends available.
+	•	Recruitment metrics available.
+Priority
+High
+Sprint
+Sprint 8
+
+EPIC 9
+AI Assistant
+
+Story ID
+HRMS-AI-001
+Persona
+Recruiter
+User Story
+As a recruiter
+I want AI resume scoring
+So that screening becomes faster.
+Acceptance Criteria
+	•	Skill matching.
+	•	Experience matching.
+	•	Score explanation provided.
+Priority
+Medium
+Sprint
+Sprint 9
+
+Story ID
+HRMS-AI-002
+Persona
+HR Director
+User Story
+As an HR Director
+I want workforce insights
+So that attrition risks are identified early.
+Acceptance Criteria
+	•	Risk score generated.
+	•	Recommendations provided.
+	•	Historical trends available.
+Priority
+Medium
+Sprint
+Sprint 9
+
+Story Prioritization Framework
+Critical
+System cannot operate without implementation.
+Examples:
+	•	Login
+	•	Attendance
+	•	Payroll
+
+High
+Major business value.
+
+Medium
+Improves productivity.
+
+Low
+Nice-to-have functionality.
+
+Story Lifecycle
+Draft
+↓
+Refinement
+↓
+Approved
+↓
+Development
+↓
+Testing
+↓
+Done
+
+Definition of Done
+A story is considered complete when:
+	•	Development completed
+	•	Unit tests pass
+	•	Integration tests pass
+	•	Documentation updated
+	•	Acceptance criteria satisfied
+	•	Product owner approval received
+
+Future Expansion
+This document is expected to grow beyond 300 user stories as additional modules and integrations are introduced.
+Each story shall maintain traceability to:
+	•	Business Requirements
+	•	Database Design
+	•	API Design
+	•	UI Screens
+	•	Test Cases
+	•	Sprint Planning

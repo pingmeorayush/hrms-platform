@@ -1,0 +1,126 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Company;
+use App\Models\User;
+use App\Models\WorkflowDefinition;
+use App\Models\WorkflowStage;
+use App\Models\WorkflowVersion;
+use Illuminate\Database\Seeder;
+
+class WorkflowTemplateSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $company = Company::query()->where('slug', 'phoenix-demo')->first();
+        $admin = User::withoutGlobalScopes()->where('email', 'admin@phoenixhrms.test')->first();
+
+        if (! $company || ! $admin) {
+            return;
+        }
+
+        $templates = [
+            [
+                'key' => 'leave-approval',
+                'name' => 'Leave Approval Workflow',
+                'module' => 'leave',
+                'description' => 'Sequential leave approval through manager and HR.',
+                'stages' => [
+                    [
+                        'key' => 'manager_approval',
+                        'name' => 'Manager Approval',
+                        'sequence' => 1,
+                        'approver_type' => 'role',
+                        'approver_value' => 'manager',
+                        'available_actions' => ['approve', 'reject', 'request_changes'],
+                        'sla_hours' => 24,
+                    ],
+                    [
+                        'key' => 'hr_approval',
+                        'name' => 'HR Approval',
+                        'sequence' => 2,
+                        'approver_type' => 'role',
+                        'approver_value' => 'hr.admin',
+                        'available_actions' => ['approve', 'reject'],
+                        'sla_hours' => 24,
+                    ],
+                ],
+            ],
+            [
+                'key' => 'employee-approval',
+                'name' => 'Employee Approval Workflow',
+                'module' => 'employee',
+                'description' => 'Sequential employee approval through HR and tenant administration.',
+                'stages' => [
+                    [
+                        'key' => 'hr_review',
+                        'name' => 'HR Review',
+                        'sequence' => 1,
+                        'approver_type' => 'role',
+                        'approver_value' => 'hr.admin',
+                        'available_actions' => ['approve', 'reject', 'request_changes'],
+                        'sla_hours' => 24,
+                    ],
+                    [
+                        'key' => 'tenant_admin_approval',
+                        'name' => 'Tenant Admin Approval',
+                        'sequence' => 2,
+                        'approver_type' => 'role',
+                        'approver_value' => 'tenant.admin',
+                        'available_actions' => ['approve', 'reject'],
+                        'sla_hours' => 24,
+                    ],
+                ],
+            ],
+        ];
+
+        foreach ($templates as $template) {
+            $definition = WorkflowDefinition::withoutGlobalScopes()->updateOrCreate(
+                [
+                    'company_id' => $company->id,
+                    'key' => $template['key'],
+                ],
+                [
+                    'name' => $template['name'],
+                    'module' => $template['module'],
+                    'description' => $template['description'],
+                    'is_template' => true,
+                    'status' => 'published',
+                    'created_by' => $admin->id,
+                    'updated_by' => $admin->id,
+                ],
+            );
+
+            $version = WorkflowVersion::query()->updateOrCreate(
+                [
+                    'workflow_definition_id' => $definition->id,
+                    'version' => 1,
+                ],
+                [
+                    'status' => 'published',
+                    'definition' => [
+                        'module' => $template['module'],
+                        'stages' => $template['stages'],
+                    ],
+                    'created_by' => $admin->id,
+                    'published_at' => now(),
+                ],
+            );
+
+            foreach ($template['stages'] as $stageData) {
+                WorkflowStage::query()->updateOrCreate(
+                    [
+                        'workflow_version_id' => $version->id,
+                        'key' => $stageData['key'],
+                    ],
+                    $stageData,
+                );
+            }
+
+            $definition->forceFill([
+                'active_version_id' => $version->id,
+            ])->save();
+        }
+    }
+}

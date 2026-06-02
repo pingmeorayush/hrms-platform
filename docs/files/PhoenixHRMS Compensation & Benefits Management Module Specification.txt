@@ -1,0 +1,282 @@
+PhoenixHRMS
+Compensation & Benefits Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: CMP
+Document Type: Functional Module Specification
+Related Documents:
+	•	15-employee-management-module.md
+	•	18-payroll-management-module.md
+	•	20-performance-management-module.md
+	•	25-reporting-analytics-module.md
+	•	29-workflow-engine.md
+
+1. Module Overview
+Purpose
+The Compensation & Benefits Management Module enables organizations to design, administer, monitor, and optimize employee compensation and benefits programs.
+The module manages:
+	•	Salary Structures
+	•	Compensation Cycles
+	•	Merit Increases
+	•	Promotions
+	•	Bonuses
+	•	Incentives
+	•	Benefits Programs
+	•	Insurance Plans
+	•	ESOPs
+	•	Rewards & Recognition
+
+Business Objectives
+	•	Ensure fair compensation
+	•	Improve employee retention
+	•	Support performance-based rewards
+	•	Enable compensation transparency
+	•	Improve budgeting accuracy
+	•	Increase workforce engagement
+
+2. Compensation Philosophy
+Objectives
+Attract Talent
+Retain Employees
+Reward Performance
+Ensure Market Competitiveness
+Support Business Growth
+Maintain Internal Equity
+
+Principles
+Pay For Performance
+Pay Equity
+Market Alignment
+Transparency
+Compliance
+Meritocracy
+
+3. Compensation Architecture
+```text id=“u4gc7f” Employee
+↓
+Job
+↓
+Grade
+↓
+Pay Range
+↓
+Compensation Package
+↓
+Payroll
+ ---  # 4. Compensation Components  ## Fixed Compensation  Basic Salary  House Rent Allowance  Special Allowance  Transport Allowance  Other Fixed Components  ---  ## Variable Compensation  Performance Bonus  Sales Incentives  Commission  Retention Bonus  Spot Awards  Profit Sharing  ---  ## Long-Term Compensation  ESOPs  RSUs  Stock Grants  Retention Plans  ---  ## Benefits  Insurance  Retirement Plans  Wellness Benefits  Flexible Benefits  ---  # 5. Compensation Structures  ## Structure Components  Grade  Band  Level  Currency  Country  Pay Frequency  ---  ## Examples  ```text id="0cxm9w" Grade G5  Minimum: ₹800,000  Midpoint: ₹1,000,000  Maximum: ₹1,250,000
+
+6. Pay Grades & Bands
+Purpose
+Provide compensation governance.
+
+Components
+Grade Code
+Band
+Level
+Pay Range
+Eligibility Rules
+
+Features
+Hierarchy Support
+Country-Specific Grades
+Department-Specific Grades
+
+7. Salary Ranges
+Components
+Minimum
+Midpoint
+Maximum
+
+Usage
+Hiring
+Promotions
+Merit Reviews
+Compensation Planning
+
+8. Compensation Planning
+Purpose
+Annual compensation planning.
+
+Inputs
+Performance Ratings
+Market Data
+Budget Allocation
+Promotion Plans
+Employee Potential
+
+Outputs
+Salary Increase Proposals
+Bonus Proposals
+Promotion Compensation
+
+9. Compensation Cycle Management
+Cycle Types
+Annual Review
+Mid-Year Review
+Promotion Review
+Special Adjustment
+Retention Review
+
+Workflow
+Planning
+↓
+Manager Review
+↓
+Calibration
+↓
+Approval
+↓
+Communication
+↓
+Implementation
+id="j3bq0e"  ---  # 10. Merit Increase Management  ## Purpose  Performance-based salary adjustments.  ---  ## Inputs  Performance Rating  Market Position  Pay Range Position  Budget  Manager Recommendation  ---  ## Example Matrix  ```text id="w8cy0w"  Outstanding  8% - 15%  Exceeds Expectations  5% - 8%  Meets Expectations  2% - 5%
+
+11. Compensation Budgeting
+Budget Types
+Department Budget
+Business Unit Budget
+Country Budget
+Organization Budget
+
+Features
+Budget Allocation
+Budget Tracking
+Variance Analysis
+Forecasting
+
+12. Compensation Review Process
+Participants
+Employee
+Manager
+Department Head
+HR
+Compensation Team
+Leadership
+
+Approval Workflow
+Manager
+↓
+Department Head
+↓
+HR
+↓
+Leadership
+↓
+Approved
+ id="1frcfh"  ---  # 13. Promotion Compensation  ## Events  Promotion  Transfer  Role Change  Grade Change  ---  ## Features  Salary Revision  Grade Alignment  Market Adjustment  Compensation Simulation  ---  # 14. Bonus Management  ## Bonus Types  Performance Bonus  Annual Bonus  Retention Bonus  Project Bonus  Joining Bonus  Referral Bonus  ---  ## Features  Eligibility Rules  Calculation Rules  Approval Workflow  Payment Tracking  ---  # 15. Incentive Management  ## Incentive Types  Sales Incentives  Team Incentives  Project Incentives  Productivity Incentives  Custom Incentives  ---  ## Features  Target Tracking  Achievement Tracking  Payout Calculation  ---  # 16. Variable Pay Management  ## Components  Target Bonus  Actual Bonus  Deferred Bonus  Commission  Profit Sharing  ---  ## Features  Proration  Adjustment Rules  Performance Linkage  ---  # 17. Benefits Administration  ## Purpose  Manage employee benefit programs.  ---  ## Categories  Health Benefits  Retirement Benefits  Insurance Benefits  Wellness Benefits  Lifestyle Benefits  Flexible Benefits  ---  # 18. Insurance Management  ## Insurance Types  Medical Insurance  Life Insurance  Accident Insurance  Disability Insurance  Travel Insurance  ---  ## Features  Enrollment  Dependent Coverage  Renewals  Claims Tracking  ---  # 19. Retirement Benefits  ## Programs  Provident Fund  Pension Plans  401(k) Equivalent  Superannuation  Gratuity  ---  ## Features  Contribution Tracking  Eligibility Rules  Employer Contributions  ---  # 20. Flexible Benefits  ## Examples  Meal Benefits  Fuel Benefits  Internet Reimbursement  Education Benefits  Health Benefits  Travel Benefits  ---  ## Features  Benefit Selection  Enrollment Windows  Budget Allocation  Utilization Tracking  ---  # 21. Rewards & Recognition  ## Purpose  Recognize employee achievements.  ---  ## Recognition Types  Peer Recognition  Manager Recognition  Spot Awards  Service Awards  Achievement Awards  Innovation Awards  ---  ## Features  Nominations  Approvals  Reward Catalog  Recognition Feed  ---  # 22. ESOP & Equity Management  ## Equity Types  ESOP  RSU  Stock Grant  Performance Shares  ---  ## Features  Grant Tracking  Vesting Schedules  Exercise Tracking  Valuation Tracking  ---  # 23. Total Rewards Statements  ## Purpose  Provide full compensation visibility.  ---  ## Components  Salary  Bonus  Benefits  Insurance  Employer Contributions  Equity  Rewards  ---  ## Delivery  Self-Service Portal  PDF  Mobile App  ---  # 24. Compensation Benchmarking  ## Sources  Market Surveys  Industry Benchmarks  Location Benchmarks  Custom Data  ---  ## Metrics  Compa Ratio  Market Ratio  Pay Position  Internal Equity  ---  # 25. Pay Equity Analysis  ## Purpose  Identify compensation disparities.  ---  ## Analysis Dimensions  Gender  Location  Department  Role  Grade  Ethnicity (where legally allowed)  ---  ## Outputs  Equity Reports  Gap Analysis  Recommendations  ---  # 26. Compensation Analytics  ## Metrics  Average Salary  Median Salary  Compa Ratio  Pay Equity  Salary Growth  Bonus Distribution  Benefit Utilization  ---  # 27. Compensation Reports  Salary Review Report  Compensation Budget Report  Bonus Report  Incentive Report  Pay Equity Report  Benefits Utilization Report  ESOP Report  Total Rewards Report  ---  Formats  PDF  Excel  CSV  ---  # 28. Notifications  Compensation Review Started  Salary Change Approved  Bonus Approved  Benefits Enrollment Open  Benefits Enrollment Closed  ESOP Grant Issued  Recognition Awarded  ---  # 29. APIs  Compensation  ```http id="e1mjcf" GET /compensation  POST /compensation
+
+Salary Reviews
+```http id=“e3z77d” GET /salary-reviews
+POST /salary-reviews
+ ---  Benefits  ```http id="o0f6nr" GET /benefits  POST /benefits/enrollments
+
+Recognition
+```http id=“p8m7ph” GET /recognition
+POST /recognition ```
+
+30. Database Tables
+Compensation Domain
+compensation_structures
+pay_grades
+salary_ranges
+employee_compensation
+
+Review Domain
+compensation_cycles
+salary_reviews
+salary_adjustments
+
+Bonus Domain
+bonuses
+bonus_payouts
+incentives
+
+Benefits Domain
+benefit_plans
+benefit_enrollments
+insurance_policies
+
+Recognition Domain
+recognitions
+awards
+reward_catalog
+
+Equity Domain
+esop_grants
+vesting_schedules
+equity_transactions
+
+31. Permissions Matrix
+compensation.view
+compensation.manage
+salary_review.manage
+bonus.manage
+benefits.manage
+recognition.manage
+equity.manage
+compensation.admin
+
+32. Security Requirements
+Salary Data Protection
+Field-Level Security
+RBAC Enforcement
+Approval Controls
+Audit Logging
+Tenant Isolation
+Encryption
+
+33. Audit Requirements
+Salary Changed
+Bonus Approved
+Benefit Enrollment Modified
+Recognition Granted
+ESOP Issued
+Compensation Cycle Closed
+
+Retention
+10 Years Minimum
+
+34. Performance Requirements
+Compensation Dashboard
+< 3 Seconds
+
+Salary Review Processing
+< 2 Seconds
+
+Benefits Enrollment
+< 1 Second
+
+35. Compliance Requirements
+Labor Laws
+Tax Regulations
+Equal Pay Regulations
+Benefits Regulations
+Compensation Governance
+Data Privacy Laws
+
+36. Future Enhancements
+Version 2
+AI Compensation Advisor
+Market Intelligence Engine
+Real-Time Salary Benchmarking
+Predictive Retention Compensation
+Compensation Copilot
+Global Mobility Compensation
+Personalized Benefits Marketplace
+
+Success Metrics
+Compensation Review Completion
+95%
+
+Pay Equity Compliance
+100%
+
+Benefits Enrollment Accuracy
+99%
+
+Compensation Budget Variance
+< 5%
+
+Conclusion
+The Compensation & Benefits Management Module provides a comprehensive enterprise-grade platform for managing employee rewards, compensation planning, salary reviews, benefits administration, incentives, recognition, and equity programs.
+The module integrates compensation governance, workforce rewards, benefits administration, and total rewards visibility into a unified framework while maintaining compliance, transparency, scalability, auditability, and tenant isolation.

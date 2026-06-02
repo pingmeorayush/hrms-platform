@@ -1,0 +1,584 @@
+PhoenixHRMS
+Onboarding & Offboarding Module Specification
+Version: 1.0
+Status: Draft
+Module ID: ONB
+Document Type: Functional Module Specification
+Related Documents:
+	•	15-employee-management-module.md
+	•	18-payroll-management-module.md
+	•	22-asset-management-module.md
+	•	23-document-management-module.md
+	•	29-workflow-engine.md
+	•	30-rbac-authorization-platform.md
+
+1. Module Overview
+Purpose
+The Onboarding & Offboarding Module manages the complete employee lifecycle from offer acceptance through employee onboarding, probation, internal transitions, resignation, separation, and final exit.
+The module provides:
+	•	Preboarding
+	•	Employee Onboarding
+	•	Provisioning
+	•	Induction Programs
+	•	Probation Management
+	•	Employee Exit Management
+	•	Clearance Workflows
+	•	Knowledge Transfer
+	•	Asset Recovery
+	•	Final Settlement Coordination
+
+Business Objectives
+	•	Accelerate employee productivity
+	•	Standardize onboarding processes
+	•	Improve employee experience
+	•	Reduce onboarding delays
+	•	Ensure compliant offboarding
+	•	Protect organizational assets
+	•	Improve workforce lifecycle visibility
+
+2. Lifecycle Overview
+Candidate Hired  ↓  Preboarding  ↓  Joining Day  ↓  Onboarding  ↓  Probation  ↓  Confirmed Employee  ↓  Employment Lifecycle  ↓  Resignation / Separation  ↓  Offboarding  ↓  Final Settlement  ↓  Alumni
+
+3. Module Scope
+Included
+Preboarding
+Onboarding
+Document Collection
+Task Management
+Induction Programs
+Probation Tracking
+Confirmation Process
+Internal Transfers
+Exit Management
+Asset Recovery
+Knowledge Transfer
+Exit Interviews
+Clearance Process
+Final Settlement Coordination
+Alumni Tracking
+
+Excluded
+Payroll Processing
+Recruitment Activities
+Asset Procurement
+
+4. Preboarding Management
+Purpose
+Engage employee before joining.
+
+Activities
+Welcome Email
+Offer Acceptance
+Document Collection
+Profile Completion
+Policy Acknowledgement
+Joining Instructions
+Equipment Requests
+
+Benefits
+Reduced Day-One Friction
+Higher Engagement
+Faster Productivity
+
+5. Preboarding Workflow
+Offer Accepted  ↓  Employee Portal Access  ↓  Documents Submitted  ↓  Profile Completion  ↓  HR Verification  ↓  Ready To Join
+
+6. Candidate-to-Employee Conversion
+Purpose
+Convert ATS records into employee records.
+
+Data Migration
+Personal Information
+Contact Information
+Compensation Data
+Job Information
+Documents
+Emergency Contacts
+
+Validation Rules
+Mandatory Field Validation
+Duplicate Checks
+Compliance Checks
+
+7. Joining Day Management
+Activities
+Identity Verification
+Welcome Session
+Device Handover
+Workspace Assignment
+System Access Activation
+Team Introduction
+
+Joining Status
+Scheduled
+Joined
+No Show
+Deferred
+Cancelled
+
+8. Employee Onboarding
+Purpose
+Structured onboarding journey.
+
+Onboarding Categories
+HR Onboarding
+IT Onboarding
+Manager Onboarding
+Department Onboarding
+Compliance Onboarding
+Training Onboarding
+
+9. Onboarding Plans
+Plan Types
+Standard Employee
+Manager
+Executive
+Contractor
+Intern
+Remote Employee
+Custom Plan
+
+Components
+Tasks
+Documents
+Training
+Approvals
+Meetings
+Checklists
+
+10. Onboarding Tasks
+Task Types
+Read Policy
+Submit Documents
+Complete Training
+Attend Session
+Meet Manager
+Setup Equipment
+Complete Forms
+
+Assignment Types
+Employee
+Manager
+HR
+IT Team
+Facilities
+Security
+
+11. Onboarding Checklist
+Examples
+Employment Contract Signed
+Tax Forms Completed
+Bank Details Added
+ID Verification Completed
+Training Assigned
+Laptop Received
+Email Activated
+Benefits Enrollment Completed
+
+12. Provisioning Management
+Purpose
+Prepare employee resources.
+
+Provisioning Categories
+System Accounts
+Email Accounts
+Software Licenses
+Assets
+Workspace
+Access Cards
+
+Automation
+Workflow-driven provisioning supported.
+
+13. Access Provisioning
+Systems
+HRMS
+Email
+VPN
+ERP
+CRM
+Learning Platform
+Communication Tools
+
+Integration
+Identity Management Platform
+SCIM
+SSO
+
+14. Document Collection
+Required Documents
+Government ID
+Educational Certificates
+Address Proof
+Bank Information
+Tax Documents
+Employment Documents
+
+Features
+Upload
+Verification
+Expiry Tracking
+Approval Workflow
+
+15. Induction Management
+Purpose
+Introduce employee to organization.
+
+Induction Types
+Company Induction
+Department Induction
+Role Induction
+Compliance Induction
+Security Awareness
+
+Delivery Methods
+Classroom
+Virtual
+Self-Paced
+Blended
+
+16. Buddy Program
+Purpose
+Improve employee experience.
+
+Features
+Buddy Assignment
+Scheduled Check-ins
+Feedback Collection
+Progress Tracking
+
+17. Probation Management
+Purpose
+Track employee probation period.
+
+Fields
+Start Date
+End Date
+Probation Period
+Review Date
+Manager
+Status
+
+Statuses
+Active
+Extended
+Completed
+Failed
+
+18. Probation Reviews
+Review Criteria
+Performance
+Attendance
+Behavior
+Learning Progress
+Manager Feedback
+
+Outcomes
+Confirm Employment
+Extend Probation
+Terminate Employment
+
+19. Employee Confirmation
+Workflow
+Probation Completed
+↓
+Manager Review
+↓
+HR Review
+↓
+Confirmation
+↓
+Employee Notified
+
+20. Internal Mobility
+Supported Events
+Promotion
+Transfer
+Role Change
+Department Change
+Location Change
+
+Onboarding Support
+Role-Specific Onboarding
+Training
+Access Changes
+
+21. Exit Management
+Purpose
+Manage employee separation.
+
+Separation Types
+Resignation
+Termination
+Retirement
+Contract End
+Death
+Mutual Separation
+
+22. Resignation Workflow
+Employee Resignation  ↓  Manager Review  ↓  HR Review  ↓  Notice Period  ↓  Clearance  ↓  Final Settlement  ↓  Exit
+
+23. Notice Period Management
+Features
+Notice Tracking
+Buyout Support
+Waivers
+Extension Support
+Approval Workflow
+
+24. Exit Checklist
+HR Tasks
+Exit Interview
+Final Documentation
+Benefits Closure
+Compliance Verification
+
+IT Tasks
+Account Deactivation
+Access Removal
+Data Backup
+Device Collection
+
+Facilities Tasks
+Access Card Collection
+Parking Access Removal
+Workspace Recovery
+
+25. Knowledge Transfer
+Purpose
+Preserve organizational knowledge.
+
+Activities
+Documentation
+Successor Handover
+Project Handover
+Client Handover
+Training Sessions
+
+26. Exit Interview Management
+Purpose
+Collect separation insights.
+
+Areas
+Manager Feedback
+Compensation
+Culture
+Growth Opportunities
+Work Environment
+
+Formats
+Questionnaire
+Interview
+Survey
+
+27. Clearance Management
+Departments
+Manager
+HR
+IT
+Finance
+Facilities
+Security
+Administration
+
+Clearance Status
+Pending
+Approved
+Rejected
+Escalated
+Completed
+
+28. Asset Recovery Integration
+Assets
+Laptop
+Monitor
+Phone
+Access Card
+Software Licenses
+Other Equipment
+
+Validation
+All assigned assets must be recovered.
+
+29. Access Deprovisioning
+Systems
+Email
+VPN
+HRMS
+ERP
+CRM
+Cloud Platforms
+
+Timing
+Immediate
+Scheduled
+Post Exit
+
+30. Final Settlement Coordination
+Inputs
+Payroll
+Leave Encashment
+Loans
+Advances
+Reimbursements
+Recovery Amounts
+
+Outputs
+Settlement Statement
+Payroll Processing
+Employee Communication
+
+31. Alumni Management
+Purpose
+Maintain former employee records.
+
+Features
+Alumni Directory
+Rehire Tracking
+Reference Requests
+Network Engagement
+
+32. Onboarding Analytics
+Metrics
+Time To Productivity
+Onboarding Completion Rate
+Training Completion Rate
+Probation Success Rate
+Employee Satisfaction
+
+33. Offboarding Analytics
+Metrics
+Attrition Rate
+Exit Reasons
+Knowledge Transfer Completion
+Asset Recovery Rate
+Exit SLA Compliance
+
+34. Reports
+Onboarding Status Report
+Joining Report
+Probation Report
+Confirmation Report
+Exit Report
+Attrition Report
+Asset Recovery Report
+Exit Interview Report
+
+Formats
+PDF
+Excel
+CSV
+
+35. Notifications
+Offer Accepted
+Joining Reminder
+Task Assigned
+Probation Review Due
+Confirmation Approved
+Resignation Submitted
+Exit Clearance Pending
+Final Settlement Completed
+
+36. APIs
+Onboarding
+GET /onboarding  POST /onboarding
+
+Probation
+GET /probation  POST /probation-reviews
+
+Offboarding
+GET /offboarding  POST /offboarding
+
+Exit Clearance
+GET /clearances  POST /clearances
+
+37. Database Tables
+Onboarding Domain
+onboarding_plans
+onboarding_tasks
+onboarding_checklists
+
+Probation Domain
+probation_periods
+probation_reviews
+
+Exit Domain
+offboarding_records
+resignations
+exit_interviews
+
+Clearance Domain
+clearance_requests
+clearance_approvals
+
+Knowledge Transfer Domain
+knowledge_transfer_records
+handover_tasks
+
+38. Permissions Matrix
+onboarding.view
+onboarding.manage
+onboarding.approve
+probation.manage
+offboarding.manage
+clearance.manage
+exit.manage
+lifecycle.admin
+
+39. Security Requirements
+RBAC Enforcement
+Document Protection
+Tenant Isolation
+Audit Logging
+Data Retention Controls
+Access Validation
+
+40. Audit Requirements
+Employee Joined
+Document Submitted
+Probation Reviewed
+Employee Confirmed
+Resignation Submitted
+Clearance Approved
+Asset Recovered
+Employee Exited
+
+Retention
+10 Years Minimum
+
+41. Performance Requirements
+Onboarding Dashboard
+< 2 Seconds
+
+Task Assignment
+< 500ms
+
+Exit Clearance Processing
+< 2 Seconds
+
+42. Future Enhancements
+Version 2
+AI Onboarding Assistant
+AI Exit Analysis
+Digital Employee Journey Maps
+Predictive Attrition Detection
+Automated Provisioning
+Employee Experience Scoring
+Virtual Induction Platform
+
+Success Metrics
+Onboarding Completion
+95%
+
+Probation Success
+90%
+
+Asset Recovery Rate
+99%
+
+Exit Clearance SLA
+95%
+
+Conclusion
+The Onboarding & Offboarding Module provides a comprehensive employee lifecycle management platform that standardizes employee entry, transition, and exit processes across the organization.
+The module integrates onboarding, probation, provisioning, clearance, knowledge transfer, and final settlement coordination into a unified lifecycle framework while maintaining compliance, auditability, security, scalability, and tenant isolation.

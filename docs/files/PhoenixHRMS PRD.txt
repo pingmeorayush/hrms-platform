@@ -1,0 +1,430 @@
+PhoenixHRMS
+Product Requirements Document (PRD)
+Version: 1.0
+Status: Draft
+Owner: Product Team
+Related Documents:
+	•	00-overview.md
+	•	02-user-personas.md
+	•	03-user-stories.md
+	•	11-database-design.md
+
+1. Introduction
+Purpose
+This document defines the functional and business requirements for PhoenixHRMS.
+The purpose of this document is to:
+	•	Define what the system must do.
+	•	Establish business expectations.
+	•	Provide development guidance.
+	•	Define project scope.
+	•	Establish acceptance criteria.
+This document acts as the authoritative source of product requirements for all stakeholders.
+
+2. Business Objectives
+The system shall:
+	•	Centralize employee information.
+	•	Automate attendance management.
+	•	Streamline leave workflows.
+	•	Automate payroll processing.
+	•	Improve recruitment efficiency.
+	•	Enable workforce analytics.
+	•	Improve employee self-service.
+	•	Reduce HR operational workload.
+
+3. Product Modules
+The platform consists of the following major modules:
+Core Modules
+Authentication & Security
+User Management
+Role Management
+Employee Management
+Department Management
+Designation Management
+Attendance Management
+Leave Management
+Payroll Management
+Recruitment Management
+Performance Management
+Asset Management
+Document Management
+Reporting & Analytics
+Notification Management
+Audit Management
+AI Assistant
+
+4. User Roles
+Super Administrator
+Responsibilities:
+	•	Tenant configuration
+	•	Global settings
+	•	Security management
+Permissions:
+	•	Full access
+
+HR Administrator
+Responsibilities:
+	•	Employee management
+	•	Payroll management
+	•	Recruitment management
+Permissions:
+	•	Manage HR operations
+
+HR Executive
+Responsibilities:
+	•	Employee onboarding
+	•	Attendance monitoring
+Permissions:
+	•	Limited HR access
+
+Manager
+Responsibilities:
+	•	Team management
+	•	Leave approvals
+	•	Performance reviews
+Permissions:
+	•	Department-level access
+
+Employee
+Responsibilities:
+	•	Self-service operations
+Permissions:
+	•	Own data access
+
+5. Employee Management Requirements
+Purpose
+Manage complete employee lifecycle.
+
+Functional Requirements
+Create Employee
+System shall allow HR users to create employee profiles.
+Required Information:
+	•	Employee Code
+	•	First Name
+	•	Last Name
+	•	Email
+	•	Phone
+	•	Date of Joining
+	•	Department
+	•	Designation
+Acceptance Criteria:
+	•	Employee code must be unique.
+	•	Email must be unique.
+	•	Department must exist.
+
+Update Employee
+System shall allow authorized users to update employee information.
+Fields:
+	•	Personal Information
+	•	Contact Information
+	•	Bank Information
+	•	Employment Information
+Audit logs must be maintained.
+
+Terminate Employee
+System shall allow employee termination.
+Required Fields:
+	•	Termination Date
+	•	Reason
+System shall:
+	•	Disable login access.
+	•	Retain historical records.
+
+Employee Transfer
+System shall support:
+	•	Department transfer
+	•	Manager transfer
+	•	Designation transfer
+All transfers must be recorded historically.
+
+6. Attendance Management Requirements
+Purpose
+Track employee attendance.
+
+Functional Requirements
+Check In
+Employee shall be able to check in.
+Validation:
+	•	Employee must be active.
+	•	Employee must not already be checked in.
+
+Check Out
+Employee shall be able to check out.
+Validation:
+	•	Employee must have checked in.
+
+Attendance Status
+Supported statuses:
+	•	Present
+	•	Absent
+	•	Leave
+	•	Holiday
+	•	Half Day
+	•	Weekend
+	•	Work From Home
+
+Shift Management
+System shall support:
+	•	Fixed shifts
+	•	Rotational shifts
+	•	Flexible shifts
+
+Overtime Management
+System shall:
+	•	Calculate overtime
+	•	Track overtime approvals
+
+7. Leave Management Requirements
+Purpose
+Manage employee leave requests.
+
+Leave Types
+System shall support:
+	•	Casual Leave
+	•	Sick Leave
+	•	Earned Leave
+	•	Maternity Leave
+	•	Paternity Leave
+	•	Unpaid Leave
+
+Leave Request Workflow
+Employee
+↓
+Manager Approval
+↓
+HR Approval
+↓
+Final Status
+
+Leave Request
+Employee shall submit:
+	•	Leave Type
+	•	Start Date
+	•	End Date
+	•	Reason
+
+Leave Validation Rules
+System shall:
+	•	Validate leave balance.
+	•	Prevent overlapping requests.
+	•	Prevent invalid date ranges.
+
+Leave Cancellation
+Employee may cancel pending requests.
+Approved leave cancellations require approval.
+
+8. Payroll Management Requirements
+Purpose
+Automate salary processing.
+
+Payroll Components
+Earnings
+	•	Basic Salary
+	•	HRA
+	•	Special Allowance
+	•	Bonus
+Deductions
+	•	PF
+	•	ESI
+	•	Tax
+	•	Professional Tax
+
+Payroll Workflow
+Attendance
+↓
+Leave Adjustment
+↓
+Salary Calculation
+↓
+Tax Calculation
+↓
+Approval
+↓
+Payslip Generation
+↓
+Payroll Closure
+
+Payslip Requirements
+System shall generate:
+	•	PDF Payslip
+	•	Downloadable version
+	•	Printable version
+
+Payroll Validation Rules
+System shall:
+	•	Prevent duplicate payroll runs.
+	•	Validate attendance data.
+	•	Validate salary structures.
+
+9. Recruitment Management Requirements
+Purpose
+Manage hiring process.
+
+Candidate Lifecycle
+Applied
+↓
+Screening
+↓
+Interview
+↓
+Offer
+↓
+Joined
+↓
+Employee Conversion
+
+Job Posting
+HR shall create job postings.
+Fields:
+	•	Title
+	•	Department
+	•	Description
+	•	Skills
+	•	Experience
+
+Candidate Management
+System shall maintain:
+	•	Resume
+	•	Interview Notes
+	•	Evaluation Scores
+
+10. Performance Management Requirements
+Purpose
+Track employee performance.
+
+Goal Management
+Goals shall support:
+	•	Individual Goals
+	•	Team Goals
+	•	Company Goals
+
+Performance Review Cycle
+Employee Self Review
+↓
+Manager Review
+↓
+HR Review
+↓
+Final Rating
+
+Rating Scale
+1–5 Rating System
+Configurable by organization.
+
+11. Asset Management Requirements
+Purpose
+Track organizational assets.
+
+Asset Types
+	•	Laptop
+	•	Desktop
+	•	Mobile
+	•	Monitor
+	•	SIM Card
+	•	Access Card
+
+Asset Assignment
+System shall:
+	•	Assign assets
+	•	Track ownership
+	•	Track return status
+
+12. Document Management Requirements
+Purpose
+Manage employee documents.
+
+Supported Documents
+	•	Resume
+	•	Offer Letter
+	•	PAN Card
+	•	Aadhaar Card
+	•	Passport
+	•	Contracts
+
+Security Requirements
+Documents shall:
+	•	Be encrypted at rest.
+	•	Support role-based access.
+
+13. Reporting & Analytics Requirements
+Standard Reports
+Attendance Reports
+Leave Reports
+Payroll Reports
+Recruitment Reports
+Performance Reports
+Asset Reports
+
+Dashboard Metrics
+Total Employees
+Active Employees
+Attendance %
+Payroll Cost
+Open Positions
+Pending Approvals
+
+14. Notification Requirements
+System shall support:
+	•	Email
+	•	SMS
+	•	WhatsApp
+	•	In-App Notifications
+
+Notification Events
+Employee Created
+Leave Approved
+Leave Rejected
+Payroll Completed
+Interview Scheduled
+Performance Review Assigned
+
+15. Audit Requirements
+System shall track:
+	•	User Activity
+	•	Record Changes
+	•	Payroll Changes
+	•	Leave Approvals
+	•	Permission Changes
+
+16. AI Assistant Requirements
+AI Resume Screening
+System shall score resumes based on:
+	•	Skills Match
+	•	Experience Match
+	•	Education Match
+
+AI Leave Recommendation
+System shall provide approval recommendations.
+
+AI Workforce Insights
+Examples:
+	•	High attrition risk employees
+	•	Attendance anomalies
+	•	Productivity trends
+
+17. Non-Functional Requirements
+Availability
+99.9% uptime target.
+
+Security
+OWASP compliance.
+
+Scalability
+Support:
+	•	10,000+ employees
+	•	Multi-tenant deployment
+
+Performance
+API response time:
+< 500ms average
+
+18. Future Requirements
+Version 2 Roadmap:
+	•	Mobile Applications
+	•	Learning Management System
+	•	Internal Helpdesk
+	•	Workforce Planning
+	•	AI Copilot
+	•	Employee Engagement Suite
+
+Approval
+This document shall serve as the master source of functional requirements for PhoenixHRMS and shall be referenced by all architecture, design, development, testing, and deployment activities.

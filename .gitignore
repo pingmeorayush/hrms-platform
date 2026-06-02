@@ -1,0 +1,43 @@
+# OS metadata
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Root editor/tooling settings
+/.vscode/
+/.idea/
+/.zed/
+/.cursor/
+/.codex/
+
+# Local environment files
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Docker/local overrides
+/docker-compose.override.yml
+/docker-compose.local.yml
+
+# Logs and test artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+coverage/
+
+# Dependency and build output
+/apps/api/vendor/
+/apps/api/node_modules/
+/apps/api/public/build/
+/apps/api/public/hot
+/apps/web/node_modules/
+/apps/web/dist/
+/apps/web/dist-ssr/
+
+# Laravel runtime artifacts
+/apps/api/database/*.sqlite*
+/apps/api/public/storage
+/apps/api/storage/*.key
+/apps/api/storage/pail/

@@ -1,0 +1,391 @@
+PhoenixHRMS
+Document Management Module Specification
+Version: 1.0
+Status: Draft
+Module ID: DOC
+Document Type: Functional Module Specification
+Related Documents:
+	•	15-employee-management-module.md
+	•	18-payroll-management-module.md
+	•	22-asset-management-module.md
+	•	11-database-design.md
+	•	14-openapi-spec.md
+
+1. Module Overview
+Purpose
+The Document Management Module provides centralized storage, organization, access control, lifecycle management, and compliance governance for all organizational documents.
+The module supports:
+	•	Employee Documents
+	•	Company Documents
+	•	Policy Documents
+	•	Contracts
+	•	Digital Signatures
+	•	Compliance Records
+	•	Document Workflows
+
+Business Objectives
+	•	Centralize document storage
+	•	Improve document discoverability
+	•	Ensure compliance
+	•	Reduce paper-based processes
+	•	Improve security
+	•	Support digital transformation
+
+2. Module Scope
+
+Included
+Document Repository
+Employee Documents
+Company Documents
+Document Categories
+Version Control
+Document Approval Workflows
+Document Sharing
+Digital Signatures
+Retention Policies
+OCR
+Document Search
+AI Search
+Audit Tracking
+Compliance Management
+
+Excluded
+Enterprise Content Management (ECM)
+External Legal Management
+These may integrate in future.
+
+3. Document Lifecycle
+```text id=“y6r9zb” Document Created
+↓
+Uploaded
+↓
+Classified
+↓
+Reviewed
+↓
+Approved
+↓
+Published
+↓
+Used
+↓
+Archived
+↓
+Disposed
+ ---  # 4. Document Types  ---  ## Employee Documents  Resume  Offer Letter  Employment Contract  Identity Documents  Educational Certificates  Experience Certificates  Medical Documents  Performance Documents  Exit Documents  ---  ## Company Documents  Policies  Handbooks  Compliance Records  Legal Agreements  Training Material  Operational Documents  Audit Reports  ---  ## Payroll Documents  Payslips  Tax Documents  PF Statements  ESI Records  Payroll Registers  ---  # 5. Document Categories  ---  ## Categories  HR  Payroll  Recruitment  Learning  Legal  Compliance  Finance  Administration  Custom Categories  ---  ## Subcategories Supported  Unlimited hierarchy levels.  ---  # 6. Document Repository  ---  ## Features  Central Storage  Folder Structure  Metadata Management  Document Indexing  Bulk Upload  Bulk Download  ---  ## Storage Architecture  Primary Storage  AWS S3  ---  Backup Storage  Cold Storage  Archive Storage  ---  # 7. Document Metadata  ---  ## Standard Fields  Document Name  Category  Subcategory  Owner  Department  Document Type  Status  Tags  Version  Expiry Date  Created Date  ---  ## Custom Metadata  Tenant configurable.  ---  # 8. Folder Management  ---  ## Features  Nested Folders  Folder Permissions  Folder Templates  Folder Sharing  Folder Search  ---  ## Example  ```text id="vf7q2a" Employees  └── Employee ID      ├── Contracts      ├── Certifications      ├── Payroll      └── Performance
+
+9. Version Control
+
+Purpose
+Track document changes.
+
+Features
+Version History
+Major Versions
+Minor Versions
+Rollback
+Comparison
+Change Logs
+
+Example
+```text id=“b5k4xt” v1.0
+v1.1
+v2.0
+ ---  # 10. Document Approval Workflow  ---  ## Workflow  ```text id="n7t1jd" Author  ↓  Reviewer  ↓  Approver  ↓  Published
+
+Actions
+Approve
+Reject
+Request Changes
+Delegate
+Escalate
+
+11. Document Statuses
+
+Draft
+In Review
+Approved
+Published
+Archived
+Expired
+Disposed
+
+12. Document Access Control
+
+Access Models
+Private
+Restricted
+Department
+Role Based
+Organization Wide
+Public
+
+Security Layers
+RBAC
+Tenant Isolation
+Document Ownership
+Audit Logging
+
+13. Employee Document Management
+
+Features
+Document Upload
+Document Verification
+Expiry Tracking
+Renewal Tracking
+Access Restrictions
+
+Examples
+Passport
+Visa
+Driving License
+ID Proof
+Employment Contracts
+
+14. Digital Signatures
+
+Supported Types
+Electronic Signature
+Digital Signature
+Certificate-Based Signature
+
+Workflow
+Document
+↓
+Sign Request
+↓
+Recipient
+↓
+Signed
+↓
+Archived
+
+Features
+Multiple Signers
+Sequential Signing
+Parallel Signing
+Signature Verification
+
+15. OCR (Optical Character Recognition)
+
+Purpose
+Extract searchable text.
+
+Supported Documents
+PDF
+Images
+Scanned Documents
+
+Outputs
+Extracted Text
+Metadata Suggestions
+Document Classification
+
+16. Document Search
+
+Search Methods
+Keyword Search
+Metadata Search
+Tag Search
+Folder Search
+Advanced Search
+
+Filters
+Category
+Department
+Owner
+Date Range
+Status
+Tags
+
+17. AI Document Search
+
+Features
+Semantic Search
+Question Answering
+Document Summaries
+Related Documents
+Clause Search
+Knowledge Discovery
+
+Example
+text id="g4r8yv" Show all policies related to remote work.
+
+18. Document Retention Policies
+
+Purpose
+Compliance management.
+
+Policy Components
+Retention Period
+Archive Rules
+Deletion Rules
+Legal Hold
+
+Example
+```text id=“u3x9lf” Payroll Documents
+Retention
+10 Years
+ ---  # 19. Legal Hold  ---  ## Purpose  Prevent deletion.  ---  ## Use Cases  Audits  Litigation  Investigations  Compliance Reviews  ---  ## Effect  Retention policy suspended.  ---  # 20. Document Expiry Management  ---  ## Examples  Passports  Visas  Certifications  Licenses  Contracts  ---  ## Features  Expiry Alerts  Renewal Reminders  Escalations  ---  # 21. Compliance Management  ---  ## Compliance Areas  Labor Compliance  Tax Compliance  Data Privacy  Training Compliance  Certification Compliance  Industry Compliance  ---  ## Reporting Support  Audit Ready.  ---  # 22. Document Sharing  ---  ## Sharing Types  User  Role  Department  External User  Temporary Access  ---  ## Controls  Expiry  Download Restriction  View Only  Password Protection  ---  # 23. Audit Trail  ---  ## Events Tracked  Upload  Download  View  Edit  Delete  Share  Approve  Sign  Archive  ---  ## Immutable Audit Logs  Required.  ---  # 24. Document Analytics  ---  ## Metrics  Total Documents  Storage Usage  Downloads  Expired Documents  Pending Approvals  Retention Compliance  Search Usage  ---  # 25. Reports  ---  Document Inventory Report  Document Expiry Report  Approval Workflow Report  Access Report  Retention Report  Audit Report  Storage Utilization Report  Compliance Report  ---  Formats  PDF  Excel  CSV  ---  # 26. Notifications  ---  Document Uploaded  Document Approved  Document Rejected  Document Expiring  Signature Requested  Signature Completed  Retention Action Due  Legal Hold Applied  ---  # 27. Document APIs  ---  Documents  ```http id="x6r2qa" GET /documents  POST /documents  PATCH /documents/{id}
+
+Folders
+```http id=“f9w4mt” GET /folders
+POST /folders
+ ---  Versions  ```http id="c5p8lu" GET /documents/{id}/versions
+
+Signatures
+```http id=“a8n1ez” POST /signatures
+GET /signatures/{id}
+ ---  Search  ```http id="m2j7vd" GET /documents/search
+
+28. Database Tables
+Core Domain
+documents
+document_versions
+document_categories
+folders
+
+Metadata Domain
+document_metadata
+document_tags
+
+Workflow Domain
+document_reviews
+document_approvals
+
+Signature Domain
+signature_requests
+signature_signers
+signature_events
+
+Retention Domain
+retention_policies
+legal_holds
+
+Audit Domain
+document_access_logs
+document_audit_logs
+
+29. Permissions Matrix
+
+document.view
+document.create
+document.edit
+document.delete
+document.approve
+document.share
+document.sign
+document.manage_retention
+document.manage_legal_hold
+document.analytics.view
+document.export
+
+30. Security Requirements
+
+Encryption At Rest
+Encryption In Transit
+RBAC Enforcement
+Document Watermarking
+Audit Logging
+Tenant Isolation
+Virus Scanning
+Malware Detection
+
+31. Audit Requirements
+
+Document Uploaded
+Document Downloaded
+Document Viewed
+Document Shared
+Document Approved
+Document Signed
+Retention Action Executed
+Legal Hold Applied
+
+Retention
+10 Years Minimum
+
+32. Integrations
+
+Employee Module
+Payroll Module
+Recruitment Module
+Learning Module
+Notification Module
+Digital Signature Providers
+OCR Providers
+AI Module
+Cloud Storage Providers
+
+33. Dashboard Widgets
+
+Total Documents
+Pending Reviews
+Pending Signatures
+Expiring Documents
+Storage Usage
+Retention Alerts
+Compliance Status
+Recent Activity
+
+34. Performance Requirements
+
+Document Upload
+< 5 Seconds
+
+Document Search
+< 1 Second
+
+Document Download
+< 3 Seconds
+
+35. Compliance Requirements
+
+GDPR
+SOC 2
+ISO 27001
+Labor Regulations
+Industry Compliance
+Legal Retention Rules
+
+36. AI Features
+
+Document Classification
+Metadata Extraction
+Semantic Search
+Document Summaries
+Policy Q&A
+Knowledge Assistant
+Risk Detection
+
+Governance
+AI assists.
+Human control retained.
+
+37. Future Enhancements
+Version 2
+Enterprise Knowledge Base
+Contract Lifecycle Management
+AI Policy Assistant
+Enterprise Search
+Knowledge Graph
+Multilingual OCR
+Automated Compliance Monitoring
+Smart Document Workflows
+
+Success Metrics
+Document Retrieval Time
+< 1 Second
+
+Storage Accuracy
+100%
+
+Compliance Readiness
+100%
+
+Approval SLA
+< 24 Hours
+
+Conclusion
+The Document Management Module provides a secure, scalable, and compliance-ready enterprise document platform that serves as the system of record for employee, payroll, legal, operational, and compliance documents.
+The module integrates document storage, workflows, version control, digital signatures, retention management, OCR, AI-powered search, and compliance governance into a unified document ecosystem while maintaining auditability, security, scalability, and tenant isolation.

@@ -1,0 +1,437 @@
+PhoenixHRMS
+API Standards & Governance Document
+Version: 1.0
+Status: Draft
+Document Type: API Architecture & Standards
+Related Documents:
+	•	06-system-architecture.md
+	•	08-backend-architecture.md
+	•	11-database-design.md
+	•	12-erd.md
+
+1. Purpose
+This document defines the API standards used throughout PhoenixHRMS.
+Objectives:
+	•	Consistency
+	•	Scalability
+	•	Developer Experience
+	•	Maintainability
+	•	Security
+	•	Backward Compatibility
+All APIs must comply with this specification.
+
+2. API Philosophy
+PhoenixHRMS follows:
+RESTful API Design
+API-First Development
+Contract-Driven Development
+OpenAPI Governance
+
+Core Principles:
+	•	Predictable
+	•	Consistent
+	•	Versioned
+	•	Secure
+	•	Discoverable
+
+3. API Architecture
+Architecture:
+Client  ↓  API Gateway  ↓  Authentication  ↓  Authorization  ↓  Controller  ↓  Service Layer  ↓  Repository  ↓  Database
+
+4. API Versioning Strategy
+Current Version:
+/api/v1
+Examples:
+/api/v1/employees  /api/v1/attendance  /api/v1/payroll
+
+Future Versions
+/api/v2  /api/v3
+
+Versioning Rules
+Breaking Changes
+↓
+New Version
+
+Non-Breaking Changes
+↓
+Same Version
+
+5. Resource Naming Standards
+Use:
+Plural Nouns
+
+Correct:
+/employees  /departments  /payroll-runs  /leave-requests
+
+Incorrect:
+/getEmployees  /createEmployee  /employeeData
+
+6. HTTP Methods
+
+GET
+Retrieve resources
+
+POST
+Create resources
+
+PUT
+Full update
+
+PATCH
+Partial update
+
+DELETE
+Soft delete
+
+Examples
+GET /employees  POST /employees  GET /employees/{id}  PATCH /employees/{id}  DELETE /employees/{id}
+
+7. URI Design Standards
+
+Hierarchy Example
+/employees  /employees/{id}  /employees/{id}/documents  /employees/{id}/attendance
+
+Nested Resource Rules
+Maximum depth:
+2 levels
+
+Correct:
+/employees/{id}/documents
+
+Avoid:
+/companies/{id}/departments/{id}/employees/{id}/documents
+
+8. Standard Response Format
+All APIs return:
+JSON
+
+Success Response
+{   "success": true,   "message": "Employee created successfully.",   "data": {} }
+
+Failure Response
+{   "success": false,   "message": "Validation failed.",   "errors": [] }
+
+9. Error Response Standards
+
+400
+Bad Request
+
+401
+Unauthorized
+
+403
+Forbidden
+
+404
+Not Found
+
+409
+Conflict
+
+422
+Validation Error
+
+429
+Rate Limited
+
+500
+Internal Server Error
+
+Example
+{   "success": false,   "message": "Employee not found.",   "errors": [] }
+
+10. Validation Error Format
+{   "success": false,   "message": "Validation failed.",   "errors": {     "email": [       "Email is required."     ]   } }
+
+11. Pagination Standards
+Large collections must be paginated.
+
+Request
+GET /employees?page=1&per_page=25
+
+Response
+{   "success": true,   "data": [],   "meta": {     "page": 1,     "per_page": 25,     "total": 1000,     "last_page": 40   } }
+
+Default:
+25
+Maximum:
+100
+
+12. Filtering Standards
+Supported:
+/employees?status=active  /employees?department_id=123  /employees?designation_id=456
+
+Multiple Filters
+/employees? status=active& department_id=123
+
+13. Sorting Standards
+Format:
+?sort=name
+Ascending
+
+Descending
+?sort=-name
+
+Multiple Sorts
+?sort=name,-created_at
+
+14. Search Standards
+General Search
+?search=john
+
+Field Search
+?email=john@example.com
+
+Future:
+Full Text Search
+OpenSearch
+
+15. Authentication Standards
+Authentication:
+Bearer Token
+
+Header
+Authorization: Bearer TOKEN
+
+Technology
+Laravel Sanctum
+
+16. Authorization Standards
+Every endpoint requires:
+Permission Validation
+Tenant Validation
+
+Example
+employee.view
+AND
+company_id validation
+
+17. Tenant Standards
+All business endpoints are tenant-aware.
+
+User Context
+↓
+Company Context
+↓
+Data Scope
+
+Cross-tenant access prohibited.
+
+18. Idempotency Standards
+Required For:
+Payroll
+Payments
+Imports
+Critical Workflows
+
+Header
+Idempotency-Key
+
+Duplicate requests return same result.
+
+19. Bulk Operation Standards
+Examples:
+POST /employees/bulk-import  POST /employees/bulk-update
+
+Response
+{   "processed": 500,   "success": 495,   "failed": 5 }
+
+20. File Upload Standards
+Supported:
+PDF
+DOCX
+PNG
+JPG
+
+Endpoint Example
+POST /employees/{id}/documents
+
+Response
+{   "file_id": "uuid",   "url": "signed-url" }
+
+21. Date & Time Standards
+Storage:
+UTC
+
+Format:
+ISO-8601
+
+Example
+{   "created_at":   "2026-06-01T10:30:00Z" }
+
+22. UUID Standards
+All resources use UUIDs.
+
+Example
+{   "id":   "8a56ab11-7f9f-4c42..." }
+
+No sequential IDs exposed.
+
+23. API Resource Standards
+Every endpoint must return Resource Objects.
+Example:
+EmployeeResource
+DepartmentResource
+PayrollResource
+
+Direct model serialization prohibited.
+
+24. Rate Limiting Standards
+
+Authentication
+10 requests/min
+
+Sensitive Endpoints
+20 requests/min
+
+Standard Endpoints
+100 requests/min
+
+Admin APIs
+200 requests/min
+
+25. Caching Standards
+Cacheable:
+Lookup Data
+Departments
+Designations
+Settings
+
+Not Cacheable:
+Payroll Processing
+Attendance Submission
+Leave Approval
+
+26. Audit Standards
+Critical APIs must generate audit records.
+Examples:
+Employee Created
+Payroll Processed
+Leave Approved
+Role Changed
+
+27. Async API Standards
+Long-running operations:
+202 Accepted
+
+Example
+POST /payroll/run
+Response:
+{   "job_id": "uuid",   "status": "queued" }
+
+28. API Security Standards
+Requirements:
+TLS 1.3
+Rate Limiting
+Input Validation
+Output Filtering
+Audit Logging
+
+Sensitive fields masked.
+
+29. OpenAPI Standards
+OpenAPI Version:
+3.1
+
+Every endpoint requires:
+Summary
+Description
+Parameters
+Request Body
+Responses
+Examples
+Error Responses
+
+30. API Documentation Structure
+Grouped By Domain
+Authentication  Employees  Attendance  Leave  Payroll  Recruitment  Performance  Assets  Reports  AI
+
+31. API Naming Conventions
+Resources:
+kebab-case
+
+Examples:
+leave-requests  salary-components  payroll-periods
+
+JSON Fields:
+snake_case
+
+Examples:
+{   "employee_code": "",   "first_name": "",   "last_name": "" }
+
+32. API Lifecycle
+Draft
+↓
+Review
+↓
+Approved
+↓
+Implemented
+↓
+Tested
+↓
+Released
+↓
+Deprecated
+↓
+Retired
+
+33. Deprecation Policy
+Deprecated endpoints:
+Minimum support:
+12 months
+
+Response Header
+Deprecation: true
+
+Documentation updated.
+
+34. API Testing Standards
+Required:
+Unit Tests
+Feature Tests
+Contract Tests
+Integration Tests
+
+Coverage Target:
+80%+
+
+35. API Governance Rules
+Every API change requires:
+Design Review
+Code Review
+Security Review
+Documentation Update
+
+Breaking changes prohibited without versioning.
+
+36. Developer Experience Standards
+Every endpoint shall provide:
+Examples
+Error Examples
+Validation Rules
+OpenAPI Documentation
+Postman Collection
+
+37. Future API Enhancements
+Version 2:
+GraphQL Gateway
+Webhook Platform
+Developer Portal
+Public API Marketplace
+SDK Generation
+
+API Compliance Checklist
+Before Release:
+✓ OpenAPI Documented
+✓ Authorization Implemented
+✓ Tenant Validation Added
+✓ Audit Logging Added
+✓ Tests Added
+✓ Error Handling Standardized
+✓ Pagination Implemented
+✓ Security Review Completed
+
+Conclusion
+The PhoenixHRMS API standards ensure consistency, security, scalability, and maintainability across all backend services.
+Every API endpoint, integration, mobile application, third-party connector, and future public developer platform must comply with these standards to ensure long-term platform stability and developer productivity.

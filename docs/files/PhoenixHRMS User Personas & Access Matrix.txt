@@ -1,0 +1,488 @@
+PhoenixHRMS
+User Personas & Access Matrix
+Version: 1.0
+Status: Draft
+Related Documents:
+	•	00-overview.md
+	•	01-product-requirements.md
+	•	08-authorization-rbac.md
+
+Purpose
+This document defines all user personas that interact with PhoenixHRMS.
+The purpose of this document is to:
+	•	Understand system users
+	•	Define permissions
+	•	Define workflows
+	•	Define responsibilities
+	•	Establish role-based access controls
+	•	Drive dashboard design
+	•	Drive UI navigation
+
+Organizational Hierarchy
+Organization
+↓
+CEO
+↓
+Department Heads
+↓
+Managers
+↓
+Team Leads
+↓
+Employees
+
+HR Department operates across all levels.
+
+Persona Classification
+PhoenixHRMS supports the following personas:
+System Level
+	•	Super Administrator
+	•	Tenant Administrator
+HR Level
+	•	HR Director
+	•	HR Manager
+	•	HR Executive
+	•	Recruiter
+	•	Payroll Officer
+Business Level
+	•	Department Head
+	•	Manager
+	•	Team Lead
+Employee Level
+	•	Employee
+
+Persona 1: Super Administrator
+Description
+Highest privileged user within the platform.
+Responsible for maintaining the entire SaaS environment.
+Exists primarily in SaaS deployments.
+
+Primary Goals
+	•	Platform stability
+	•	Security
+	•	Tenant management
+	•	Configuration management
+
+Responsibilities
+	•	Create organizations
+	•	Configure subscriptions
+	•	Manage global settings
+	•	Manage integrations
+	•	Manage security policies
+
+Pain Points
+	•	Unauthorized access
+	•	Misconfigured tenants
+	•	Security breaches
+	•	Compliance risks
+
+Key Metrics
+	•	Platform uptime
+	•	Active tenants
+	•	Security incidents
+	•	Subscription renewals
+
+Dashboard Requirements
+View:
+	•	Total Organizations
+	•	Total Employees
+	•	Active Users
+	•	Platform Health
+	•	Subscription Status
+
+Permissions
+Full access.
+Can:
+	•	Create
+	•	Read
+	•	Update
+	•	Delete
+all records.
+
+Persona 2: Tenant Administrator
+Description
+Represents organization owner.
+Controls organization’s configuration.
+
+Primary Goals
+	•	Manage company settings
+	•	Configure HR policies
+	•	Manage users
+
+Responsibilities
+	•	Company setup
+	•	User administration
+	•	Department creation
+	•	Policy management
+
+Dashboard Requirements
+	•	Employee Count
+	•	Payroll Cost
+	•	Attendance Rate
+	•	Leave Statistics
+
+Permissions
+Full access within tenant.
+Cannot access other organizations.
+
+Persona 3: HR Director
+Description
+Strategic HR leader.
+Focuses on workforce planning and organizational growth.
+
+Goals
+	•	Improve employee retention
+	•	Improve hiring efficiency
+	•	Reduce HR costs
+
+Responsibilities
+	•	Workforce planning
+	•	Compensation strategy
+	•	HR policy approval
+	•	Performance oversight
+
+KPIs
+	•	Attrition Rate
+	•	Retention Rate
+	•	Hiring Success Rate
+	•	Employee Satisfaction
+
+Dashboard Widgets
+	•	Attrition Trends
+	•	Headcount Growth
+	•	Payroll Cost Trends
+	•	Recruitment Funnel
+
+Permissions
+Read:
+	•	All employees
+	•	All departments
+Approve:
+	•	Senior-level requests
+	•	Compensation changes
+
+Persona 4: HR Manager
+Description
+Operational HR leader.
+Manages day-to-day HR activities.
+
+Goals
+	•	Employee satisfaction
+	•	Efficient operations
+	•	Compliance
+
+Responsibilities
+	•	Employee management
+	•	Leave management
+	•	Attendance oversight
+	•	Recruitment supervision
+
+Daily Activities
+	•	Review attendance issues
+	•	Approve requests
+	•	Review onboarding
+
+KPIs
+	•	Leave Processing Time
+	•	Onboarding Time
+	•	Employee Compliance
+
+Permissions
+Manage:
+	•	Employees
+	•	Attendance
+	•	Leave
+	•	Recruitment
+Cannot modify:
+	•	Global settings
+
+Persona 5: HR Executive
+Description
+Handles daily HR operations.
+
+Goals
+	•	Accurate employee records
+	•	Efficient administration
+
+Responsibilities
+	•	Employee onboarding
+	•	Attendance monitoring
+	•	Document verification
+
+Daily Tasks
+	•	Upload documents
+	•	Update profiles
+	•	Verify employee records
+
+Permissions
+Create:
+	•	Employees
+Update:
+	•	Employee information
+View:
+	•	Attendance
+Cannot:
+	•	Approve payroll
+
+Persona 6: Recruiter
+Description
+Responsible for attracting and hiring talent.
+
+Goals
+	•	Fill vacancies quickly
+	•	Improve candidate quality
+
+Responsibilities
+	•	Job posting
+	•	Candidate screening
+	•	Interview scheduling
+
+KPIs
+	•	Time To Hire
+	•	Offer Acceptance Rate
+	•	Interview Conversion Rate
+
+Dashboard Widgets
+	•	Open Positions
+	•	Candidate Pipeline
+	•	Interview Schedule
+
+Permissions
+Manage:
+	•	Jobs
+	•	Candidates
+	•	Interviews
+Cannot:
+	•	Access payroll
+
+Persona 7: Payroll Officer
+Description
+Responsible for payroll processing.
+
+Goals
+	•	Payroll accuracy
+	•	Compliance
+
+Responsibilities
+	•	Salary calculations
+	•	Deductions
+	•	Payslip generation
+
+KPIs
+	•	Payroll Accuracy
+	•	Processing Time
+
+Dashboard Widgets
+	•	Payroll Runs
+	•	Tax Reports
+	•	Deduction Reports
+
+Permissions
+Access:
+	•	Salary information
+Generate:
+	•	Payroll
+Cannot:
+	•	Change company policies
+
+Persona 8: Department Head
+Description
+Heads a business department.
+Examples:
+	•	Engineering Head
+	•	Sales Head
+	•	Finance Head
+
+Goals
+	•	Team productivity
+	•	Resource planning
+
+Responsibilities
+	•	Team oversight
+	•	Hiring approvals
+	•	Performance monitoring
+
+KPIs
+	•	Department Performance
+	•	Team Utilization
+
+Permissions
+View:
+	•	Department employees
+Approve:
+	•	Department requests
+Cannot:
+	•	View other departments
+
+Persona 9: Manager
+Description
+Direct manager of employees.
+
+Goals
+	•	Deliver team outcomes
+	•	Manage workload
+
+Responsibilities
+	•	Approve leave
+	•	Review performance
+	•	Monitor attendance
+
+Daily Activities
+	•	Team monitoring
+	•	Request approvals
+
+KPIs
+	•	Team Attendance
+	•	Goal Completion
+	•	Productivity
+
+Permissions
+View:
+	•	Direct reports
+Approve:
+	•	Leave
+	•	Attendance corrections
+Cannot:
+	•	Run payroll
+
+Persona 10: Team Lead
+Description
+Operational leader.
+Acts as first-level supervisor.
+
+Goals
+	•	Team coordination
+	•	Delivery efficiency
+
+Responsibilities
+	•	Daily guidance
+	•	Attendance monitoring
+
+Permissions
+View:
+	•	Team data
+Cannot:
+	•	Approve payroll
+
+Persona 11: Employee
+Description
+Standard user of the platform.
+Represents majority of users.
+
+Goals
+	•	Access information
+	•	Submit requests
+	•	View payroll
+
+Responsibilities
+	•	Maintain profile
+	•	Submit attendance
+	•	Apply leave
+
+Daily Activities
+	•	Check attendance
+	•	Submit leave requests
+	•	Download payslips
+
+Dashboard Widgets
+	•	Attendance Summary
+	•	Leave Balance
+	•	Upcoming Holidays
+	•	Payslip History
+
+Permissions
+View:
+	•	Own profile
+	•	Own attendance
+	•	Own payroll
+Create:
+	•	Leave requests
+Cannot:
+	•	Access other employees
+
+Data Access Matrix
+Super Admin
+All organizations
+
+Tenant Admin
+Own organization
+
+HR Director
+All employees within organization
+
+HR Manager
+All employees within organization
+
+HR Executive
+Limited HR scope
+
+Recruiter
+Recruitment data only
+
+Payroll Officer
+Payroll-related data only
+
+Department Head
+Department employees only
+
+Manager
+Direct reports only
+
+Team Lead
+Assigned team only
+
+Employee
+Self only
+
+Dashboard Personalization Rules
+Each user shall receive a personalized dashboard.
+Examples:
+Employee:
+	•	Attendance
+	•	Leave
+	•	Payslips
+Manager:
+	•	Team Attendance
+	•	Pending Approvals
+HR Manager:
+	•	Workforce Overview
+	•	Recruitment Pipeline
+Payroll Officer:
+	•	Payroll Processing Queue
+Tenant Admin:
+	•	Organizational Overview
+
+Notification Preferences
+Every persona shall support:
+	•	Email
+	•	In-App
+	•	SMS
+	•	WhatsApp
+Notification types depend on permissions.
+
+Approval Hierarchy
+Employee
+↓
+Team Lead
+↓
+Manager
+↓
+HR
+↓
+Director
+↓
+Final Approval
+Hierarchy configurable per organization.
+
+Future Personas
+Version 2:
+	•	Contractor
+	•	Vendor
+	•	Consultant
+	•	Intern
+	•	Auditor
+	•	External Recruiter
+
+Conclusion
+These personas define the behavior, permissions, responsibilities, workflows, and data access patterns throughout PhoenixHRMS.
+All future RBAC, dashboard design, workflow design, and security implementation must follow the definitions established within this document.

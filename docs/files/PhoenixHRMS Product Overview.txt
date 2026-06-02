@@ -1,0 +1,303 @@
+PhoenixHRMS
+Product Overview & Vision Document
+Version: 1.0
+Document Type: Product Overview
+Status: Draft
+Author: Phoenix Sports Technologies
+Product Name: PhoenixHRMS
+Last Updated: June 2026
+
+Executive Summary
+PhoenixHRMS is a modern enterprise Human Resource Management System (HRMS) and Payroll Platform designed to digitize, automate, and optimize the complete employee lifecycle within organizations of all sizes.
+The platform aims to replace fragmented HR processes, spreadsheets, disconnected software tools, and manual workflows with a unified, scalable, secure, and intelligent system.
+PhoenixHRMS provides organizations with tools to manage:
+	•	Employee lifecycle
+	•	Attendance
+	•	Leave management
+	•	Payroll
+	•	Recruitment
+	•	Performance management
+	•	Asset tracking
+	•	Employee documents
+	•	Reporting and analytics
+	•	AI-powered HR assistance
+The platform is designed as a multi-tenant SaaS solution, allowing multiple organizations to operate independently while sharing the same infrastructure.
+
+Problem Statement
+Many organizations still rely on:
+	•	Excel spreadsheets
+	•	Manual attendance registers
+	•	Email-based approvals
+	•	Paper documents
+	•	Legacy payroll systems
+	•	Multiple disconnected software platforms
+These practices create operational challenges such as:
+Payroll Errors
+Incorrect salary calculations, tax deductions, and attendance adjustments frequently result in payroll disputes.
+Inefficient Leave Management
+Employees often submit leave requests through emails, messages, or verbal communication, resulting in inconsistent tracking.
+Lack of Visibility
+Managers and HR teams struggle to obtain real-time information regarding employee attendance, leave balances, performance, and recruitment progress.
+Compliance Risks
+Organizations face legal and financial risks when employee records, payroll information, and audit trails are not maintained properly.
+Operational Overhead
+HR departments spend excessive time on repetitive administrative tasks rather than strategic workforce management.
+
+Product Vision
+To become the most flexible, scalable, and intelligent HR operating platform for modern organizations.
+PhoenixHRMS aims to empower organizations by:
+	•	Reducing administrative workload
+	•	Improving workforce visibility
+	•	Automating repetitive HR processes
+	•	Increasing employee engagement
+	•	Providing actionable workforce intelligence
+
+Mission Statement
+To provide organizations with a centralized platform that automates and simplifies human resource operations while improving employee experience and organizational productivity.
+
+Product Goals
+Goal 1: Centralized Employee Management
+Maintain all employee-related information in a single secure platform.
+Success Criteria
+	•	100% employee records centralized
+	•	Elimination of spreadsheet-based employee tracking
+
+Goal 2: Attendance Automation
+Automate attendance recording and monitoring.
+Success Criteria
+	•	Attendance processing time reduced by 90%
+	•	Real-time attendance visibility
+
+Goal 3: Payroll Automation
+Automate payroll calculations and salary processing.
+Success Criteria
+	•	Payroll processing time reduced by 80%
+	•	Payroll error rate below 1%
+
+Goal 4: Digital Leave Management
+Provide transparent leave management workflows.
+Success Criteria
+	•	Leave approvals processed within SLA
+	•	Complete leave audit history available
+
+Goal 5: Recruitment Optimization
+Reduce hiring cycle duration.
+Success Criteria
+	•	Faster candidate screening
+	•	Reduced manual recruitment effort
+
+Goal 6: Workforce Analytics
+Enable leadership teams to make data-driven decisions.
+Success Criteria
+	•	Real-time HR dashboards
+	•	Predictive workforce insights
+
+Target Market
+PhoenixHRMS is intended for:
+Small Businesses
+Employees: 10–50
+Use Cases:
+	•	Attendance
+	•	Payroll
+	•	Basic HR operations
+
+Medium Businesses
+Employees: 50–500
+Use Cases:
+	•	HR operations
+	•	Recruitment
+	•	Performance management
+	•	Reporting
+
+Large Enterprises
+Employees: 500+
+Use Cases:
+	•	Multi-location workforce
+	•	Advanced analytics
+	•	Compliance management
+	•	Multi-department operations
+
+User Personas
+Employee
+Primary Responsibilities:
+	•	Update personal information
+	•	Mark attendance
+	•	Apply for leave
+	•	View payslips
+	•	Access company documents
+Goals:
+	•	Self-service access
+	•	Transparency
+	•	Faster approvals
+
+Manager
+Primary Responsibilities:
+	•	Team oversight
+	•	Leave approvals
+	•	Performance reviews
+Goals:
+	•	Team visibility
+	•	Faster decision making
+
+HR Executive
+Primary Responsibilities:
+	•	Employee administration
+	•	Recruitment coordination
+	•	Attendance monitoring
+Goals:
+	•	Reduced manual work
+	•	Better employee management
+
+HR Manager
+Primary Responsibilities:
+	•	Workforce planning
+	•	Policy management
+	•	Compliance monitoring
+Goals:
+	•	Operational efficiency
+	•	Strategic workforce insights
+
+Payroll Officer
+Primary Responsibilities:
+	•	Payroll execution
+	•	Tax calculations
+	•	Compliance reporting
+Goals:
+	•	Accurate payroll
+	•	Reduced processing effort
+
+System Administrator
+Primary Responsibilities:
+	•	User management
+	•	Security management
+	•	Configuration
+Goals:
+	•	System reliability
+	•	Security enforcement
+
+Product Scope
+In Scope
+Employee Management
+	•	Employee profiles
+	•	Employment history
+	•	Organizational hierarchy
+Attendance Management
+	•	Check-in
+	•	Check-out
+	•	Shift management
+	•	Overtime
+Leave Management
+	•	Leave requests
+	•	Leave approvals
+	•	Leave balances
+Payroll Management
+	•	Salary structures
+	•	Payroll runs
+	•	Payslip generation
+Recruitment Management
+	•	Job postings
+	•	Candidate tracking
+	•	Interview scheduling
+Performance Management
+	•	Goals
+	•	Reviews
+	•	KPIs
+Asset Management
+	•	Asset assignment
+	•	Asset history
+Document Management
+	•	Employee documents
+	•	Policy documents
+Reporting & Analytics
+	•	HR dashboards
+	•	Payroll reports
+	•	Attendance reports
+AI Assistant
+	•	Resume screening
+	•	Attendance anomaly detection
+	•	Workforce insights
+
+Out of Scope
+The following are not part of Version 1:
+	•	Accounting system
+	•	Procurement management
+	•	CRM
+	•	Inventory management
+	•	Learning Management System
+	•	Project management
+These may become future modules within the broader PhoenixERP ecosystem.
+
+Key Performance Indicators
+HR Metrics
+	•	Employee turnover rate
+	•	Attrition rate
+	•	Headcount growth
+Attendance Metrics
+	•	Attendance percentage
+	•	Absenteeism rate
+	•	Overtime hours
+Payroll Metrics
+	•	Payroll accuracy rate
+	•	Payroll processing time
+Recruitment Metrics
+	•	Time-to-hire
+	•	Cost-per-hire
+	•	Offer acceptance rate
+Performance Metrics
+	•	Goal completion rate
+	•	Review completion rate
+
+Competitive Positioning
+PhoenixHRMS aims to compete with:
+	•	Enterprise HR platforms
+	•	Payroll automation platforms
+	•	Workforce management solutions
+Differentiators:
+	•	Modular architecture
+	•	Multi-tenant SaaS design
+	•	AI-powered HR capabilities
+	•	Open API ecosystem
+	•	Enterprise-grade security
+	•	Developer-friendly integrations
+
+High-Level Product Roadmap
+Phase 1
+	•	Authentication
+	•	Employee Management
+	•	RBAC
+Phase 2
+	•	Attendance Management
+Phase 3
+	•	Leave Management
+Phase 4
+	•	Payroll Engine
+Phase 5
+	•	Recruitment
+Phase 6
+	•	Performance Management
+Phase 7
+	•	Reporting & Analytics
+Phase 8
+	•	AI Assistant
+Phase 9
+	•	Multi-Tenant SaaS
+Phase 10
+	•	Enterprise Integrations
+
+Assumptions
+	•	Organizations require cloud-first deployment.
+	•	Mobile access is expected.
+	•	Payroll rules vary by region.
+	•	Data privacy regulations continue to evolve.
+	•	AI-assisted workflows will become standard HR expectations.
+
+Risks
+	•	Payroll compliance complexity
+	•	Regional labor law variations
+	•	Data privacy requirements
+	•	Third-party integration dependencies
+	•	User adoption challenges
+
+Conclusion
+PhoenixHRMS is envisioned as a comprehensive HR operating system that streamlines workforce management, automates critical HR functions, improves organizational visibility, and provides intelligent insights for modern businesses.
+This document serves as the foundational vision and strategic direction for all future product, engineering, design, and operational decisions.

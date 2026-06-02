@@ -1,0 +1,773 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 01 Platform Foundation API
+  version: 1.0.0
+  description: Initial Auth, RBAC, Tenant Foundation, Workflow, Notification, and Audit APIs implemented in Sprint 01.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Sign in with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Token issued or MFA challenge required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /auth/verify-mfa:
+    post:
+      operationId: verifyMfa
+      summary: Complete an MFA challenge
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyMfaRequest'
+      responses:
+        '200':
+          description: Token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      summary: Issue a password reset token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset flow initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      summary: Reset an account password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Revoke the current token
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+  /auth/me:
+    get:
+      operationId: getAuthenticatedUser
+      summary: Load the authenticated user, permissions, and tenant context
+      responses:
+        '200':
+          description: Authenticated user loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /ui/visibility:
+    get:
+      operationId: getUiVisibilityContract
+      summary: Load the backend-driven visibility contract for navigation and actions
+      responses:
+        '200':
+          description: UI visibility contract loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UiVisibilityContract'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /admin/roles:
+    get:
+      operationId: listRoles
+      summary: List seed and custom roles
+      responses:
+        '200':
+          description: Roles loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createRole
+      summary: Create a role and assign permissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreateRequest'
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /admin/permissions:
+    get:
+      operationId: listPermissions
+      summary: List permission definitions
+      responses:
+        '200':
+          description: Permissions loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      summary: List tenant-scoped audit logs
+      parameters:
+        - in: query
+          name: event_type
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            maximum: 100
+      responses:
+        '200':
+          description: Audit logs loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /workflows:
+    get:
+      operationId: listWorkflows
+      summary: List workflow definitions for the current tenant
+      responses:
+        '200':
+          description: Workflow definitions loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createWorkflow
+      summary: Create a workflow definition and its initial version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowDefinitionRequest'
+      responses:
+        '201':
+          description: Workflow definition created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /workflows/{workflowId}:
+    patch:
+      operationId: updateWorkflow
+      summary: Publish, archive, or version an existing workflow definition
+      parameters:
+        - in: path
+          name: workflowId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowDefinitionUpdateRequest'
+      responses:
+        '200':
+          description: Workflow definition updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /workflow-instances:
+    get:
+      operationId: listWorkflowInstances
+      summary: List workflow instances for the current tenant
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: reference_type
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            maximum: 100
+      responses:
+        '200':
+          description: Workflow instances loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createWorkflowInstance
+      summary: Start a workflow instance from a published definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowInstanceRequest'
+      responses:
+        '201':
+          description: Workflow instance started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /tasks:
+    get:
+      operationId: listTasks
+      summary: List workflow tasks visible to the authenticated user
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow tasks loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /tasks/{taskId}:
+    patch:
+      operationId: updateWorkflowTask
+      summary: Approve, reject, or request changes on a workflow task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowTaskDecisionRequest'
+      responses:
+        '200':
+          description: Workflow task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /notifications:
+    get:
+      operationId: listNotifications
+      summary: List in-app notifications for the authenticated user
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            maximum: 100
+      responses:
+        '200':
+          description: Notifications loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createNotification
+      summary: Create an in-app notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationCreateRequest'
+      responses:
+        '201':
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /notifications/{notificationId}/read:
+    patch:
+      operationId: markNotificationRead
+      summary: Mark an in-app notification as read
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /notifications/{notificationId}/retry:
+    post:
+      operationId: retryNotification
+      summary: Retry a failed in-app notification delivery
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification retry processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    UnauthorizedErrorResponse:
+      description: The request is not authenticated.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: The authenticated user is not allowed to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: The request payload or state is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: The requested resource is not available in the current tenant context.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    SuccessResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        message:
+          type: string
+        data: {}
+    ErrorResponse:
+      type: object
+      required: [success, message, errors]
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        device_name:
+          type: string
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    VerifyMfaRequest:
+      type: object
+      required: [email, code]
+      properties:
+        email:
+          type: string
+          format: email
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+        device_name:
+          type: string
+    ResetPasswordRequest:
+      type: object
+      required: [email, token, password, password_confirmation]
+      properties:
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+        password:
+          type: string
+        password_confirmation:
+          type: string
+    RoleCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    UiVisibilityItem:
+      type: object
+      required: [id, label, required_permissions, match, visible]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        href:
+          type:
+            - string
+            - 'null'
+        description:
+          type:
+            - string
+            - 'null'
+        required_permissions:
+          type: array
+          items:
+            type: string
+        match:
+          type: string
+          enum: [all, any]
+        visible:
+          type: boolean
+    UiVisibilityActionGroup:
+      type: object
+      required: [id, title, description, actions, visible_count, hidden_count]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UiVisibilityItem'
+        visible_count:
+          type: integer
+        hidden_count:
+          type: integer
+    UiVisibilityContract:
+      type: object
+      required: [navigation, action_groups, meta]
+      properties:
+        navigation:
+          type: array
+          items:
+            $ref: '#/components/schemas/UiVisibilityItem'
+        action_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/UiVisibilityActionGroup'
+        meta:
+          type: object
+          required:
+            [visible_navigation_count, hidden_navigation_count, backend_enforcement_note]
+          properties:
+            visible_navigation_count:
+              type: integer
+            hidden_navigation_count:
+              type: integer
+            backend_enforcement_note:
+              type: string
+    WorkflowStageRequest:
+      type: object
+      required: [key, name, sequence, approver_type, approver_value]
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        sequence:
+          type: integer
+        approver_type:
+          type: string
+          enum: [role, user]
+        approver_value:
+          oneOf:
+            - type: string
+            - type: integer
+        available_actions:
+          type: array
+          items:
+            type: string
+            enum: [approve, reject, request_changes]
+        sla_hours:
+          type: integer
+        metadata:
+          type: object
+    WorkflowDefinitionRequest:
+      type: object
+      required: [key, name, module, stages]
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        module:
+          type: string
+        description:
+          type: string
+        is_template:
+          type: boolean
+        publish:
+          type: boolean
+        stages:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowStageRequest'
+    WorkflowDefinitionUpdateRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [publish, new_version, archive]
+        version:
+          type: integer
+        publish:
+          type: boolean
+        stages:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowStageRequest'
+    WorkflowInstanceRequest:
+      type: object
+      required: [reference_type, reference_id]
+      properties:
+        workflow_definition_id:
+          type: integer
+        workflow_key:
+          type: string
+        reference_type:
+          type: string
+        reference_id:
+          type: string
+        payload:
+          type: object
+    WorkflowTaskDecisionRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [approve, reject, request_changes]
+        comment:
+          type: string
+    NotificationCreateRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id:
+          type: integer
+        template_key:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+        channel:
+          type: string
+          enum: [in_app]
+        priority:
+          type: string
+          enum: [low, normal, high]
+        deep_link:
+          type: string
+        variables:
+          type: object
+        data:
+          type: object
