@@ -4,6 +4,10 @@
 
 Extend the platform from core HR operations into hiring, employee growth, and performance enablement.
 
+## Status
+
+Planned
+
 ## Primary Backlog IDs
 
 - `REC-001`
@@ -15,6 +19,10 @@ Extend the platform from core HR operations into hiring, employee growth, and pe
 - [Recruitment](../modules/recruitment.md)
 - [Performance Management](../modules/performance-management.md)
 - [Learning Management](../modules/learning-management.md)
+
+## Backlog Detail
+
+- [Sprint 07 Delivery Backlog](../backlog/sprint-07-recruitment-performance-learning.md)
 
 ## Scope
 

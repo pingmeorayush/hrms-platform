@@ -1,14 +1,5 @@
 import type { AccessSnapshot, AccessUser, VisibilityContract } from '../types'
-
-async function readJson<T>(response: Response): Promise<T> {
-  const payload = (await response.json()) as { data?: T; message?: string }
-
-  if (!response.ok || payload.data === undefined) {
-    throw new Error(payload.message ?? 'The API request failed.')
-  }
-
-  return payload.data
-}
+import { readApiJson } from '../../../shared/api/http'
 
 export async function fetchAccessSnapshot(apiBaseUrl: string, token: string): Promise<AccessSnapshot> {
   const headers = {
@@ -21,8 +12,8 @@ export async function fetchAccessSnapshot(apiBaseUrl: string, token: string): Pr
     fetch(`${apiBaseUrl}/ui/visibility`, { headers }),
   ])
 
-  const user = await readJson<AccessUser>(meResponse)
-  const visibility = await readJson<VisibilityContract>(visibilityResponse)
+  const user = await readApiJson<AccessUser>(meResponse)
+  const visibility = await readApiJson<VisibilityContract>(visibilityResponse)
 
   return {
     user,

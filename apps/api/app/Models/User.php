@@ -66,6 +66,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'requires_mfa' => 'boolean',
+            'mfa_secret' => 'encrypted',
             'mfa_email_otp_expires_at' => 'datetime',
             'mfa_confirmed_at' => 'datetime',
             'locked_until' => 'datetime',

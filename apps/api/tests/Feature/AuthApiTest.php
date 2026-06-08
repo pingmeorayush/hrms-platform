@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -130,6 +131,25 @@ class AuthApiTest extends TestCase
             'device_name' => 'browser',
         ])->assertOk()
             ->assertJsonPath('data.token_type', 'Bearer');
+    }
+
+    public function test_authenticator_mfa_secret_is_encrypted_at_rest(): void
+    {
+        $secret = 'JBSWY3DPEHPK3PXP';
+
+        $user = User::factory()->create([
+            'requires_mfa' => true,
+            'mfa_method' => 'authenticator_app',
+            'mfa_secret' => $secret,
+        ]);
+
+        $storedSecret = DB::table('users')
+            ->where('id', $user->id)
+            ->value('mfa_secret');
+
+        $this->assertIsString($storedSecret);
+        $this->assertNotSame($secret, $storedSecret);
+        $this->assertSame($secret, $user->fresh()->mfa_secret);
     }
 
     public function test_login_with_email_otp_mfa_issues_a_challenge_and_audit_log(): void

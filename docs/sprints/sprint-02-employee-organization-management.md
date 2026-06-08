@@ -6,7 +6,7 @@ Establish the employee system of record and the organization master data used by
 
 ## Status
 
-Completed
+Backend slice completed and verified. UI companion backlog is now defined, but the Sprint 02 web experience is not implemented in the current workspace.
 
 Backend implementation now covers tenant-scoped organization masters, employee create/read, employee-code policy enforcement, benchmarked employee directory search, bulk import validation, lifecycle update/transfer/promotion/termination APIs, employee contact/address/emergency-contact management, employee document attachment/download baseline, onboarding checklist progress tracking, employee and structure audit-history access, encrypted bank-detail handling with audit coverage, and the published Sprint 02 OpenAPI contract inventory.
 
@@ -26,6 +26,7 @@ Backend implementation now covers tenant-scoped organization masters, employee c
 ## Backlog Detail
 
 - [Sprint 02 Delivery Backlog](../backlog/sprint-02-employee-organization-management.md)
+- [Frontend Delivery Order for Sprints 02 to 04](../backlog/frontend-delivery-order-sprints-02-to-04.md)
 
 ## Scope
 

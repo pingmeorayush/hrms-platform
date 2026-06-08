@@ -5,6 +5,7 @@ namespace App\Modules\Platform\Tenancy\Concerns;
 use App\Modules\Platform\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use LogicException;
 
 trait BelongsToCompany
 {
@@ -18,11 +19,26 @@ trait BelongsToCompany
             }
         });
 
-        static::creating(function (Model $model): void {
+        static::saving(static function (Model $model): void {
             $context = app(TenantContext::class);
 
-            if ($context->isResolved() && empty($model->company_id)) {
+            if (! $context->isResolved()) {
+                return;
+            }
+
+            if (empty($model->company_id)) {
                 $model->company_id = $context->companyId;
+
+                return;
+            }
+
+            if ((int) $model->company_id !== $context->companyId) {
+                throw new LogicException(sprintf(
+                    'Tenant integrity violation: attempted to persist %s with company_id=%d while tenant context is company_id=%d.',
+                    $model::class,
+                    (int) $model->company_id,
+                    $context->companyId,
+                ));
             }
         });
     }

@@ -1,0 +1,1938 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 03 Attendance and Shift Operations API
+  version: 1.0.0
+  description: Tenant-scoped attendance capture, calculation, policy, holiday configuration, shift scheduling, assignment, and roster APIs implemented during Sprint 03.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /attendance:
+    get:
+      operationId: listAttendanceRecords
+      summary: List tenant attendance records within the caller's review scope
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: primary_status
+          schema:
+            type: string
+            enum: [present, half_day, absent, holiday, weekend, incomplete]
+        - in: query
+          name: state
+          schema:
+            type: string
+            enum: [not_captured, checked_in, checked_out]
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Attendance records loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AttendanceRecord'
+                          meta:
+                            $ref: '#/components/schemas/PaginationMeta'
+                        required: [items, meta]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/{attendanceRecordId}:
+    get:
+      operationId: getAttendanceRecord
+      summary: Load one attendance record within the caller's review scope
+      parameters:
+        - $ref: '#/components/parameters/AttendanceRecordId'
+      responses:
+        '200':
+          description: Attendance record loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendanceRecord'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /attendance/check-in:
+    post:
+      operationId: createAttendanceCheckIn
+      summary: Record an employee check-in with optional device and geolocation metadata
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceCheckInRequest'
+      responses:
+        '201':
+          description: Attendance check-in created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendanceRecord'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/check-out:
+    post:
+      operationId: createAttendanceCheckOut
+      summary: Record an employee check-out with optional device and geolocation metadata
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceCheckOutRequest'
+      responses:
+        '200':
+          description: Attendance check-out recorded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendanceRecord'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/recalculate:
+    post:
+      operationId: recalculateAttendanceRecords
+      summary: Recalculate attendance outcomes and backfill past absent, holiday, and weekend records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceRecalculateRequest'
+      responses:
+        '200':
+          description: Attendance records recalculated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendanceRecalculationSummary'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/operational-review:
+    get:
+      operationId: getAttendanceOperationalReview
+      summary: Load the operational attendance window for HR or manager review
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Attendance operational review loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          window_date:
+                            type: string
+                            format: date
+                          summary:
+                            $ref: '#/components/schemas/AttendanceOperationalReviewSummary'
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AttendanceOperationalRecord'
+                        required: [window_date, summary, items]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /attendance/pending-exceptions:
+    get:
+      operationId: getAttendancePendingExceptions
+      summary: Load scoped attendance exception records and pending correction queue items
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Attendance pending exceptions loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          window_date:
+                            type: string
+                            format: date
+                          summary:
+                            $ref: '#/components/schemas/AttendancePendingExceptionSummary'
+                          attendance_items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AttendanceOperationalRecord'
+                          correction_items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AttendanceCorrection'
+                        required: [window_date, summary, attendance_items, correction_items]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /attendance/corrections:
+    get:
+      operationId: listAttendanceCorrections
+      summary: List attendance corrections within the caller's review scope
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: attendance_record_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, approved, rejected, changes_requested]
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Attendance corrections loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AttendanceCorrection'
+                          meta:
+                            $ref: '#/components/schemas/PaginationMeta'
+                        required: [items, meta]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createAttendanceCorrection
+      summary: Submit an attendance correction request with preserved original values
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceCorrectionRequest'
+      responses:
+        '201':
+          description: Attendance correction submitted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendanceCorrection'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/corrections/{attendanceCorrectionId}:
+    patch:
+      operationId: updateAttendanceCorrection
+      summary: Approve, reject, or request changes on an attendance correction
+      parameters:
+        - $ref: '#/components/parameters/AttendanceCorrectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceCorrectionDecisionRequest'
+      responses:
+        '200':
+          description: Attendance correction updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendanceCorrection'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/policy:
+    get:
+      operationId: getAttendancePolicy
+      summary: Load the active tenant attendance policy
+      responses:
+        '200':
+          description: Attendance policy loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendancePolicy'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    patch:
+      operationId: updateAttendancePolicy
+      summary: Update the active tenant attendance policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendancePolicyUpdateRequest'
+      responses:
+        '200':
+          description: Attendance policy updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendancePolicy'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/holiday-calendars:
+    get:
+      operationId: listHolidayCalendars
+      summary: List tenant holiday calendars with configured holidays
+      responses:
+        '200':
+          description: Holiday calendars loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/HolidayCalendar'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createHolidayCalendar
+      summary: Create a tenant holiday calendar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayCalendarRequest'
+      responses:
+        '201':
+          description: Holiday calendar created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/HolidayCalendar'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/holiday-calendars/{holidayCalendarId}:
+    patch:
+      operationId: updateHolidayCalendar
+      summary: Update a tenant holiday calendar
+      parameters:
+        - $ref: '#/components/parameters/HolidayCalendarId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayCalendarRequest'
+      responses:
+        '200':
+          description: Holiday calendar updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/HolidayCalendar'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/holiday-calendars/{holidayCalendarId}/holidays:
+    post:
+      operationId: createHoliday
+      summary: Create a holiday inside a tenant holiday calendar
+      parameters:
+        - $ref: '#/components/parameters/HolidayCalendarId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayRequest'
+      responses:
+        '201':
+          description: Holiday created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Holiday'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/holiday-calendars/{holidayCalendarId}/holidays/{holidayId}:
+    patch:
+      operationId: updateHoliday
+      summary: Update a holiday inside a tenant holiday calendar
+      parameters:
+        - $ref: '#/components/parameters/HolidayCalendarId'
+        - $ref: '#/components/parameters/HolidayId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayRequest'
+      responses:
+        '200':
+          description: Holiday updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Holiday'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/shifts:
+    get:
+      operationId: listShifts
+      summary: List tenant shift definitions
+      responses:
+        '200':
+          description: Shift definitions loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Shift'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createShift
+      summary: Create a tenant shift definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftRequest'
+      responses:
+        '201':
+          description: Shift definition created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Shift'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/shifts/{shiftId}:
+    patch:
+      operationId: updateShift
+      summary: Update a tenant shift definition
+      parameters:
+        - $ref: '#/components/parameters/ShiftId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftRequest'
+      responses:
+        '200':
+          description: Shift definition updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Shift'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/shift-assignments:
+    get:
+      operationId: listShiftAssignments
+      summary: List tenant shift assignments
+      parameters:
+        - in: query
+          name: assignment_type
+          schema:
+            type: string
+            enum: [employee, department, location]
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: department_id
+          schema:
+            type: integer
+        - in: query
+          name: location_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Shift assignments loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ShiftAssignment'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createShiftAssignment
+      summary: Create an effective-dated shift assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftAssignmentRequest'
+      responses:
+        '201':
+          description: Shift assignment created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ShiftAssignment'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/shift-assignments/{shiftAssignmentId}:
+    patch:
+      operationId: updateShiftAssignment
+      summary: Update an effective-dated shift assignment
+      parameters:
+        - $ref: '#/components/parameters/ShiftAssignmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftAssignmentRequest'
+      responses:
+        '200':
+          description: Shift assignment updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ShiftAssignment'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/rosters:
+    get:
+      operationId: listShiftRosters
+      summary: List tenant roster entries
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Roster entries loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ShiftRoster'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createShiftRosters
+      summary: Schedule roster entries for one or more employees
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftRosterBatchRequest'
+      responses:
+        '201':
+          description: Roster entries scheduled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ShiftRoster'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /attendance/rosters/{shiftRosterId}:
+    patch:
+      operationId: updateShiftRoster
+      summary: Update a scheduled roster entry
+      parameters:
+        - $ref: '#/components/parameters/ShiftRosterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftRosterUpdateRequest'
+      responses:
+        '200':
+          description: Roster entry updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ShiftRoster'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  parameters:
+    AttendanceRecordId:
+      in: path
+      name: attendanceRecordId
+      required: true
+      schema:
+        type: integer
+    AttendanceCorrectionId:
+      in: path
+      name: attendanceCorrectionId
+      required: true
+      schema:
+        type: integer
+    HolidayCalendarId:
+      in: path
+      name: holidayCalendarId
+      required: true
+      schema:
+        type: integer
+    HolidayId:
+      in: path
+      name: holidayId
+      required: true
+      schema:
+        type: integer
+    ShiftId:
+      in: path
+      name: shiftId
+      required: true
+      schema:
+        type: integer
+    ShiftAssignmentId:
+      in: path
+      name: shiftAssignmentId
+      required: true
+      schema:
+        type: integer
+    ShiftRosterId:
+      in: path
+      name: shiftRosterId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data: {}
+      required: [success, message, data]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required: [success, message, errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    AttendanceRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        attendance_date:
+          type: string
+          format: date
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        shift:
+          oneOf:
+            - $ref: '#/components/schemas/Shift'
+            - type: 'null'
+        shift_roster_id:
+          type: [integer, 'null']
+        state:
+          type: string
+          enum: [not_captured, checked_in, checked_out]
+        worked_minutes:
+          type: [integer, 'null']
+        calculation:
+          $ref: '#/components/schemas/AttendanceCalculation'
+        check_in:
+          $ref: '#/components/schemas/AttendanceCaptureSnapshot'
+        check_out:
+          $ref: '#/components/schemas/AttendanceCaptureSnapshot'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - attendance_date
+        - employee
+        - shift_roster_id
+        - state
+        - worked_minutes
+        - calculation
+        - check_in
+        - check_out
+    AttendanceOperationalRecord:
+      allOf:
+        - $ref: '#/components/schemas/AttendanceRecord'
+        - type: object
+          properties:
+            exception_types:
+              type: array
+              items:
+                type: string
+                enum: [absent, half_day, incomplete, late, pending_correction]
+            has_pending_correction:
+              type: boolean
+            pending_corrections:
+              type: array
+              items:
+                $ref: '#/components/schemas/AttendanceCorrectionSummary'
+          required: [exception_types, has_pending_correction, pending_corrections]
+    AttendanceCalculation:
+      type: object
+      properties:
+        primary_status:
+          type: [string, 'null']
+          enum: [present, half_day, absent, holiday, weekend, incomplete, null]
+        scheduled_start_at:
+          type: [string, 'null']
+          format: date-time
+        scheduled_end_at:
+          type: [string, 'null']
+          format: date-time
+        scheduled_work_minutes:
+          type: [integer, 'null']
+        break_duration_minutes:
+          type: integer
+        is_late:
+          type: boolean
+        late_minutes:
+          type: integer
+        is_half_day:
+          type: boolean
+        overtime_minutes:
+          type: integer
+        is_weekend:
+          type: boolean
+        is_holiday:
+          type: boolean
+        holiday_name:
+          type: [string, 'null']
+        is_early_departure:
+          type: boolean
+        early_departure_minutes:
+          type: integer
+        calculated_at:
+          type: [string, 'null']
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+      required:
+        - primary_status
+        - break_duration_minutes
+        - is_late
+        - late_minutes
+        - is_half_day
+        - overtime_minutes
+        - is_weekend
+        - is_holiday
+        - holiday_name
+        - is_early_departure
+        - early_departure_minutes
+        - calculated_at
+        - metadata
+    AttendanceCaptureSnapshot:
+      type: object
+      properties:
+        at:
+          type: [string, 'null']
+          format: date-time
+        channel:
+          type: [string, 'null']
+          enum: [web, api, null]
+        ip_address:
+          type: [string, 'null']
+        user_agent:
+          type: [string, 'null']
+        metadata:
+          $ref: '#/components/schemas/AttendanceCaptureMetadata'
+      required: [at, channel, ip_address, user_agent, metadata]
+    AttendanceCaptureMetadata:
+      type: object
+      properties:
+        device:
+          oneOf:
+            - $ref: '#/components/schemas/AttendanceDeviceMetadata'
+            - type: 'null'
+        geolocation:
+          oneOf:
+            - $ref: '#/components/schemas/AttendanceGeolocationMetadata'
+            - type: 'null'
+      additionalProperties: false
+    AttendanceDeviceMetadata:
+      type: object
+      properties:
+        device_id:
+          type: [string, 'null']
+        device_name:
+          type: [string, 'null']
+        platform:
+          type: [string, 'null']
+        browser:
+          type: [string, 'null']
+        app_version:
+          type: [string, 'null']
+      additionalProperties: false
+    AttendanceGeolocationMetadata:
+      type: object
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+        accuracy_meters:
+          type: integer
+      required: [latitude, longitude]
+      additionalProperties: false
+    AttendanceCheckInRequest:
+      type: object
+      properties:
+        channel:
+          type: string
+          enum: [web, api]
+        captured_at:
+          type: string
+          format: date-time
+        device:
+          $ref: '#/components/schemas/AttendanceDeviceMetadata'
+        geolocation:
+          $ref: '#/components/schemas/AttendanceGeolocationMetadata'
+    AttendanceCheckOutRequest:
+      type: object
+      properties:
+        channel:
+          type: string
+          enum: [web, api]
+        captured_at:
+          type: string
+          format: date-time
+        device:
+          $ref: '#/components/schemas/AttendanceDeviceMetadata'
+        geolocation:
+          $ref: '#/components/schemas/AttendanceGeolocationMetadata'
+    AttendanceRecalculateRequest:
+      type: object
+      properties:
+        date_from:
+          type: string
+          format: date
+        date_to:
+          type: string
+          format: date
+        employee_id:
+          type: integer
+      required: [date_from, date_to]
+    AttendanceRecalculationSummary:
+      type: object
+      properties:
+        processed:
+          type: integer
+        created:
+          type: integer
+        updated:
+          type: integer
+        skipped:
+          type: integer
+      required: [processed, created, updated, skipped]
+    AttendanceOperationalReviewSummary:
+      type: object
+      properties:
+        total_records:
+          type: integer
+        present_count:
+          type: integer
+        absent_count:
+          type: integer
+        half_day_count:
+          type: integer
+        incomplete_count:
+          type: integer
+        holiday_count:
+          type: integer
+        weekend_count:
+          type: integer
+        late_count:
+          type: integer
+        pending_correction_count:
+          type: integer
+        checked_in_count:
+          type: integer
+        checked_out_count:
+          type: integer
+      required:
+        - total_records
+        - present_count
+        - absent_count
+        - half_day_count
+        - incomplete_count
+        - holiday_count
+        - weekend_count
+        - late_count
+        - pending_correction_count
+        - checked_in_count
+        - checked_out_count
+    AttendancePendingExceptionSummary:
+      type: object
+      properties:
+        exception_record_count:
+          type: integer
+        late_record_count:
+          type: integer
+        absent_record_count:
+          type: integer
+        half_day_record_count:
+          type: integer
+        incomplete_record_count:
+          type: integer
+        pending_correction_record_count:
+          type: integer
+        pending_correction_request_count:
+          type: integer
+      required:
+        - exception_record_count
+        - late_record_count
+        - absent_record_count
+        - half_day_record_count
+        - incomplete_record_count
+        - pending_correction_record_count
+        - pending_correction_request_count
+    AttendanceCorrection:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, rejected, changes_requested]
+        reason:
+          type: string
+        attendance_record_id:
+          type: integer
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        requested_by:
+          $ref: '#/components/schemas/UserReference'
+        latest_action_by:
+          oneOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        original_values:
+          $ref: '#/components/schemas/AttendanceCorrectionValueSnapshot'
+        corrected_values:
+          $ref: '#/components/schemas/AttendanceCorrectionValueSnapshot'
+        applied_values:
+          oneOf:
+            - $ref: '#/components/schemas/AttendanceCorrectionValueSnapshot'
+            - type: 'null'
+        decision_comment:
+          type: [string, 'null']
+        workflow:
+          oneOf:
+            - $ref: '#/components/schemas/AttendanceCorrectionWorkflow'
+            - type: 'null'
+        approved_at:
+          type: [string, 'null']
+          format: date-time
+        rejected_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - status
+        - reason
+        - attendance_record_id
+        - original_values
+        - corrected_values
+    AttendanceCorrectionSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, rejected, changes_requested]
+        reason:
+          type: string
+        attendance_record_id:
+          type: integer
+        requested_by:
+          oneOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, status, reason, attendance_record_id, requested_by, created_at, updated_at]
+    AttendanceCorrectionValueSnapshot:
+      type: object
+      properties:
+        attendance_date:
+          type: [string, 'null']
+          format: date
+        check_in_at:
+          type: [string, 'null']
+          format: date-time
+        check_out_at:
+          type: [string, 'null']
+          format: date-time
+        check_in_channel:
+          type: [string, 'null']
+        check_out_channel:
+          type: [string, 'null']
+        worked_minutes:
+          type: [integer, 'null']
+        primary_status:
+          type: [string, 'null']
+        shift_id:
+          type: [integer, 'null']
+        shift_roster_id:
+          type: [integer, 'null']
+      additionalProperties: false
+    AttendanceCorrectionWorkflow:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [running, waiting, completed, rejected]
+        current_stage_sequence:
+          type: [integer, 'null']
+        approval_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowApprovalTask'
+        current_task:
+          oneOf:
+            - $ref: '#/components/schemas/WorkflowApprovalTask'
+            - type: 'null'
+      required: [id, status, current_stage_sequence, approval_history]
+    WorkflowApprovalTask:
+      type: object
+      properties:
+        id:
+          type: integer
+        stage_key:
+          type: string
+        stage_name:
+          type: string
+        sequence:
+          type: integer
+        status:
+          type: string
+          enum: [open, completed, closed]
+        available_actions:
+          type: array
+          items:
+            type: string
+        decision:
+          type: [string, 'null']
+        decision_comment:
+          type: [string, 'null']
+        due_at:
+          type: [string, 'null']
+          format: date-time
+        acted_at:
+          type: [string, 'null']
+          format: date-time
+        assigned_to_role:
+          type: [string, 'null']
+        assignee:
+          oneOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        actor:
+          oneOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+      required:
+        - id
+        - stage_key
+        - stage_name
+        - sequence
+        - status
+        - available_actions
+    AttendanceCorrectionRequest:
+      type: object
+      properties:
+        attendance_record_id:
+          type: integer
+        reason:
+          type: string
+        corrected:
+          type: object
+          properties:
+            check_in_at:
+              type: [string, 'null']
+              format: date-time
+            check_out_at:
+              type: [string, 'null']
+              format: date-time
+          additionalProperties: false
+      required: [attendance_record_id, reason, corrected]
+    AttendanceCorrectionDecisionRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [approve, reject, request_changes]
+        comment:
+          type: [string, 'null']
+      required: [action]
+    AttendancePolicy:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        working_hours_minutes:
+          type: integer
+        grace_minutes:
+          type: integer
+        late_after_minutes:
+          type: integer
+        half_day_minutes:
+          type: integer
+        overtime_eligible:
+          type: boolean
+        overtime_after_minutes:
+          type: [integer, 'null']
+        weekend_rule:
+          $ref: '#/components/schemas/WeekendRule'
+        work_from_home_allowed:
+          type: boolean
+        enforce_geofence:
+          type: boolean
+        allowed_radius_meters:
+          type: [integer, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - name
+        - working_hours_minutes
+        - grace_minutes
+        - late_after_minutes
+        - half_day_minutes
+        - overtime_eligible
+        - weekend_rule
+        - work_from_home_allowed
+        - enforce_geofence
+        - status
+    AttendancePolicyUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        working_hours_minutes:
+          type: integer
+          minimum: 60
+          maximum: 1440
+        grace_minutes:
+          type: integer
+          minimum: 0
+          maximum: 180
+        late_after_minutes:
+          type: integer
+          minimum: 0
+          maximum: 180
+        half_day_minutes:
+          type: integer
+          minimum: 1
+        overtime_eligible:
+          type: boolean
+        overtime_after_minutes:
+          type: [integer, 'null']
+          minimum: 1
+        weekend_rule:
+          $ref: '#/components/schemas/WeekendRule'
+        work_from_home_allowed:
+          type: boolean
+        enforce_geofence:
+          type: boolean
+        allowed_radius_meters:
+          type: [integer, 'null']
+          minimum: 1
+        status:
+          type: string
+          enum: [active, inactive]
+      required:
+        - name
+        - working_hours_minutes
+        - grace_minutes
+        - late_after_minutes
+        - half_day_minutes
+        - overtime_eligible
+        - weekend_rule
+        - work_from_home_allowed
+        - enforce_geofence
+        - status
+    WeekendRule:
+      type: object
+      properties:
+        non_working_days:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            enum: [0, 1, 2, 3, 4, 5, 6]
+      required: [non_working_days]
+    HolidayCalendar:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        location:
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+            - type: 'null'
+        department:
+          oneOf:
+            - $ref: '#/components/schemas/Department'
+            - type: 'null'
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum: [active, inactive]
+        holidays:
+          type: array
+          items:
+            $ref: '#/components/schemas/Holiday'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, is_default, status, holidays]
+    HolidayCalendarRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        location_id:
+          type: [integer, 'null']
+        department_id:
+          type: [integer, 'null']
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [code, name, is_default, status]
+    Holiday:
+      type: object
+      properties:
+        id:
+          type: integer
+        holiday_calendar_id:
+          type: integer
+        name:
+          type: string
+        holiday_date:
+          type: string
+          format: date
+        type:
+          type: string
+          enum: [national, regional, company, optional]
+        is_optional:
+          type: boolean
+        description:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, holiday_calendar_id, name, holiday_date, type, is_optional]
+    HolidayRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        holiday_date:
+          type: string
+          format: date
+        type:
+          type: string
+          enum: [national, regional, company, optional]
+        is_optional:
+          type: boolean
+        description:
+          type: [string, 'null']
+      required: [name, holiday_date, type, is_optional]
+    Shift:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        start_time:
+          type: string
+          pattern: '^\d{2}:\d{2}(:\d{2})?$'
+        end_time:
+          type: string
+          pattern: '^\d{2}:\d{2}(:\d{2})?$'
+        break_duration_minutes:
+          type: integer
+        grace_minutes:
+          type: integer
+        working_hours_minutes:
+          type: integer
+        is_overnight:
+          type: boolean
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - code
+        - name
+        - start_time
+        - end_time
+        - break_duration_minutes
+        - grace_minutes
+        - working_hours_minutes
+        - is_overnight
+        - status
+    ShiftRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 50
+        name:
+          type: string
+          maxLength: 150
+        description:
+          type: [string, 'null']
+        start_time:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+        end_time:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+        break_duration_minutes:
+          type: integer
+          minimum: 0
+          maximum: 720
+        grace_minutes:
+          type: integer
+          minimum: 0
+          maximum: 180
+        working_hours_minutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+        status:
+          type: string
+          enum: [active, inactive]
+      required:
+        - code
+        - name
+        - start_time
+        - end_time
+        - break_duration_minutes
+        - grace_minutes
+        - working_hours_minutes
+        - status
+    ShiftAssignment:
+      type: object
+      properties:
+        id:
+          type: integer
+        assignment_type:
+          type: string
+          enum: [employee, department, location]
+        shift:
+          $ref: '#/components/schemas/Shift'
+        employee:
+          oneOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        department:
+          oneOf:
+            - $ref: '#/components/schemas/Department'
+            - type: 'null'
+        location:
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+            - type: 'null'
+        effective_from:
+          type: string
+          format: date
+        effective_to:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - assignment_type
+        - shift
+        - effective_from
+        - status
+    ShiftAssignmentRequest:
+      type: object
+      properties:
+        shift_id:
+          type: integer
+        assignment_type:
+          type: string
+          enum: [employee, department, location]
+        employee_id:
+          type: [integer, 'null']
+        department_id:
+          type: [integer, 'null']
+        location_id:
+          type: [integer, 'null']
+        effective_from:
+          type: string
+          format: date
+        effective_to:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+      required:
+        - shift_id
+        - assignment_type
+        - effective_from
+        - status
+    ShiftRoster:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        shift:
+          $ref: '#/components/schemas/Shift'
+        work_date:
+          type: string
+          format: date
+        notes:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [scheduled, cancelled]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - employee
+        - shift
+        - work_date
+        - status
+    ShiftRosterBatchRequest:
+      type: object
+      properties:
+        entries:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ShiftRosterEntryRequest'
+      required: [entries]
+    ShiftRosterEntryRequest:
+      type: object
+      properties:
+        employee_id:
+          type: integer
+        shift_id:
+          type: integer
+        work_date:
+          type: string
+          format: date
+        notes:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [scheduled, cancelled]
+      required: [employee_id, shift_id, work_date]
+    ShiftRosterUpdateRequest:
+      type: object
+      properties:
+        shift_id:
+          type: integer
+        work_date:
+          type: string
+          format: date
+        notes:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [scheduled, cancelled]
+      required: [shift_id, work_date, status]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, employee_code, full_name, email]
+    UserReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, name, email]
+    Department:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, status]
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        currency:
+          type: string
+        address_line_1:
+          type: [string, 'null']
+        address_line_2:
+          type: [string, 'null']
+        city:
+          type: [string, 'null']
+        state:
+          type: [string, 'null']
+        country:
+          type: [string, 'null']
+        postal_code:
+          type: [string, 'null']
+        status:
+          type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, timezone, currency, status]
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

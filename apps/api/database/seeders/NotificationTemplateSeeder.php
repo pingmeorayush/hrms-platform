@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Company;
 use App\Models\NotificationTemplate;
 use Illuminate\Database\Seeder;
 
@@ -10,12 +9,6 @@ class NotificationTemplateSeeder extends Seeder
 {
     public function run(): void
     {
-        $company = Company::query()->where('slug', 'phoenix-demo')->first();
-
-        if (! $company) {
-            return;
-        }
-
         $templates = [
             [
                 'key' => 'workflow.task_assigned.in_app',
@@ -58,7 +51,7 @@ class NotificationTemplateSeeder extends Seeder
         foreach ($templates as $template) {
             NotificationTemplate::query()->updateOrCreate(
                 [
-                    'company_id' => $company->id,
+                    'company_id' => null,
                     'key' => $template['key'],
                     'channel' => $template['channel'],
                 ],

@@ -74,6 +74,14 @@ The Compensation and Benefits module supports salary structures, compensation cy
 - Employee, performance, payroll, and reporting modules
 - Workflow, permission, and audit foundation
 
+## Implementation Notes
+
+- Sprint 05 backend delivery now includes tenant-scoped salary component definitions and versioned salary structures in `apps/api`.
+- The current baseline supports earning, deduction, and employer-contribution components with fixed, percentage, and expression formula styles, plus explicit formula inputs for structure lines.
+- Salary structure updates create a new version record and supersede the prior version so employee compensation history can later reference immutable structure revisions.
+- Sprint 05 now also includes employee compensation assignment records with effective dates, revision reasons, prior-revision links, and component snapshots so payroll can consume historical compensation safely.
+- Those compensation snapshots now directly feed locked-run payslip generation, so finalized payroll artifacts can be reproduced from the same effective-dated structure data that payroll calculation used.
+
 ## Related Sprints
 
 - [Sprint 05: Payroll and Compensation](../sprints/sprint-05-payroll-compensation.md)

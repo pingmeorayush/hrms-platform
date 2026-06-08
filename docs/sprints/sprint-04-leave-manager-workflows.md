@@ -4,6 +4,12 @@
 
 Deliver policy-driven leave operations and the manager workflows needed to keep workforce planning and approvals reliable.
 
+## Status
+
+Completed
+
+Sprint 04 web delivery is implemented in the current workspace with `S04-008`, `S04-006`, and `S04-007` live in `apps/web`. The shared `/leave` route now exposes HR leave policy setup, balance-rule editing, organization leave-calendar administration, employee balances, leave request submission, validation feedback, cancellation where allowed, manager approval decisions, hierarchy-scoped team availability, and routed leave review history in both demo and live API mode. Backend delivery is also implemented in `apps/api` through `S04-001`, `S04-002`, `S04-003`, `S04-004`, `S04-005`, and `S04-009`, which publish tenant-scoped leave type and leave policy configuration APIs, deterministic accrual-preview and projected encashment baselines, policy-aware leave balance plus ledger history APIs with self, manager, and HR read scopes, the leave request plus attendance-sync baseline, workflow-backed manager plus HR approval decisions, and the version-controlled Sprint 04 OpenAPI contract.
+
 ## Primary Backlog IDs
 
 - `LEAVE-001`
@@ -15,6 +21,11 @@ Deliver policy-driven leave operations and the manager workflows needed to keep 
 
 - [Leave Management](../modules/leave-management.md)
 - [Employee Management](../modules/employee-management.md)
+
+## Backlog Detail
+
+- [Sprint 04 Delivery Backlog](../backlog/sprint-04-leave-manager-workflows.md)
+- [Frontend Delivery Order for Sprints 02 to 04](../backlog/frontend-delivery-order-sprints-02-to-04.md)
 
 ## Scope
 

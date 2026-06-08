@@ -86,6 +86,21 @@ class Employee extends Model
         return $this->hasMany(EmployeeBankAccount::class);
     }
 
+    public function compensations(): HasMany
+    {
+        return $this->hasMany(EmployeeCompensation::class)
+            ->orderByDesc('effective_from')
+            ->orderByDesc('revision_date')
+            ->orderByDesc('id');
+    }
+
+    public function payslips(): HasMany
+    {
+        return $this->hasMany(Payslip::class)
+            ->orderByDesc('generated_at')
+            ->orderByDesc('id');
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(EmployeeDocument::class);

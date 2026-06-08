@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchAccessSnapshot } from '../api/accessApi'
 import { getDemoSnapshot } from '../data/demoSnapshots'
@@ -6,6 +7,7 @@ import { useAppSelector } from '../../../app/store/hooks'
 export function useAccessSnapshot() {
   const access = useAppSelector((state) => state.access)
   const liveEnabled = access.mode === 'live' && access.token.trim().length > 0
+  const demoSnapshot = useMemo(() => getDemoSnapshot(access.demoPersona), [access.demoPersona])
 
   const liveQuery = useQuery({
     queryKey: ['access-snapshot', access.apiBaseUrl, access.token],
@@ -15,7 +17,7 @@ export function useAccessSnapshot() {
 
   if (access.mode === 'demo') {
     return {
-      snapshot: getDemoSnapshot(access.demoPersona),
+      snapshot: demoSnapshot,
       isLoading: false,
       error: null as Error | null,
       source: 'demo' as const,

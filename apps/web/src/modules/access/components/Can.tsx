@@ -1,4 +1,5 @@
 import type { PropsWithChildren, ReactNode } from 'react'
+import { hasPermissions } from '../../../shared/auth/permissions'
 
 interface CanProps extends PropsWithChildren {
   grantedPermissions: string[]
@@ -18,10 +19,7 @@ export function Can({
     return <>{children}</>
   }
 
-  const allowed =
-    match === 'any'
-      ? permissions.some((permission) => grantedPermissions.includes(permission))
-      : permissions.every((permission) => grantedPermissions.includes(permission))
+  const allowed = hasPermissions(grantedPermissions, permissions, match)
 
   return allowed ? <>{children}</> : <>{fallback}</>
 }

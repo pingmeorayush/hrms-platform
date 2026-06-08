@@ -6,6 +6,7 @@
 - [Attendance Module](../modules/attendance.md)
 - [Employee Management Module](../modules/employee-management.md)
 - [Platform Foundation](../modules/platform-foundation.md)
+- [Frontend Delivery Order for Sprints 02 to 04](./frontend-delivery-order-sprints-02-to-04.md)
 
 ## Epics
 
@@ -21,6 +22,10 @@ Delivers payroll-ready status derivation, correction approvals, and auditable ex
 
 Delivers operational review surfaces and the first published attendance API contract set.
 
+### EPIC S03-E4: Attendance UI Operations
+
+Delivers the admin, manager, and employee web experiences required to operate the Sprint 03 attendance baseline.
+
 ## Ticket Index
 
 | ID | Type | Priority | Summary | Depends On |
@@ -32,6 +37,9 @@ Delivers operational review surfaces and the first published attendance API cont
 | S03-005 | Story | P1 | Implement attendance correction request and approval workflow | S03-003, S03-004, S01-009 |
 | S03-006 | Story | P1 | Implement operational attendance review and pending exception views | S03-003, S03-004, S03-005, S02-002 |
 | S03-007 | Story | P1 | Publish attendance and shift OpenAPI contracts | S03-001, S03-003, S01-013 |
+| S03-008 | Story | P1 | Implement attendance policy, holiday, shift, and roster admin screens | S03-001, S03-002 |
+| S03-009 | Story | P1 | Implement employee attendance capture and personal history screens | S03-003, S03-004 |
+| S03-010 | Story | P1 | Implement correction queue and operational attendance review workspace | S03-005, S03-006 |
 
 ## Ticket Details
 
@@ -186,3 +194,63 @@ Acceptance Criteria:
 - Core attendance, correction, shift, and roster endpoints are documented
 - Shared schema conventions are applied consistently with prior sprint contracts
 - Contract changes are version-controlled, reviewable, and linted in CI
+
+### S03-008: Implement attendance policy, holiday, shift, and roster admin screens
+
+Type: Story  
+Priority: P1
+
+Description:
+
+Create the web admin experience for managing attendance policy, holiday calendars, shift definitions, assignments, and roster schedules.
+
+Dependencies:
+
+- S03-001
+- S03-002
+
+Acceptance Criteria:
+
+- Authorized admins can manage attendance policies, holidays, shifts, assignments, and rosters through web forms and list views
+- Conflict, overlap, and validation errors are represented clearly in the UI
+- UI states cover empty, loading, schedule-conflict, and permission-denied scenarios
+
+### S03-009: Implement employee attendance capture and personal history screens
+
+Type: Story  
+Priority: P1
+
+Description:
+
+Create the employee-facing attendance capture experience for check-in, check-out, and personal attendance history review.
+
+Dependencies:
+
+- S03-003
+- S03-004
+
+Acceptance Criteria:
+
+- Employees can check in and check out through the web UI with clear success and validation feedback
+- Personal history views show captured timestamps, derived statuses, and correction availability where applicable
+- Attendance capture states, duplicate prevention feedback, and empty-history states are covered in frontend tests
+
+### S03-010: Implement correction queue and operational attendance review workspace
+
+Type: Story  
+Priority: P1
+
+Description:
+
+Create the manager and HR workspace for reviewing daily attendance outcomes, pending exceptions, and correction approvals.
+
+Dependencies:
+
+- S03-005
+- S03-006
+
+Acceptance Criteria:
+
+- Managers and HR users can review scoped attendance exceptions and correction requests through role-appropriate dashboards
+- Approved, rejected, pending, and recalculated states are visible with audit-aware history
+- Team-scope and tenant-scope visibility rules are enforced consistently in the UI

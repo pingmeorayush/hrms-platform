@@ -4,6 +4,10 @@
 
 Extend the core platform into external systems, mobile access, and regional readiness after the web product is stable.
 
+## Status
+
+Planned
+
 ## Primary Backlog IDs
 
 - `INT-001`
@@ -17,6 +21,10 @@ Extend the core platform into external systems, mobile access, and regional read
 - [Integrations Platform](../modules/integrations-platform.md)
 - [Globalization and Localization](../modules/globalization-localization.md)
 - [AI Assistant](../modules/ai-assistant.md)
+
+## Backlog Detail
+
+- [Sprint 09 Delivery Backlog](../backlog/sprint-09-mobile-integrations-globalization.md)
 
 ## Scope
 

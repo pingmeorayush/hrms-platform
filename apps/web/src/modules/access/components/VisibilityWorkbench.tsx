@@ -30,6 +30,10 @@ function countHiddenActions(snapshot: AccessSnapshot) {
   return snapshot.visibility.action_groups.reduce((total, group) => total + group.hidden_count, 0)
 }
 
+function countTotalActions(snapshot: AccessSnapshot) {
+  return snapshot.visibility.action_groups.reduce((total, group) => total + group.actions.length, 0)
+}
+
 function canAccess(requiredPermissions: string[], grantedPermissions: string[], match: 'all' | 'any' = 'all') {
   if (requiredPermissions.length === 0) {
     return true
@@ -174,68 +178,77 @@ function formatRoleLabel(role: string | undefined) {
     .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function MetricCard({
-  label,
-  value,
-  meta,
-  tone,
-}: {
-  label: string
-  value: string | number
-  meta: string
-  tone: 'blue' | 'green' | 'amber' | 'cyan'
-}) {
-  return (
-    <Card className={`metric-card metric-card--${tone}`}>
-      <CardContent className="metric-card__content">
-        <div className="metric-card__row">
-          <span className="metric-card__label">{label}</span>
-          <strong className="metric-card__value">{value}</strong>
-        </div>
-        <p className="metric-card__meta">{meta}</p>
-        <span className="metric-card__bar" aria-hidden="true" />
-      </CardContent>
-    </Card>
-  )
+type FilteredActionGroup = {
+  id: string
+  title: string
+  description: string
+  visibleActions: VisibilityItem[]
+  hiddenActions: number
+  totalActions: number
 }
 
-function ActionGroupSection({
+function ActionGroupCollection({
   group,
-  snapshot,
-  search,
+  showTabs,
+  availableGroups,
+  selectedGroupId,
+  onSelectGroup,
 }: {
-  group: VisibilityActionGroup
-  snapshot: AccessSnapshot
-  search: string
+  group: FilteredActionGroup
+  showTabs: boolean
+  availableGroups: FilteredActionGroup[]
+  selectedGroupId: string
+  onSelectGroup: (groupId: string) => void
 }) {
-  const visibleActions = filterActions(group, snapshot.user.permissions, search)
-
-  if (visibleActions.length === 0) {
-    return null
-  }
-
   return (
-    <section className="action-section">
-      <header className="action-section__header">
-        <div>
-          <h3 className="action-section__title">{group.title}</h3>
-          <p className="action-section__description">{group.description}</p>
+    <section className="action-collection">
+      {showTabs ? (
+        <div className="action-group-tabs" role="tablist" aria-label="Action groups">
+          {availableGroups.map((availableGroup) => (
+            <button
+              key={availableGroup.id}
+              type="button"
+              role="tab"
+              aria-selected={selectedGroupId === availableGroup.id}
+              className={`action-group-tabs__button${
+                selectedGroupId === availableGroup.id ? ' action-group-tabs__button--active' : ''
+              }`}
+              onClick={() => onSelectGroup(availableGroup.id)}
+            >
+              <span>{availableGroup.title}</span>
+              <small>{availableGroup.visibleActions.length}</small>
+            </button>
+          ))}
         </div>
-        <Badge variant="info">{visibleActions.length} visible</Badge>
+      ) : null}
+
+      <header className="action-collection__header">
+        <div>
+          <h3 className="action-collection__title">{group.title}</h3>
+          <p className="action-collection__description">{group.description}</p>
+        </div>
+        <div className="action-collection__badges">
+          <Badge variant="info">{group.visibleActions.length} visible</Badge>
+          <Badge variant={group.hiddenActions === 0 ? 'success' : 'warning'}>
+            {group.hiddenActions === 0 ? 'No hidden actions' : `${group.hiddenActions} hidden`}
+          </Badge>
+        </div>
       </header>
 
       <div className="action-table">
         <div className="action-table__head" aria-hidden="true">
           <span>Action</span>
+          <span>Summary</span>
           <span>Permissions</span>
           <span>Route</span>
         </div>
-        {visibleActions.map((action) => (
+        {group.visibleActions.map((action) => (
           <article className="action-table__row" key={action.id}>
-            <div className="action-table__main">
-              <div className="action-table__title-row">
-                <h4 className="action-table__title">{action.label}</h4>
-              </div>
+            <div className="action-table__name">
+              <h4 className="action-table__title">{action.label}</h4>
+            </div>
+
+            <div className="action-table__summary">
               <p className="action-table__description">{action.description}</p>
             </div>
 
@@ -264,10 +277,16 @@ function RouteContent({
   pathname,
   snapshot,
   search,
+  source,
+  compact = false,
+  onSearchChange,
 }: {
   pathname: string
   snapshot: AccessSnapshot
   search: string
+  source: 'demo' | 'live'
+  compact?: boolean
+  onSearchChange: (value: string) => void
 }) {
   const workflowGroup = snapshot.visibility.action_groups.filter((group) => group.id === 'workflow-admin')
   const communicationGroup = snapshot.visibility.action_groups.filter(
@@ -323,13 +342,41 @@ function RouteContent({
   }
 
   const hasFilteredView = search.trim().length > 0
-  const visibleSectionCount = routeConfig.groups.filter(
-    (group) => filterActions(group, snapshot.user.permissions, search).length > 0,
-  ).length
+  const filteredGroups = useMemo(
+    () =>
+      routeConfig.groups
+        .map((group) => {
+          const visibleActions = filterActions(group, snapshot.user.permissions, search)
+
+          return {
+            id: group.id,
+            title: group.title,
+            description: group.description,
+            visibleActions,
+            hiddenActions: group.actions.length - visibleActions.length,
+            totalActions: group.actions.length,
+          }
+        })
+        .filter((group) => group.visibleActions.length > 0),
+    [routeConfig.groups, search, snapshot.user.permissions],
+  )
+  const visibleSectionCount = filteredGroups.length
+  const visibleActionCount = filteredGroups.reduce(
+    (total, group) => total + group.visibleActions.length,
+    0,
+  )
+  const totalActionCount = routeConfig.groups.reduce((total, group) => total + group.actions.length, 0)
+  const hiddenActionCount = totalActionCount - visibleActionCount
+  const [selectedGroupId, setSelectedGroupId] = useState(filteredGroups[0]?.id ?? '')
+  const resolvedSelectedGroupId = filteredGroups.some((group) => group.id === selectedGroupId)
+    ? selectedGroupId
+    : filteredGroups[0]?.id ?? ''
+  const selectedGroup =
+    filteredGroups.find((group) => group.id === resolvedSelectedGroupId) ?? filteredGroups[0] ?? null
 
   return (
     <Card className="workspace-panel">
-      <CardHeader className="workspace-panel__header">
+      <CardHeader className={`workspace-panel__header${compact ? ' workspace-panel__header--compact' : ''}`}>
         <div className="workspace-panel__intro">
           <div>
             <span className="workspace-panel__eyebrow">Action catalog</span>
@@ -341,21 +388,65 @@ function RouteContent({
             <Badge variant="info">{visibleSectionCount} sections</Badge>
           </div>
         </div>
+        <div className="workspace-panel__toolbar">
+          <div className="workspace-panel__search">
+            <span className="workspace-panel__search-icon">
+              <Icon name="search" />
+            </span>
+            <Input
+              type="search"
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Filter actions by label, description, or permission"
+              aria-label="Filter visible actions"
+            />
+          </div>
+        </div>
+        {compact ? null : (
+          <div className="workspace-panel__summary">
+            <div className="workspace-summary-pill">
+              <span>Showing</span>
+              <strong>
+                {visibleActionCount} / {totalActionCount}
+              </strong>
+            </div>
+            <div className="workspace-summary-pill">
+              <span>Suppressed actions</span>
+              <strong>{hiddenActionCount}</strong>
+            </div>
+            <div className="workspace-summary-pill">
+              <span>Sections</span>
+              <strong>{visibleSectionCount}</strong>
+            </div>
+            <div className="workspace-summary-pill">
+              <span>Guardrail mode</span>
+              <strong>{hasFilteredView ? 'Focused' : 'Open view'}</strong>
+            </div>
+            <div className="workspace-summary-pill">
+              <span>Contract source</span>
+              <strong>{source === 'demo' ? 'Demo' : 'Live API'}</strong>
+            </div>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="workspace-panel__content">
-        {visibleSectionCount === 0 ? (
+        {filteredGroups.length === 0 ? (
           <div className="empty-panel">
             <h3 className="empty-panel__title">No actions match the current filter</h3>
             <p className="empty-panel__copy">
               Change the filter text or switch personas to inspect a different contract view.
             </p>
           </div>
-        ) : (
-          routeConfig.groups.map((group) => (
-            <ActionGroupSection key={group.id} group={group} snapshot={snapshot} search={search} />
-          ))
-        )}
+        ) : selectedGroup ? (
+          <ActionGroupCollection
+            group={selectedGroup}
+            showTabs={filteredGroups.length > 1}
+            availableGroups={filteredGroups}
+            selectedGroupId={selectedGroup.id}
+            onSelectGroup={setSelectedGroupId}
+          />
+        ) : null}
       </CardContent>
     </Card>
   )
@@ -396,6 +487,13 @@ export function VisibilityWorkbench() {
     visibleNavigation.find((item) => item.href === location.pathname) ?? visibleNavigation[0] ?? null
 
   const hiddenNavigation = snapshot?.visibility.navigation.filter((item) => !item.visible) ?? []
+  const isOverviewPage = location.pathname === '/foundation' || location.pathname === '/'
+  const currentRoleLabel = formatRoleLabel(snapshot?.user.roles[0])
+  const currentPermissionDomains = snapshot
+    ? new Set(snapshot.user.permissions.map((permission) => permission.split('.')[0])).size
+    : 0
+  const currentVisibleActionCount = snapshot ? countVisibleActions(snapshot) : 0
+  const currentTotalActionCount = snapshot ? countTotalActions(snapshot) : 0
 
   function renderState() {
     if (isLoading) {
@@ -442,55 +540,109 @@ export function VisibilityWorkbench() {
       )
     }
 
+    const visibleActionCount = countVisibleActions(snapshot)
+    const hiddenActionCount = countHiddenActions(snapshot)
+    const totalActionCount = countTotalActions(snapshot)
+    const roleLabel = formatRoleLabel(snapshot.user.roles[0])
+    const permissionDomains = new Set(
+      snapshot.user.permissions.map((permission) => permission.split('.')[0]),
+    ).size
+    const routeContent = (
+      <Routes>
+        <Route
+          path="*"
+          element={
+            <RouteContent
+              pathname={location.pathname}
+              snapshot={snapshot}
+              search={deferredSearch}
+              source={source}
+              compact={isOverviewPage}
+              onSearchChange={setSearch}
+            />
+          }
+        />
+      </Routes>
+    )
+
+    if (!isOverviewPage) {
+      return <section className="route-stage">{routeContent}</section>
+    }
+
     return (
       <>
-        <section className="metrics-strip" aria-label="Workspace summary">
-          <MetricCard
-            label="Visible navigation"
-            value={snapshot.visibility.meta.visible_navigation_count}
-            meta="Routes exposed to the current session."
-            tone="blue"
-          />
-          <MetricCard
-            label="Visible actions"
-            value={countVisibleActions(snapshot)}
-            meta="Operational actions currently available."
-            tone="green"
-          />
-          <MetricCard
-            label="Permission grants"
-            value={snapshot.user.permissions.length}
-            meta="Backend-granted capabilities for this identity."
-            tone="amber"
-          />
-          <MetricCard
-            label="Tenant context"
-            value={snapshot.user.tenant.currency ?? 'N/A'}
-            meta={`${snapshot.user.tenant.company_name} · ${snapshot.user.tenant.timezone}`}
-            tone="cyan"
-          />
+        <Card className="overview-strip" aria-label="Workspace summary">
+          <CardContent className="overview-strip__content">
+            <div className="overview-strip__item">
+              <span>Visible navigation</span>
+              <strong>{snapshot.visibility.meta.visible_navigation_count}</strong>
+              <small>of {snapshot.visibility.navigation.length} routes</small>
+            </div>
+            <div className="overview-strip__item">
+              <span>Visible actions</span>
+              <strong>{visibleActionCount}</strong>
+              <small>{hiddenActionCount} hidden</small>
+            </div>
+            <div className="overview-strip__item">
+              <span>Permission grants</span>
+              <strong>{snapshot.user.permissions.length}</strong>
+              <small>{permissionDomains} domains</small>
+            </div>
+            <div className="overview-strip__item">
+              <span>Tenant context</span>
+              <strong>{snapshot.user.tenant.currency ?? 'N/A'}</strong>
+              <small>{roleLabel}</small>
+            </div>
+          </CardContent>
+        </Card>
+
+        <section className="route-stage route-stage--overview">
+          {routeContent}
         </section>
 
-        <section className="workspace-grid">
-          <div className="workspace-grid__main">
-            <Routes>
-              <Route
-                path="*"
-                element={
-                  <RouteContent
-                    pathname={location.pathname}
-                    snapshot={snapshot}
-                    search={deferredSearch}
-                  />
-                }
-              />
-            </Routes>
-          </div>
+        <details className="overview-diagnostics">
+          <summary className="overview-diagnostics__summary">
+            <span>Contract diagnostics</span>
+            <small>Session posture, hidden routes, and backend grants</small>
+          </summary>
 
-          <aside className="workspace-grid__rail" aria-label="Governance summary">
-            <Card className="rail-card">
+          <section className="overview-context-grid" aria-label="Governance summary">
+            <Card className="overview-context-card">
               <CardHeader>
-                <CardTitle>Governance posture</CardTitle>
+                <CardTitle>Session</CardTitle>
+                <CardDescription>
+                  Current operator scope and contract visibility at a glance.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="command-center">
+                <div className="command-center__list">
+                  <div>
+                    <span>Role</span>
+                    <strong>{roleLabel}</strong>
+                  </div>
+                  <div>
+                    <span>Visible actions</span>
+                    <strong>{visibleActionCount}</strong>
+                  </div>
+                  <div>
+                    <span>Suppressed actions</span>
+                    <strong>{hiddenActionCount}</strong>
+                  </div>
+                  <div>
+                    <span>Exposure</span>
+                    <strong>{Math.round((visibleActionCount / Math.max(totalActionCount, 1)) * 100)}%</strong>
+                  </div>
+                  <div>
+                    <span>Contract source</span>
+                    <strong>{source === 'demo' ? 'Demo' : 'Live API'}</strong>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overview-context-card">
+              <CardHeader>
+                <CardTitle>Posture</CardTitle>
                 <CardDescription>{snapshot.visibility.meta.backend_enforcement_note}</CardDescription>
               </CardHeader>
               <CardContent className="rail-stats">
@@ -509,7 +661,7 @@ export function VisibilityWorkbench() {
               </CardContent>
             </Card>
 
-            <Card className="rail-card">
+            <Card className="overview-context-card">
               <CardHeader>
                 <CardTitle>Granted permissions</CardTitle>
                 <CardDescription>
@@ -525,9 +677,9 @@ export function VisibilityWorkbench() {
               </CardContent>
             </Card>
 
-            <Card className="rail-card">
+            <Card className="overview-context-card">
               <CardHeader>
-                <CardTitle>Hidden navigation</CardTitle>
+                <CardTitle>Hidden routes</CardTitle>
                 <CardDescription>Routes excluded from the current visibility contract.</CardDescription>
               </CardHeader>
               <CardContent>
@@ -548,8 +700,8 @@ export function VisibilityWorkbench() {
                 </ul>
               </CardContent>
             </Card>
-          </aside>
-        </section>
+          </section>
+        </details>
       </>
     )
   }
@@ -690,63 +842,50 @@ export function VisibilityWorkbench() {
             <h1>{activeItem?.label ?? 'Foundation Overview'}</h1>
           </div>
 
-          <div className="workspace-topbar__search">
-            <span className="workspace-topbar__search-icon">
-              <Icon name="search" />
-            </span>
-            <Input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Filter actions by label, description, or permission"
-              aria-label="Filter visible actions"
-            />
-          </div>
-
           <div className="workspace-topbar__actions">
-            <Button className="icon-button icon-button--dark" variant="ghost" size="sm" aria-label="Notifications">
-              <Icon name="bell" />
-            </Button>
-            <Button className="icon-button icon-button--dark" variant="ghost" size="sm" aria-label="Workspace apps">
-              <Icon name="grid" />
-            </Button>
             <Button className="icon-button icon-button--dark" variant="ghost" size="sm" aria-label="Settings">
               <Icon name="settings" />
             </Button>
             <Badge variant={source === 'demo' ? 'warning' : 'success'}>
               {source === 'demo' ? 'Demo contract' : 'Live contract'}
             </Badge>
-            <div className="workspace-topbar__user">
-              <span className="workspace-topbar__user-avatar">
-                {snapshot?.user.initials ?? 'PA'}
-              </span>
-              <span className="workspace-topbar__user-name">
-                {snapshot?.user.name ?? demoPersonaLabels[access.demoPersona]}
-              </span>
-            </div>
+            <Badge variant="info">{currentRoleLabel}</Badge>
           </div>
         </header>
 
-        <div className="workspace-header">
-          <p className="workspace-header__copy">
-            Tenant-scoped navigation, operational permissions, and backend-enforced visibility rules.
-          </p>
+        {isOverviewPage ? (
+          <div className="workspace-header">
+            <div className="workspace-header__main">
+              <p className="workspace-header__copy">
+                Tenant-scoped navigation, operational permissions, and backend-enforced visibility rules.
+              </p>
+              <div className="workspace-header__badges">
+                <Badge variant="info">{currentRoleLabel}</Badge>
+                <Badge>{currentPermissionDomains} permission domains</Badge>
+                <Badge>
+                  {Math.round((currentVisibleActionCount / Math.max(currentTotalActionCount, 1)) * 100)}%
+                  {' '}
+                  exposure
+                </Badge>
+              </div>
+            </div>
 
-          <div className="workspace-header__facts">
-            <div>
-              <span>Tenant</span>
-              <strong>{snapshot?.user.tenant.company_name ?? 'Phoenix Demo Company'}</strong>
-            </div>
-            <div>
-              <span>Plan</span>
-              <strong>{snapshot?.user.tenant.subscription_plan ?? 'enterprise'}</strong>
-            </div>
-            <div>
-              <span>Timezone</span>
-              <strong>{snapshot?.user.tenant.timezone ?? 'Asia/Kolkata'}</strong>
+            <div className="workspace-header__facts">
+              <div>
+                <span>Tenant</span>
+                <strong>{snapshot?.user.tenant.company_name ?? 'Phoenix Demo Company'}</strong>
+              </div>
+              <div>
+                <span>Plan</span>
+                <strong>{snapshot?.user.tenant.subscription_plan ?? 'enterprise'}</strong>
+              </div>
+              <div>
+                <span>Timezone</span>
+                <strong>{snapshot?.user.tenant.timezone ?? 'Asia/Kolkata'}</strong>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         {renderState()}
       </section>

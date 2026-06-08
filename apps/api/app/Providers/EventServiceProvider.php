@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Modules\AttendanceManagement\Listeners\SyncAttendanceCorrectionWorkflowState;
+use App\Modules\LeaveManagement\Listeners\SyncLeaveRequestWorkflowState;
 use App\Modules\Platform\Workflow\Events\WorkflowInstanceTransitioned;
 use App\Modules\Platform\Workflow\Events\WorkflowTaskAssigned;
 use App\Modules\Platform\Workflow\Listeners\SendWorkflowInstanceTransitionNotification;
@@ -16,6 +18,8 @@ class EventServiceProvider extends ServiceProvider
         ],
         WorkflowInstanceTransitioned::class => [
             SendWorkflowInstanceTransitionNotification::class,
+            SyncAttendanceCorrectionWorkflowState::class,
+            SyncLeaveRequestWorkflowState::class,
         ],
     ];
 }

@@ -3,11 +3,15 @@
 namespace Tests\Feature;
 
 use App\Models\Company;
+use App\Models\Department;
+use App\Models\Employee;
+use App\Models\Location;
 use App\Models\NotificationRecord;
 use App\Models\NotificationTemplate;
 use App\Models\User;
 use App\Models\WorkflowDefinition;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -118,6 +122,49 @@ class WorkflowNotificationApiTest extends TestCase
         $hrApprover = User::factory()->create(['company_id' => $company->id]);
         $hrApprover->assignRole('hr.admin');
 
+        $department = Department::factory()->create([
+            'company_id' => $company->id,
+            'code' => 'WF-LEAVE',
+            'name' => 'Workflow Leave Team',
+        ]);
+
+        $location = Location::factory()->create([
+            'company_id' => $company->id,
+            'code' => 'WF-BLR',
+            'name' => 'Workflow Office',
+            'timezone' => 'Asia/Kolkata',
+            'currency' => 'INR',
+            'city' => 'Bengaluru',
+            'country' => 'India',
+        ]);
+
+        $managerEmployee = Employee::factory()->create([
+            'company_id' => $company->id,
+            'employee_code' => 'WFM1001',
+            'first_name' => 'Manager',
+            'last_name' => 'Workflow',
+            'date_of_joining' => '2024-01-01',
+            'employment_type' => 'full_time',
+            'employment_status' => 'active',
+            'department_id' => $department->id,
+            'location_id' => $location->id,
+            'user_id' => $manager->id,
+        ]);
+
+        $starterEmployee = Employee::factory()->create([
+            'company_id' => $company->id,
+            'employee_code' => 'WFE1001',
+            'first_name' => 'Starter',
+            'last_name' => 'Workflow',
+            'date_of_joining' => '2024-02-01',
+            'employment_type' => 'full_time',
+            'employment_status' => 'active',
+            'department_id' => $department->id,
+            'location_id' => $location->id,
+            'manager_id' => $managerEmployee->id,
+            'user_id' => $starter->id,
+        ]);
+
         Sanctum::actingAs($starter);
 
         $startResponse = $this
@@ -126,7 +173,7 @@ class WorkflowNotificationApiTest extends TestCase
                 'reference_type' => 'leave_request',
                 'reference_id' => 'LV-1001',
                 'payload' => [
-                    'employee_id' => 99,
+                    'employee_id' => $starterEmployee->id,
                 ],
             ])
             ->assertCreated()
@@ -317,5 +364,32 @@ class WorkflowNotificationApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.meta.unread_count', 1)
             ->assertJsonCount(2, 'data.items');
+    }
+
+    public function test_global_notification_templates_are_unique_per_key_and_channel(): void
+    {
+        NotificationTemplate::query()->create([
+            'company_id' => null,
+            'key' => 'global-fallback',
+            'name' => 'Global Fallback',
+            'category' => 'system',
+            'channel' => 'email',
+            'subject' => 'Fallback',
+            'content' => 'Content',
+            'status' => 'active',
+        ]);
+
+        $this->expectException(QueryException::class);
+
+        NotificationTemplate::query()->create([
+            'company_id' => null,
+            'key' => 'global-fallback',
+            'name' => 'Duplicate Global Fallback',
+            'category' => 'system',
+            'channel' => 'email',
+            'subject' => 'Fallback',
+            'content' => 'Content',
+            'status' => 'active',
+        ]);
     }
 }

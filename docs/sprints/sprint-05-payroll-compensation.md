@@ -4,6 +4,10 @@
 
 Deliver the first production-grade payroll flow using finalized attendance, leave, and employee compensation inputs.
 
+## Status
+
+In Progress
+
 ## Primary Backlog IDs
 
 - `PAY-001`
@@ -11,11 +15,16 @@ Deliver the first production-grade payroll flow using finalized attendance, leav
 - `PAY-003`
 - `PAY-004`
 - `PAY-005`
+- `PAY-006`
 
 ## Module References
 
 - [Payroll](../modules/payroll.md)
 - [Compensation and Benefits](../modules/compensation-benefits.md)
+
+## Backlog Detail
+
+- [Sprint 05 Delivery Backlog](../backlog/sprint-05-payroll-compensation.md)
 
 ## Scope
 
@@ -57,3 +66,7 @@ Deliver the first production-grade payroll flow using finalized attendance, leav
 
 - Payroll scope must match launch-country compliance only
 - Advanced adjustments such as retro pay and final settlement may need partial rollout
+
+## Current Delivery Note
+
+Sprint 05 backend delivery now includes `S05-001` through `S05-006` in `apps/api`, covering payroll calendars, payroll periods, controlled `open`, `prepare`, and `close` transitions, tenant-scoped payroll run visibility, overlap protection, auditable prerequisite snapshots, salary component definitions, versioned salary structures, effective-dated employee compensation assignment history, stable run-linked payroll input snapshots for attendance, leave, and manual adjustments, the payroll calculation lifecycle with repeatable calculation, approval, locking, and reopen controls, and generated payslips with controlled list, view, and download access.

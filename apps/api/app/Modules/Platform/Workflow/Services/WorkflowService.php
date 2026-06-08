@@ -2,6 +2,7 @@
 
 namespace App\Modules\Platform\Workflow\Services;
 
+use App\Models\Employee;
 use App\Models\User;
 use App\Models\WorkflowDefinition;
 use App\Models\WorkflowInstance;
@@ -274,6 +275,40 @@ class WorkflowService
         });
     }
 
+    public function cancelInstance(WorkflowInstance $instance, User $actor, ?string $comment = null): WorkflowInstance
+    {
+        return DB::transaction(function () use ($instance, $actor, $comment): WorkflowInstance {
+            $instance->loadMissing('tasks', 'starter');
+
+            $instance->tasks
+                ->where('status', 'open')
+                ->each(function (WorkflowTask $task) use ($actor, $comment): void {
+                    $task->forceFill([
+                        'status' => 'closed',
+                        'decision' => 'cancelled',
+                        'decision_comment' => $comment,
+                        'acted_by_user_id' => $actor->id,
+                        'acted_at' => now(),
+                    ])->save();
+                });
+
+            $instance->forceFill([
+                'status' => 'cancelled',
+                'current_stage_sequence' => null,
+            ])->save();
+
+            $this->auditLogger->record(
+                eventType: 'workflow.instance.cancelled',
+                actor: $actor,
+                metadata: ['workflow_instance_id' => $instance->id],
+                entityType: 'workflow_instance',
+                entityId: (string) $instance->id,
+            );
+
+            return $instance->refresh()->load('definition', 'tasks.assignee', 'starter');
+        });
+    }
+
     private function createVersion(WorkflowDefinition $definition, array $stages, User $actor): WorkflowVersion
     {
         $nextVersion = ((int) $definition->versions()->max('version')) + 1;
@@ -362,15 +397,15 @@ class WorkflowService
 
     private function resolveApprover(WorkflowInstance $instance, WorkflowStage $stage): User
     {
-        if ($stage->approver_type === 'user') {
-            $assignee = User::query()->find($stage->approver_value);
-        } else {
-            $assignee = User::query()
+        $assignee = match ($stage->approver_type) {
+            'user' => User::query()->find($stage->approver_value),
+            'employee_manager' => $this->resolveEmployeeManagerApprover($instance),
+            default => User::query()
                 ->where('is_active', true)
                 ->role($stage->approver_value)
                 ->orderBy('id')
-                ->first();
-        }
+                ->first(),
+        };
 
         if (! $assignee) {
             throw ValidationException::withMessages([
@@ -379,5 +414,26 @@ class WorkflowService
         }
 
         return $assignee;
+    }
+
+    private function resolveEmployeeManagerApprover(WorkflowInstance $instance): ?User
+    {
+        $employeeId = $instance->payload['employee_id'] ?? null;
+
+        if ($employeeId === null) {
+            return null;
+        }
+
+        $employee = Employee::query()
+            ->with('manager.user')
+            ->find($employeeId);
+
+        $managerUser = $employee?->manager?->user;
+
+        if (! $managerUser?->is_active) {
+            return null;
+        }
+
+        return $managerUser;
     }
 }

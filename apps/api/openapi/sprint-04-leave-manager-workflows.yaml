@@ -1,0 +1,1149 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 04 Leave Management and Manager Workflows API
+  version: 1.0.0
+  description: Tenant-scoped leave policy, accrual preview, balance ledger, leave request, and workflow-backed approval APIs implemented during Sprint 04.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /leave/types:
+    get:
+      operationId: listLeaveTypes
+      summary: List tenant leave types
+      responses:
+        '200':
+          description: Leave types loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/LeaveType'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createLeaveType
+      summary: Create a tenant leave type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveTypeRequest'
+      responses:
+        '201':
+          description: Leave type created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeaveType'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/types/{leaveTypeId}:
+    patch:
+      operationId: updateLeaveType
+      summary: Update a tenant leave type
+      parameters:
+        - $ref: '#/components/parameters/LeaveTypeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveTypeRequest'
+      responses:
+        '200':
+          description: Leave type updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeaveType'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/policies:
+    get:
+      operationId: listLeavePolicies
+      summary: List tenant leave policies
+      responses:
+        '200':
+          description: Leave policies loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/LeavePolicy'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createLeavePolicy
+      summary: Create a tenant leave policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeavePolicyRequest'
+      responses:
+        '201':
+          description: Leave policy created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeavePolicy'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/policies/{leavePolicyId}:
+    patch:
+      operationId: updateLeavePolicy
+      summary: Update a tenant leave policy
+      parameters:
+        - $ref: '#/components/parameters/LeavePolicyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeavePolicyRequest'
+      responses:
+        '200':
+          description: Leave policy updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeavePolicy'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/policies/{leavePolicyId}/accrual-preview:
+    post:
+      operationId: previewLeaveAccrual
+      summary: Generate a deterministic leave accrual preview for one employee and policy version
+      parameters:
+        - $ref: '#/components/parameters/LeavePolicyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveAccrualPreviewRequest'
+      responses:
+        '200':
+          description: Leave accrual preview generated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeaveAccrual'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/balances:
+    get:
+      operationId: listLeaveBalances
+      summary: List leave balances within the caller's visibility scope
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: leave_type_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Leave balances loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/LeaveBalance'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/balances/{employeeId}:
+    get:
+      operationId: getLeaveBalanceDetail
+      summary: Load one employee's leave balances and ledger history
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - in: query
+          name: leave_type_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Leave balance detail loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeaveBalanceDetail'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/requests:
+    get:
+      operationId: listLeaveRequests
+      summary: List leave requests within the caller's visibility scope
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: leave_type_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, approved, rejected, cancelled, changes_requested]
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Leave requests loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/LeaveRequest'
+                          meta:
+                            $ref: '#/components/schemas/PaginationMeta'
+                        required: [items, meta]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createLeaveRequest
+      summary: Submit a leave request against the employee's available balance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveRequestSubmitRequest'
+      responses:
+        '201':
+          description: Leave request submitted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeaveRequest'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /leave/requests/{leaveRequestId}:
+    get:
+      operationId: getLeaveRequest
+      summary: Load one leave request within the caller's visibility scope
+      parameters:
+        - $ref: '#/components/parameters/LeaveRequestId'
+      responses:
+        '200':
+          description: Leave request loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeaveRequest'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateLeaveRequest
+      summary: Cancel, approve, reject, or request changes on a leave request
+      parameters:
+        - $ref: '#/components/parameters/LeaveRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveRequestDecisionRequest'
+      responses:
+        '200':
+          description: Leave request updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LeaveRequest'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+  parameters:
+    LeaveTypeId:
+      in: path
+      name: leaveTypeId
+      required: true
+      schema:
+        type: integer
+    LeavePolicyId:
+      in: path
+      name: leavePolicyId
+      required: true
+      schema:
+        type: integer
+    EmployeeId:
+      in: path
+      name: employeeId
+      required: true
+      schema:
+        type: integer
+    LeaveRequestId:
+      in: path
+      name: leaveRequestId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required or the bearer token is invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: The caller does not have permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: The requested resource was not found in the caller's tenant scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: The submitted payload failed business or validation rules
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+      required: [id, employee_code, full_name, email]
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+      required: [id, name, email]
+    Department:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, description, status, created_at, updated_at]
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: [string, 'null']
+        currency:
+          type: [string, 'null']
+        address_line_1:
+          type: [string, 'null']
+        address_line_2:
+          type: [string, 'null']
+        city:
+          type: [string, 'null']
+        state:
+          type: [string, 'null']
+        country:
+          type: [string, 'null']
+        postal_code:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, timezone, currency, address_line_1, address_line_2, city, state, country, postal_code, status, created_at, updated_at]
+    LeaveType:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [earned, casual, sick, optional, unpaid]
+        description:
+          type: [string, 'null']
+        is_paid:
+          type: boolean
+        requires_approval:
+          type: boolean
+        allows_half_day:
+          type: boolean
+        color_token:
+          type: string
+          pattern: ^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, category, description, is_paid, requires_approval, allows_half_day, color_token, status, created_at, updated_at]
+    LeaveTypeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 50
+          pattern: ^[A-Za-z0-9_-]+$
+        name:
+          type: string
+          maxLength: 150
+        category:
+          type: string
+          enum: [earned, casual, sick, optional, unpaid]
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+        is_paid:
+          type: boolean
+        requires_approval:
+          type: boolean
+        allows_half_day:
+          type: boolean
+        color_token:
+          type: string
+          pattern: ^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [code, name, category, is_paid, requires_approval, allows_half_day, color_token, status]
+    LeavePolicyEligibilityRule:
+      type: object
+      properties:
+        employment_types:
+          type: array
+          items:
+            type: string
+        employment_statuses:
+          type: array
+          items:
+            type: string
+            enum: [active, inactive, probation, notice_period, terminated]
+        genders:
+          type: array
+          items:
+            type: string
+            enum: [male, female, non_binary, prefer_not_to_say]
+        marital_statuses:
+          type: array
+          items:
+            type: string
+            enum: [single, married, divorced, widowed]
+        minimum_tenure_days:
+          type: [integer, 'null']
+      required: [employment_types, employment_statuses, genders, marital_statuses, minimum_tenure_days]
+    LeavePolicy:
+      type: object
+      properties:
+        id:
+          type: integer
+        leave_type_id:
+          type: integer
+        leave_type:
+          $ref: '#/components/schemas/LeaveType'
+        version:
+          type: integer
+        scope_key:
+          type: string
+        annual_allowance_days:
+          type: number
+        opening_balance_days:
+          type: number
+        accrual_frequency:
+          type: string
+          enum: [monthly, quarterly, annual, none]
+        carry_forward_limit_days:
+          type: number
+        encashment_limit_days:
+          type: number
+        max_consecutive_days:
+          type: number
+        min_notice_days:
+          type: integer
+        requires_documentation_after_days:
+          type: [integer, 'null']
+        applicable_department:
+          oneOf:
+            - $ref: '#/components/schemas/Department'
+            - type: 'null'
+        applicable_location:
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+            - type: 'null'
+        eligibility_rule:
+          $ref: '#/components/schemas/LeavePolicyEligibilityRule'
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, leave_type_id, leave_type, version, scope_key, annual_allowance_days, opening_balance_days, accrual_frequency, carry_forward_limit_days, encashment_limit_days, max_consecutive_days, min_notice_days, requires_documentation_after_days, applicable_department, applicable_location, eligibility_rule, status, created_at, updated_at]
+    LeavePolicyRequest:
+      type: object
+      properties:
+        leave_type_id:
+          type: integer
+        annual_allowance_days:
+          type: number
+          minimum: 0
+          maximum: 365
+        opening_balance_days:
+          type: number
+          minimum: 0
+          maximum: 365
+        accrual_frequency:
+          type: string
+          enum: [monthly, quarterly, annual, none]
+        carry_forward_limit_days:
+          type: number
+          minimum: 0
+          maximum: 365
+        encashment_limit_days:
+          type: number
+          minimum: 0
+          maximum: 365
+        max_consecutive_days:
+          type: number
+          minimum: 0.5
+          maximum: 365
+        min_notice_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+        requires_documentation_after_days:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 365
+        applicable_department_id:
+          type: [integer, 'null']
+        applicable_location_id:
+          type: [integer, 'null']
+        eligibility_rule:
+          $ref: '#/components/schemas/LeavePolicyEligibilityRule'
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [leave_type_id, annual_allowance_days, opening_balance_days, accrual_frequency, carry_forward_limit_days, encashment_limit_days, max_consecutive_days, min_notice_days, status]
+    LeaveAccrualPreviewRequest:
+      type: object
+      properties:
+        employee_id:
+          type: integer
+        period_start:
+          type: string
+          format: date
+        unused_balance_days:
+          type: number
+          minimum: 0
+          maximum: 3650
+        used_days_in_period:
+          type: number
+          minimum: 0
+          maximum: 3650
+      required: [employee_id, period_start]
+    LeaveAccrual:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        leave_policy_id:
+          type: integer
+        leave_type:
+          $ref: '#/components/schemas/LeaveType'
+        policy_version:
+          type: integer
+        accrual_frequency:
+          type: string
+          enum: [monthly, quarterly, annual, none]
+        period:
+          type: object
+          properties:
+            start:
+              type: [string, 'null']
+              format: date
+            end:
+              type: [string, 'null']
+              format: date
+          required: [start, end]
+        calculation_hash:
+          type: string
+        status:
+          type: string
+        is_eligible:
+          type: boolean
+        balances:
+          type: object
+          properties:
+            opening_balance_days:
+              type: number
+            accrued_days:
+              type: number
+            carry_forward_days:
+              type: number
+            encashable_days:
+              type: number
+            used_days_in_period:
+              type: number
+            projected_closing_balance_days:
+              type: number
+          required: [opening_balance_days, accrued_days, carry_forward_days, encashable_days, used_days_in_period, projected_closing_balance_days]
+        eligibility_snapshot:
+          type: object
+          additionalProperties: true
+        projected_encashment:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                projected_days:
+                  type: number
+                status:
+                  type: string
+                cycle_start:
+                  type: [string, 'null']
+                  format: date
+                cycle_end:
+                  type: [string, 'null']
+                  format: date
+                metadata:
+                  type: object
+                  additionalProperties: true
+              required: [id, projected_days, status, cycle_start, cycle_end, metadata]
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee, leave_policy_id, leave_type, policy_version, accrual_frequency, period, calculation_hash, status, is_eligible, balances, eligibility_snapshot, projected_encashment, created_at, updated_at]
+    LeaveBalance:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        leave_type:
+          $ref: '#/components/schemas/LeaveType'
+        leave_policy_id:
+          type: integer
+        policy_version:
+          type: integer
+        available_days:
+          type: number
+        booked_days:
+          type: number
+        used_days:
+          type: number
+        accrued_days:
+          type: number
+        carry_forward_days:
+          type: number
+        projected_encashable_days:
+          type: number
+        current_period_start:
+          type: [string, 'null']
+          format: date
+        current_period_end:
+          type: [string, 'null']
+          format: date
+        last_calculation_hash:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [active, inactive]
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_id, employee, leave_type, leave_policy_id, policy_version, available_days, booked_days, used_days, accrued_days, carry_forward_days, projected_encashable_days, current_period_start, current_period_end, last_calculation_hash, status, updated_at]
+    LeaveBalanceEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        leave_balance_id:
+          type: integer
+        employee_id:
+          type: integer
+        leave_type_id:
+          type: integer
+        entry_type:
+          type: string
+        quantity_days:
+          type: number
+        balance_before_days:
+          type: number
+        balance_after_days:
+          type: number
+        effective_on:
+          type: [string, 'null']
+          format: date
+        reference_type:
+          type: [string, 'null']
+        reference_id:
+          type: [integer, string, 'null']
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, leave_balance_id, employee_id, leave_type_id, entry_type, quantity_days, balance_before_days, balance_after_days, effective_on, reference_type, reference_id, metadata, created_at]
+    LeaveBalanceDetail:
+      type: object
+      properties:
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaveBalance'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaveBalanceEntry'
+      required: [employee, balances, history]
+    WorkflowDefinitionSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        key:
+          type: string
+        name:
+          type: string
+      required: [id, key, name]
+    WorkflowTaskSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        stage_key:
+          type: string
+        stage_name:
+          type: string
+        sequence:
+          type: integer
+        status:
+          type: string
+        available_actions:
+          type: array
+          items:
+            type: string
+        decision:
+          type: [string, 'null']
+        decision_comment:
+          type: [string, 'null']
+        due_at:
+          type: [string, 'null']
+          format: date-time
+        acted_at:
+          type: [string, 'null']
+          format: date-time
+        assigned_to_role:
+          type: [string, 'null']
+        assignee:
+          oneOf:
+            - $ref: '#/components/schemas/UserSummary'
+            - type: 'null'
+        actor:
+          oneOf:
+            - $ref: '#/components/schemas/UserSummary'
+            - type: 'null'
+      required: [id, stage_key, stage_name, sequence, status, available_actions, decision, decision_comment, due_at, acted_at, assigned_to_role, assignee, actor]
+    WorkflowInstanceSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        reference_type:
+          type: string
+        reference_id:
+          type: string
+        status:
+          type: string
+        current_stage_sequence:
+          type: [integer, 'null']
+        payload:
+          type: object
+          additionalProperties: true
+        completed_at:
+          type: [string, 'null']
+          format: date-time
+        rejected_at:
+          type: [string, 'null']
+          format: date-time
+        definition:
+          $ref: '#/components/schemas/WorkflowDefinitionSummary'
+        starter:
+          oneOf:
+            - $ref: '#/components/schemas/UserSummary'
+            - type: 'null'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowTaskSummary'
+      required: [id, reference_type, reference_id, status, current_stage_sequence, payload, completed_at, rejected_at, definition, starter, tasks]
+    LeaveRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        department:
+          oneOf:
+            - $ref: '#/components/schemas/Department'
+            - type: 'null'
+        location:
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+            - type: 'null'
+        leave_type:
+          $ref: '#/components/schemas/LeaveType'
+        leave_policy_id:
+          type: integer
+        policy_version:
+          type: integer
+        workflow_instance_id:
+          type: [integer, 'null']
+        workflow:
+          oneOf:
+            - $ref: '#/components/schemas/WorkflowInstanceSummary'
+            - type: 'null'
+        start_date:
+          type: [string, 'null']
+          format: date
+        end_date:
+          type: [string, 'null']
+          format: date
+        total_days:
+          type: number
+        status:
+          type: string
+          enum: [pending, approved, rejected, cancelled, changes_requested]
+        reason:
+          type: string
+        approver_comment:
+          type: [string, 'null']
+        can_cancel:
+          type: boolean
+        is_auto_approved:
+          type: boolean
+        attendance_sync_status:
+          type: string
+          enum: [pending, synced, reversed, not_applicable]
+        attendance_synced_at:
+          type: [string, 'null']
+          format: date-time
+        approved_at:
+          type: [string, 'null']
+          format: date-time
+        rejected_at:
+          type: [string, 'null']
+          format: date-time
+        cancelled_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee, department, location, leave_type, leave_policy_id, policy_version, workflow_instance_id, workflow, start_date, end_date, total_days, status, reason, approver_comment, can_cancel, is_auto_approved, attendance_sync_status, attendance_synced_at, approved_at, rejected_at, cancelled_at, created_at, updated_at]
+    LeaveRequestSubmitRequest:
+      type: object
+      properties:
+        leave_type_id:
+          type: integer
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        reason:
+          type: string
+          maxLength: 2000
+      required: [leave_type_id, start_date, end_date, reason]
+    LeaveRequestDecisionRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [cancel, approve, reject, request_changes]
+        comment:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [action]

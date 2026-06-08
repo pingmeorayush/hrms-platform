@@ -4,6 +4,10 @@
 
 Provide trustworthy operational reporting and first-line analytics on top of stabilized transactional data.
 
+## Status
+
+Planned
+
 ## Primary Backlog IDs
 
 - `RPT-001`
@@ -12,6 +16,10 @@ Provide trustworthy operational reporting and first-line analytics on top of sta
 ## Module References
 
 - [Reporting and Analytics](../modules/reporting-analytics.md)
+
+## Backlog Detail
+
+- [Sprint 08 Delivery Backlog](../backlog/sprint-08-reporting-analytics.md)
 
 ## Scope
 

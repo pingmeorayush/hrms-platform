@@ -39,7 +39,7 @@ Delivers contract scaffolding, test and CI expectations, and platform-ready impl
 | S01-005 | Story | P0 | Enforce tenant scoping at data access layer | S01-004 |
 | S01-006 | Story | P0 | Define seed roles, permissions, and permission naming baseline | S01-004 |
 | S01-007 | Story | P0 | Enforce API-side permission and policy checks | S01-006 |
-| S01-008 | Story | P1 | Add role-aware UI visibility contract for protected actions | S01-007 |
+| S01-008 | Story | P1 | Add role-aware UI visibility and protected navigation contract | S01-007 |
 | S01-009 | Story | P0 | Implement workflow definition and workflow instance MVP | S01-004 |
 | S01-010 | Story | P0 | Implement leave and employee approval workflow templates | S01-009 |
 | S01-011 | Story | P1 | Implement notification templates and in-app notification center baseline | S01-009 |
@@ -186,14 +186,14 @@ Acceptance Criteria:
 - Permission checks are server-side, not frontend-only
 - Audit events capture denied access where required
 
-### S01-008: Add role-aware UI visibility contract for protected actions
+### S01-008: Add role-aware UI visibility and protected navigation contract
 
 Type: Story  
 Priority: P1
 
 Description:
 
-Provide the frontend with a permission-aware model for showing or hiding protected navigation and actions.
+Provide the frontend with a permission-aware model for protected navigation, route access, and action visibility without weakening backend enforcement.
 
 Dependencies:
 
@@ -201,8 +201,9 @@ Dependencies:
 
 Acceptance Criteria:
 
-- Protected UI elements can be hidden from unauthorized users
+- Protected UI elements and routes can be hidden or blocked for unauthorized users
 - UI contract does not replace backend enforcement
+- Navigation, action visibility, and persona-based state changes use a shared permission contract
 - Frontend tests cover at least core hidden and visible states
 
 ### S01-009: Implement workflow definition and workflow instance MVP

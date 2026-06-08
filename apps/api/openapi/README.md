@@ -8,6 +8,10 @@ This directory holds the version-controlled OpenAPI contract files published by 
   - Auth, RBAC, tenant context, workflow, notifications, and audit endpoints
 - `sprint-02-employee-organization-management.yaml`
   - Organization masters, employee directory, lifecycle, profile details, documents, onboarding, audit history, and bulk import validation
+- `sprint-03-attendance-shift-operations.yaml`
+  - Attendance capture, calculation, operational review, correction, policy configuration, holiday calendars, shifts, assignments, and roster APIs
+- `sprint-04-leave-manager-workflows.yaml`
+  - Leave types, leave policies, accrual preview, balance ledger, leave requests, and workflow-backed approval APIs
 
 ## Contract Conventions
 

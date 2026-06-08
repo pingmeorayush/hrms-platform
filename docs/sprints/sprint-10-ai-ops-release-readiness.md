@@ -4,6 +4,10 @@
 
 Finish the program with controlled AI capabilities, production hardening, and release-readiness checks.
 
+## Status
+
+Planned
+
 ## Primary Backlog IDs
 
 - `AI-001`
@@ -17,6 +21,10 @@ Finish the program with controlled AI capabilities, production hardening, and re
 - [AI Assistant](../modules/ai-assistant.md)
 - [Platform Foundation](../modules/platform-foundation.md)
 - [Reporting and Analytics](../modules/reporting-analytics.md)
+
+## Backlog Detail
+
+- [Sprint 10 Delivery Backlog](../backlog/sprint-10-ai-ops-release-readiness.md)
 
 ## Scope
 

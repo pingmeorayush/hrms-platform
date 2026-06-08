@@ -4,6 +4,10 @@
 
 Broaden the employee experience and operational completeness around the employee master record.
 
+## Status
+
+Planned
+
 ## Primary Backlog IDs
 
 - `PLAT-007`
@@ -17,6 +21,10 @@ Broaden the employee experience and operational completeness around the employee
 - [Employee Management](../modules/employee-management.md)
 - [Document Management](../modules/document-management.md)
 - [Asset Management](../modules/asset-management.md)
+
+## Backlog Detail
+
+- [Sprint 06 Delivery Backlog](../backlog/sprint-06-documents-assets-ess-onoffboarding.md)
 
 ## Scope
 

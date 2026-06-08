@@ -26,11 +26,20 @@ class ResolveTenantContext
             return $this->blockedResponse();
         }
 
+        $previousContext = app(TenantContext::class);
+        $previousTimezone = (string) config('app.timezone');
+
         app()->instance(TenantContext::class, TenantContext::fromCompany($company));
         config(['app.timezone' => $company->timezone]);
         date_default_timezone_set($company->timezone);
 
-        return $next($request);
+        try {
+            return $next($request);
+        } finally {
+            app()->instance(TenantContext::class, $previousContext);
+            config(['app.timezone' => $previousTimezone]);
+            date_default_timezone_set($previousTimezone);
+        }
     }
 
     private function blockedResponse(): JsonResponse

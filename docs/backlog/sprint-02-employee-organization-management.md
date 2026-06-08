@@ -6,6 +6,7 @@
 - [Organization Management Module](../modules/organization-management.md)
 - [Employee Management Module](../modules/employee-management.md)
 - [Employee Code Decision](../decisions/005-employee-code-policy.md)
+- [Frontend Delivery Order for Sprints 02 to 04](./frontend-delivery-order-sprints-02-to-04.md)
 
 ## Epics
 
@@ -25,6 +26,10 @@ Delivers access-controlled bank, identity, and employee document handling tied t
 
 Delivers onboarding readiness, transfer history, and controlled employment-state transitions.
 
+### EPIC S02-E5: Employee and Organization UI Experience
+
+Delivers the HR, manager, and self-service web surfaces required to use Sprint 02 data safely and efficiently.
+
 ## Ticket Index
 
 | ID | Type | Priority | Summary | Depends On |
@@ -41,6 +46,9 @@ Delivers onboarding readiness, transfer history, and controlled employment-state
 | S02-010 | Story | P1 | Implement audit history for employee and structure changes | S02-004 |
 | S02-011 | Story | P1 | Implement bulk import validation path for employee onboarding | DEC-005, S02-003 |
 | S02-012 | Story | P1 | Publish employee and organization OpenAPI contracts | S02-003, S02-001 |
+| S02-013 | Story | P1 | Implement organization master admin workspace | S02-001 |
+| S02-014 | Story | P1 | Implement employee directory, filter, and detail workspace | S02-003, S02-005 |
+| S02-015 | Story | P1 | Implement employee profile, lifecycle, onboarding, and document screens | S02-004, S02-006, S02-008, S02-009 |
 
 ## Ticket Details
 
@@ -277,3 +285,64 @@ Acceptance Criteria:
 - Core employee and organization endpoints are documented
 - Shared schema conventions are applied consistently
 - Contract changes are reviewable and version-controlled
+
+### S02-013: Implement organization master admin workspace
+
+Type: Story  
+Priority: P1
+
+Description:
+
+Create the web admin workspace for tenant-owned organization masters so HR admins can manage the reference data used throughout downstream modules.
+
+Dependencies:
+
+- S02-001
+
+Acceptance Criteria:
+
+- Authorized users can list, create, edit, and archive departments, designations, locations, and cost centers through web forms
+- Validation and duplicate errors are shown inline and map cleanly to API responses
+- UI states cover loading, empty, success, and permission-denied cases
+
+### S02-014: Implement employee directory, filter, and detail workspace
+
+Type: Story  
+Priority: P1
+
+Description:
+
+Create the primary HR and manager employee-discovery experience on top of the Sprint 02 directory APIs.
+
+Dependencies:
+
+- S02-003
+- S02-005
+
+Acceptance Criteria:
+
+- Authorized users can search and filter employees by status, department, designation, and manager
+- Directory rows expose role-appropriate actions and links into employee detail pages
+- Pagination, empty states, and permission-driven hidden actions are covered in frontend tests
+
+### S02-015: Implement employee profile, lifecycle, onboarding, and document screens
+
+Type: Story  
+Priority: P1
+
+Description:
+
+Create the web experience for employee profile maintenance, lifecycle actions, onboarding status, and document access without exposing restricted data to unauthorized users.
+
+Dependencies:
+
+- S02-004
+- S02-006
+- S02-008
+- S02-009
+
+Acceptance Criteria:
+
+- HR users can update employee profile sections, trigger lifecycle actions, and review onboarding progress through guided screens
+- Sensitive sections such as bank details and restricted documents are masked or hidden by permission
+- Audit history, document actions, and onboarding status are visible where permitted and covered by UI tests
