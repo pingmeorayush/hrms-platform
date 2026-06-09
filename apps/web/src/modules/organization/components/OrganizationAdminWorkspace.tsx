@@ -119,7 +119,7 @@ export function OrganizationCompanyProfileWorkspaceView({
                 </CardDescription>
               </div>
               <WorkspaceHeaderActions>
-                <Button size="sm" variant="primary" onClick={() => setIsCompanyModalOpen(true)}>
+                <Button size="xs" variant="primary" onClick={() => setIsCompanyModalOpen(true)}>
                   Edit company profile
                 </Button>
               </WorkspaceHeaderActions>
@@ -319,7 +319,7 @@ function OrganizationRegistrySection({
               </div>
               <WorkspaceHeaderActions>
                 <Button
-                  size="sm"
+                  size="xs"
                   variant="primary"
                   onClick={() => {
                     setSelectedRecordId(null)

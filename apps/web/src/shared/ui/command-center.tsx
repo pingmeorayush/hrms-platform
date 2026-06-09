@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './car
 import { cn } from './cn'
 
 type MetricTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
+type MetricValueSize = 'stat' | 'compact' | 'long'
 
 const metricToneClasses: Record<MetricTone, string> = {
   neutral: 'border-line/80 bg-white/78 text-muted-foreground',
@@ -15,13 +16,19 @@ const metricToneClasses: Record<MetricTone, string> = {
   danger: 'border-destructive/16 bg-destructive/[0.08] text-destructive',
 }
 
+const metricValueSizeClasses: Record<MetricValueSize, string> = {
+  stat: 'text-[1.58rem] leading-[0.96] tracking-[-0.028em] md:text-[1.72rem]',
+  compact: 'text-[1.22rem] leading-[1.04] tracking-[-0.018em] md:text-[1.32rem]',
+  long: 'text-[1.02rem] leading-[1.14] tracking-[-0.012em] md:text-[1.12rem]',
+}
+
 export function CommandCenterMetricGrid({
   className,
   ...props
 }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      className={cn('grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6', className)}
+      className={cn('grid gap-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6', className)}
       {...props}
     />
   )
@@ -34,6 +41,7 @@ export function CommandCenterMetricCard({
   caption,
   icon,
   tone = 'neutral',
+  valueSize = 'stat',
   className,
 }: {
   label: ReactNode
@@ -42,28 +50,36 @@ export function CommandCenterMetricCard({
   caption?: ReactNode
   icon?: ReactNode
   tone?: MetricTone
+  valueSize?: MetricValueSize
   className?: string
 }) {
   return (
     <Card
       className={cn(
-        'relative overflow-hidden rounded-[1.2rem] border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,251,255,0.985)_100%)] shadow-[0_14px_30px_rgba(15,23,42,0.06)]',
+        'relative overflow-hidden rounded-[1rem] border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,251,255,0.985)_100%)] shadow-[0_12px_24px_rgba(15,23,42,0.055)]',
         className,
       )}
     >
-      <CardContent className="flex items-start justify-between gap-4 p-4">
-        <div className="min-w-0 space-y-2">
-          <p className="ui-type-label text-text-subtle">{label}</p>
-          <div className="space-y-1">
-            <strong className="ui-type-page-title block text-[2rem] leading-none text-foreground">{value}</strong>
-            {delta ? <p className="ui-type-caption text-muted-foreground">{delta}</p> : null}
-            {caption ? <p className="ui-type-caption text-text-subtle">{caption}</p> : null}
+      <CardContent className="flex items-start justify-between gap-3 p-3 md:p-3.5">
+        <div className="min-w-0 space-y-1">
+          <p className="text-[0.72rem] font-semibold leading-[1.2] text-text-subtle">{label}</p>
+          <div className="space-y-0">
+            <strong
+              className={cn(
+                'block font-semibold text-foreground',
+                metricValueSizeClasses[valueSize],
+              )}
+            >
+              {value}
+            </strong>
+            {delta ? <p className="text-[0.76rem] leading-[1.35] text-muted-foreground">{delta}</p> : null}
+            {caption ? <p className="text-[0.72rem] leading-[1.3] text-text-subtle">{caption}</p> : null}
           </div>
         </div>
         {icon ? (
           <span
             className={cn(
-              'grid h-11 w-11 shrink-0 place-items-center rounded-2xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]',
+              'grid h-9 w-9 shrink-0 place-items-center rounded-[0.95rem] border shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]',
               metricToneClasses[tone],
             )}
           >
@@ -79,21 +95,21 @@ export function CommandCenterLayout({
   className,
   ...props
 }: ComponentPropsWithoutRef<'div'>) {
-  return <div className={cn('grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem]', className)} {...props} />
+  return <div className={cn('grid gap-3 xl:grid-cols-[minmax(0,1fr)_18rem]', className)} {...props} />
 }
 
 export function CommandCenterMain({
   className,
   ...props
 }: ComponentPropsWithoutRef<'div'>) {
-  return <div className={cn('min-w-0 space-y-4', className)} {...props} />
+  return <div className={cn('min-w-0 space-y-3', className)} {...props} />
 }
 
 export function CommandCenterRail({
   className,
   ...props
 }: ComponentPropsWithoutRef<'aside'>) {
-  return <aside className={cn('space-y-4', className)} {...props} />
+  return <aside className={cn('space-y-3', className)} {...props} />
 }
 
 export function CommandCenterPanel({
@@ -109,8 +125,8 @@ export function CommandCenterPanel({
   className?: string
 }>) {
   return (
-    <Card className={cn('rounded-[1.2rem] border-line/80 shadow-[0_14px_30px_rgba(15,23,42,0.05)]', className)}>
-      <CardHeader className="flex flex-row items-start justify-between gap-3 border-b border-line/80 bg-[linear-gradient(180deg,rgba(252,253,255,0.98)_0%,rgba(245,248,252,0.98)_100%)]">
+    <Card className={cn('rounded-[1rem] border-line/80 shadow-[0_12px_24px_rgba(15,23,42,0.05)]', className)}>
+      <CardHeader className="flex flex-row items-start justify-between gap-2 border-b border-line/80 bg-[linear-gradient(180deg,rgba(252,253,255,0.98)_0%,rgba(245,248,252,0.98)_100%)] px-3.5 py-2.5">
         <div className="min-w-0 space-y-1">
           <CardTitle>{title}</CardTitle>
           {description ? <CardDescription>{description}</CardDescription> : null}
@@ -179,11 +195,11 @@ export function CommandCenterAttentionItem({
   )
 
   return (
-    <div className={cn('flex items-start gap-3 px-4 py-4', className)}>
+    <div className={cn('flex items-start gap-2.5 px-3 py-3', className)}>
       {icon ? (
         <span
           className={cn(
-            'mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-2xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]',
+            'mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]',
             metricToneClasses[tone],
           )}
         >
@@ -201,7 +217,7 @@ export function CommandCenterAttentionItem({
         content
       )}
       {actions || onTogglePinned ? (
-        <div className="ml-auto flex shrink-0 items-center gap-1 pl-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 pl-1.5">
           {actions}
           {onTogglePinned ? (
             <Button
@@ -264,11 +280,11 @@ export function CommandCenterActivityItem({
   )
 
   return (
-    <div className={cn('flex items-start gap-3 px-4 py-4', className)}>
+    <div className={cn('flex items-start gap-2.5 px-3 py-3', className)}>
       {icon ? (
         <span
           className={cn(
-            'mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-2xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]',
+            'mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]',
             metricToneClasses[tone],
           )}
         >
@@ -286,7 +302,7 @@ export function CommandCenterActivityItem({
         content
       )}
       {actions || onTogglePinned ? (
-        <div className="ml-auto flex shrink-0 items-center gap-1 pl-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 pl-1.5">
           {actions}
           {onTogglePinned ? (
             <Button
@@ -312,7 +328,7 @@ export function CommandCenterInsightGrid({
   className,
   ...props
 }: ComponentPropsWithoutRef<'div'>) {
-  return <div className={cn('grid gap-4 xl:grid-cols-3', className)} {...props} />
+  return <div className={cn('grid gap-3 xl:grid-cols-3', className)} {...props} />
 }
 
 export function CommandCenterInsightCard({
@@ -328,15 +344,15 @@ export function CommandCenterInsightCard({
   return (
     <Card
       className={cn(
-        'rounded-[1.2rem] border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,251,255,0.985)_100%)] shadow-[0_14px_30px_rgba(15,23,42,0.05)]',
+        'rounded-[1rem] border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,251,255,0.985)_100%)] shadow-[0_12px_24px_rgba(15,23,42,0.05)]',
         className,
       )}
     >
-      <CardHeader className="space-y-1 border-b border-line/80 bg-[linear-gradient(180deg,rgba(252,253,255,0.98)_0%,rgba(245,248,252,0.98)_100%)]">
+      <CardHeader className="space-y-1 border-b border-line/80 bg-[linear-gradient(180deg,rgba(252,253,255,0.98)_0%,rgba(245,248,252,0.98)_100%)] px-3.5 py-2.5">
         <CardTitle>{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
-      <CardContent className="space-y-2.5 p-4">{children}</CardContent>
+      <CardContent className="space-y-1.5 p-3">{children}</CardContent>
     </Card>
   )
 }

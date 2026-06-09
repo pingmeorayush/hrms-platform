@@ -131,6 +131,7 @@ export function EmployeesOverviewPage() {
     delta: string
     icon: ReactNode
     tone: MetricCardTone
+    valueSize?: 'stat' | 'compact' | 'long'
   }> = [
     {
       label: 'Visible employees',
@@ -179,6 +180,7 @@ export function EmployeesOverviewPage() {
       delta: canViewAudit ? 'Protected history is available in this session' : 'Audit route is hidden in this session',
       icon: <ShieldCheck className="h-4 w-4" />,
       tone: canViewAudit ? 'success' : 'neutral',
+      valueSize: 'compact',
     },
   ]
 
@@ -345,10 +347,10 @@ export function EmployeesOverviewPage() {
             </CardDescription>
           </div>
           <WorkspaceHeaderActions>
-            <Button asChild size="sm" variant="secondary">
+            <Button asChild size="xs" variant="secondary">
               <Link to="/employees/lifecycle-watch">Open lifecycle watch</Link>
             </Button>
-            <Button asChild size="sm" variant="primary">
+            <Button asChild size="xs" variant="primary">
               <Link to="/employees/directory">Open directory</Link>
             </Button>
           </WorkspaceHeaderActions>
@@ -363,6 +365,7 @@ export function EmployeesOverviewPage() {
                 delta={card.delta}
                 icon={card.icon}
                 tone={card.tone}
+                valueSize={card.valueSize}
               />
             ))}
           </CommandCenterMetricGrid>
@@ -372,7 +375,7 @@ export function EmployeesOverviewPage() {
               <CommandCenterAttentionStrip
                 title="Needs attention"
                 action={
-                  <Button asChild size="sm" variant="ghost">
+                  <Button asChild size="xs" variant="ghost">
                     <Link to="/employees/lifecycle-watch">View queues</Link>
                   </Button>
                 }
@@ -406,11 +409,8 @@ export function EmployeesOverviewPage() {
 
               <WorkspaceSurface>
                 <WorkspaceHeader compact>
-                  <div className="space-y-1">
+                  <div>
                     <CardTitle>Workforce workspace</CardTitle>
-                    <CardDescription>
-                      Use one command surface for roster navigation, lifecycle risk, onboarding, documents, and protected audit queues.
-                    </CardDescription>
                   </div>
                   <Badge variant="subtle">{collectionCount} employee record(s) in view</Badge>
                 </WorkspaceHeader>
@@ -435,7 +435,7 @@ export function EmployeesOverviewPage() {
                         <Badge variant="subtle">
                           {activeTab === 'audit' ? 'Protected history' : 'Employee operations'}
                         </Badge>
-                        <Button size="sm" variant="secondary" onClick={() => setFilters(baseInitialFilters)} disabled={!filtersDirty}>
+                        <Button size="xs" variant="secondary" onClick={() => setFilters(baseInitialFilters)} disabled={!filtersDirty}>
                           Reset filters
                         </Button>
                       </div>
@@ -586,7 +586,7 @@ export function EmployeesOverviewPage() {
               <CommandCenterPanel
                 title="Recent activity"
                 actions={
-                  <Button asChild size="sm" variant="ghost">
+                  <Button asChild size="xs" variant="ghost">
                     <Link to={canViewAudit ? '/employees/audit' : '/employees/directory'}>Open {canViewAudit ? 'audit' : 'directory'}</Link>
                   </Button>
                 }

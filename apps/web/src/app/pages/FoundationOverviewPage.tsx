@@ -146,6 +146,7 @@ export function FoundationOverviewPage() {
     delta: string
     icon: ReactNode
     tone: 'neutral' | 'info' | 'success' | 'warning'
+    valueSize?: 'stat' | 'compact' | 'long'
   }> = [
     {
       label: 'Visible modules',
@@ -174,6 +175,7 @@ export function FoundationOverviewPage() {
       delta: access.mode === 'demo' ? currentPersonaLabel : missingToken ? 'Token pending' : 'Bearer token loaded',
       icon: <SlidersHorizontal className="h-4 w-4" />,
       tone: missingToken ? 'warning' : 'info',
+      valueSize: 'compact',
     },
     {
       label: 'Tenant context',
@@ -181,6 +183,7 @@ export function FoundationOverviewPage() {
       delta: tenant ? `${tenant.subscription_plan ?? 'plan pending'} · ${tenant.timezone ?? 'timezone pending'}` : 'Resolve a live token or keep using a demo persona',
       icon: <Building2 className="h-4 w-4" />,
       tone: tenant ? 'info' : 'warning',
+      valueSize: 'long',
     },
     {
       label: 'Access posture',
@@ -190,6 +193,7 @@ export function FoundationOverviewPage() {
         : 'All top-level modules are available in this session',
       icon: <ShieldCheck className="h-4 w-4" />,
       tone: restrictedModuleCount ? 'warning' : 'success',
+      valueSize: 'compact',
     },
   ]
 
@@ -342,6 +346,7 @@ export function FoundationOverviewPage() {
                 delta={card.delta}
                 icon={card.icon}
                 tone={card.tone}
+                valueSize={card.valueSize}
               />
             ))}
           </CommandCenterMetricGrid>
@@ -380,16 +385,9 @@ export function FoundationOverviewPage() {
                 title="Workspace access"
                 description="See which top-level modules and routed subsections are available to the active session."
               >
-                <div className="space-y-4 p-4">
+                <div className="space-y-3 p-3.5">
                   <ConsoleToolbar>
                     <ConsoleToolbarRow className="gap-3">
-                      <div className="min-w-0 space-y-1">
-                        <p className="ui-type-body-strong text-foreground">Catalog visibility</p>
-                        <p className="ui-type-body text-muted-foreground">
-                          Search across top-level modules and switch between visible, restricted, and complete workspace
-                          coverage.
-                        </p>
-                      </div>
                       <ConsoleSearchField
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
@@ -463,14 +461,14 @@ export function FoundationOverviewPage() {
                               </TableCell>
                               <TableCell className="text-right">
                                 {row.visible ? (
-                                  <Button asChild variant="secondary" size="sm">
+                                  <Button asChild variant="secondary" size="xs">
                                     <Link to={row.href}>
                                       Open
                                       <ArrowUpRight className="h-4 w-4" />
                                     </Link>
                                   </Button>
                                 ) : (
-                                  <Button variant="ghost" size="sm" disabled>
+                                  <Button variant="ghost" size="xs" disabled>
                                     Restricted
                                   </Button>
                                 )}
@@ -508,7 +506,7 @@ export function FoundationOverviewPage() {
                           <Button
                             key={mode}
                             variant={access.mode === mode ? 'primary' : 'segmented'}
-                            size="sm"
+                            size="xs"
                             onClick={() =>
                               startTransition(() => {
                                 dispatch(setMode(mode))
@@ -529,7 +527,7 @@ export function FoundationOverviewPage() {
                             <Button
                               key={persona}
                               variant={access.demoPersona === persona ? 'primary' : 'secondary'}
-                              size="sm"
+                              size="xs"
                               onClick={() =>
                                 startTransition(() => {
                                   dispatch(setDemoPersona(persona))
@@ -562,7 +560,7 @@ export function FoundationOverviewPage() {
                         <div className="sm:col-span-2">
                           <Button
                             variant="primary"
-                            size="sm"
+                            size="xs"
                             onClick={() =>
                               startTransition(() => {
                                 dispatch(setToken(access.token.trim()))

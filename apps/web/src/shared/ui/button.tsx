@@ -20,6 +20,7 @@ const buttonVariants = cva(
           'ui-button--danger border border-transparent bg-destructive text-white hover:bg-[color-mix(in_srgb,var(--danger)_90%,black)]',
       },
       size: {
+        xs: 'ui-button--xs h-7 px-2.5 text-[0.74rem]',
         sm: 'ui-button--sm h-8 px-3 text-[0.78rem]',
         md: 'ui-button--md h-10 px-4 text-[0.86rem]',
       },

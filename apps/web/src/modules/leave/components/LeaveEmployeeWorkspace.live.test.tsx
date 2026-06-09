@@ -14,6 +14,12 @@ vi.mock('../../access/hooks/useAccessSnapshot', () => ({
         name: 'Employee Viewer',
         initials: 'EV',
         email: 'employee@phoenixhrms.test',
+        employee: {
+          id: 1005,
+          employee_code: 'EMP-1005',
+          full_name: 'Employee Viewer',
+          email: 'employee@phoenixhrms.test',
+        },
         roles: ['employee'],
         permissions: ['leave.view', 'leave.request'],
         tenant: {

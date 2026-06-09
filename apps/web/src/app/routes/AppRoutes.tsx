@@ -34,6 +34,23 @@ import { LeaveOverviewPage } from '../../modules/leave/pages/LeaveOverviewPage'
 import { LeaveRequestsPage } from '../../modules/leave/pages/LeaveRequestsPage'
 import { LeaveApprovalsPage } from '../../modules/leave/pages/LeaveApprovalsPage'
 import { LeavePolicyAdminPage } from '../../modules/leave/pages/LeavePolicyAdminPage'
+import { PayrollAdminPage } from '../../modules/payroll/pages/PayrollAdminPage'
+import { PayrollIndexRedirect } from '../../modules/payroll/pages/PayrollPage'
+import { PayrollOverviewPage } from '../../modules/payroll/pages/PayrollOverviewPage'
+import { PayrollSetupPage } from '../../modules/payroll/pages/PayrollSetupPage'
+import { PayrollReviewPage } from '../../modules/payroll/pages/PayrollReviewPage'
+import { PayrollRunConsolePage } from '../../modules/payroll/pages/PayrollRunConsolePage'
+import { PayrollSelfServicePage } from '../../modules/payroll/pages/PayrollSelfServicePage'
+import { OperationsAdminPage } from '../../modules/operations/pages/OperationsAdminPage'
+import { OperationsAssetsPage } from '../../modules/operations/pages/OperationsAssetsPage'
+import { OperationsDocumentsPage } from '../../modules/operations/pages/OperationsDocumentsPage'
+import { OperationsIndexRedirect } from '../../modules/operations/pages/OperationsPage'
+import { OperationsLifecyclePage } from '../../modules/operations/pages/OperationsLifecyclePage'
+import { OperationsOverviewPage } from '../../modules/operations/pages/OperationsOverviewPage'
+import { SelfServiceAssetsPage } from '../../modules/self-service/pages/SelfServiceAssetsPage'
+import { SelfServiceDocumentsPage } from '../../modules/self-service/pages/SelfServiceDocumentsPage'
+import { SelfServiceIndexRedirect, SelfServicePage } from '../../modules/self-service/pages/SelfServicePage'
+import { SelfServiceProfilePage } from '../../modules/self-service/pages/SelfServiceProfilePage'
 import {
   OrganizationOverviewPage,
   OrganizationCompanyProfilePage,
@@ -160,6 +177,167 @@ export function AppRoutes() {
           <Route path="requests" element={<LeaveRequestsPage />} />
           <Route path="approvals" element={<LeaveApprovalsPage />} />
           <Route path="policy-admin" element={<LeavePolicyAdminPage />} />
+        </Route>
+        <Route
+          path="/payroll"
+          element={
+            <RouteGuard
+              permissions={[
+                'payroll.view',
+                'payroll.process',
+                'payroll.approve',
+                'payroll.lock',
+                'payroll.reopen',
+                'salary.manage',
+                'compensation.manage',
+                'payslip.view',
+                'compensation.view',
+              ]}
+              match="any"
+              title="Payroll workspace unavailable"
+              description="This route requires payroll controls, payroll setup permissions, or self-service payslip and compensation visibility in the current session."
+            >
+              <PayrollAdminPage />
+            </RouteGuard>
+          }
+        >
+          <Route index element={<PayrollIndexRedirect />} />
+          <Route
+            path="setup"
+            element={
+              <RouteGuard
+                permissions={['payroll.process', 'salary.manage', 'compensation.manage']}
+                match="any"
+                title="Payroll setup unavailable"
+                description="This route is limited to payroll setup sessions that can manage payroll calendars, salary configuration, or employee compensation."
+              >
+                <PayrollSetupPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="overview"
+            element={
+              <RouteGuard
+                permissions={['payroll.view', 'payroll.process', 'payroll.approve', 'payroll.lock', 'payroll.reopen']}
+                match="any"
+                title="Payroll overview unavailable"
+                description="This route is limited to payroll-authorized sessions that can inspect payroll operations."
+              >
+                <PayrollOverviewPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="review"
+            element={
+              <RouteGuard
+                permissions={['payroll.view', 'payroll.process', 'payroll.approve', 'payroll.lock', 'payroll.reopen']}
+                match="any"
+                title="Payroll review unavailable"
+                description="This route is limited to payroll-authorized sessions that can inspect payroll summaries, variances, and exceptions."
+              >
+                <PayrollReviewPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="run-console"
+            element={
+              <RouteGuard
+                permissions={['payroll.view', 'payroll.process', 'payroll.approve', 'payroll.lock', 'payroll.reopen']}
+                match="any"
+                title="Payroll run console unavailable"
+                description="This route is limited to payroll-authorized sessions that can operate or review payroll runs."
+              >
+                <PayrollRunConsolePage />
+              </RouteGuard>
+            }
+          />
+          <Route path="my-pay" element={<PayrollSelfServicePage />} />
+        </Route>
+        <Route
+          path="/operations"
+          element={
+            <RouteGuard
+              permissions={['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage']}
+              match="any"
+              title="Operations workspace unavailable"
+              description="This route requires document governance, asset management, or employee lifecycle operations access in the current session."
+            >
+              <OperationsAdminPage />
+            </RouteGuard>
+          }
+        >
+          <Route index element={<OperationsIndexRedirect />} />
+          <Route
+            path="overview"
+            element={
+              <RouteGuard
+                permissions={['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage']}
+                match="any"
+                title="Operations overview unavailable"
+                description="This route is limited to HR and IT sessions that can review operations posture."
+              >
+                <OperationsOverviewPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="documents"
+            element={
+              <RouteGuard
+                permissions={['document.view', 'document.manage']}
+                match="any"
+                title="Document operations unavailable"
+                description="This route requires document repository visibility or governance access."
+              >
+                <OperationsDocumentsPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="assets"
+            element={
+              <RouteGuard
+                permissions={['asset.view', 'asset.manage']}
+                match="any"
+                title="Asset operations unavailable"
+                description="This route requires asset visibility or asset lifecycle management access."
+              >
+                <OperationsAssetsPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="lifecycle"
+            element={
+              <RouteGuard
+                permissions={['employee.manage']}
+                match="any"
+                title="Lifecycle operations unavailable"
+                description="This route is limited to employee-management sessions that can coordinate onboarding and offboarding tasks."
+              >
+                <OperationsLifecyclePage />
+              </RouteGuard>
+            }
+          />
+        </Route>
+        <Route
+          path="/self-service"
+          element={
+            <RouteGuard
+              title="Self-service workspace unavailable"
+              description="This workspace expects an authenticated session so it can resolve the linked employee profile."
+            >
+              <SelfServicePage />
+            </RouteGuard>
+          }
+        >
+          <Route index element={<SelfServiceIndexRedirect />} />
+          <Route path="profile" element={<SelfServiceProfilePage />} />
+          <Route path="documents" element={<SelfServiceDocumentsPage />} />
+          <Route path="assets" element={<SelfServiceAssetsPage />} />
         </Route>
         <Route
           path="/access"

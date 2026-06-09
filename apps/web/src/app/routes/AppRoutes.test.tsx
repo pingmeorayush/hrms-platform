@@ -167,4 +167,123 @@ describe('AppRoutes', () => {
     expect(within(leaveSections).queryByRole('link', { name: /policy admin/i })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /submit leave request/i })).toBeInTheDocument()
   })
+
+  it('opens the payroll module for a tenant admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/payroll'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^payroll$/i })).toBeInTheDocument()
+    expect(screen.queryByText(/operations console/i)).not.toBeInTheDocument()
+    const payrollSections = screen.getByRole('navigation', { name: /payroll sections/i })
+    expect(within(payrollSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(payrollSections).getByRole('link', { name: /setup/i })).toBeInTheDocument()
+    expect(within(payrollSections).getByRole('link', { name: /review/i })).toBeInTheDocument()
+    expect(within(payrollSections).getByRole('link', { name: /run console/i })).toBeInTheDocument()
+    expect(within(payrollSections).getByRole('link', { name: /my pay/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /payroll operations center/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /runs/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('opens the payroll setup route for a tenant admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/payroll/setup'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /payroll setup studio/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /calendars/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /compensation/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /create payroll calendar/i })).toBeInTheDocument()
+  })
+
+  it('opens payroll self-service for an employee session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/payroll'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^payroll$/i })).toBeInTheDocument()
+    const payrollSections = screen.getByRole('navigation', { name: /payroll sections/i })
+    expect(within(payrollSections).queryByRole('link', { name: /overview/i })).not.toBeInTheDocument()
+    expect(within(payrollSections).queryByRole('link', { name: /setup/i })).not.toBeInTheDocument()
+    expect(within(payrollSections).queryByRole('link', { name: /review/i })).not.toBeInTheDocument()
+    expect(within(payrollSections).queryByRole('link', { name: /run console/i })).not.toBeInTheDocument()
+    expect(within(payrollSections).getByRole('link', { name: /my pay/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /my pay/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /payslips/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('blocks an employee persona from the payroll review route', () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/payroll/review'],
+    })
+
+    expect(screen.getByRole('heading', { name: /payroll review unavailable/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /^payroll review$/i })).not.toBeInTheDocument()
+  })
+
+  it('blocks a manager persona from the payroll route', () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'manager' },
+      initialEntries: ['/payroll'],
+    })
+
+    expect(screen.getByRole('heading', { name: /payroll workspace unavailable/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /payroll operations center/i })).not.toBeInTheDocument()
+  })
+
+  it('opens the self-service module for an employee session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/self-service'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /my profile/i })).toBeInTheDocument()
+    const selfServiceSections = screen.getByRole('navigation', { name: /self service sections/i })
+    expect(within(selfServiceSections).getByRole('link', { name: /profile/i })).toBeInTheDocument()
+    expect(within(selfServiceSections).getByRole('link', { name: /documents/i })).toBeInTheDocument()
+    expect(within(selfServiceSections).getByRole('link', { name: /assigned assets/i })).toBeInTheDocument()
+    expect(screen.getByText(/sensitive banking is hidden/i)).toBeInTheDocument()
+  })
+
+  it('opens the operations module for a tenant admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/operations'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /hr and it operations center/i })).toBeInTheDocument()
+    const operationSections = screen.getByRole('navigation', { name: /operations sections/i })
+    expect(within(operationSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /documents/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /assets/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /lifecycle/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('limits the operations module to document and asset sections for an IT operator', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'itOperator' },
+      initialEntries: ['/operations'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /hr and it operations center/i })).toBeInTheDocument()
+    const operationSections = screen.getByRole('navigation', { name: /operations sections/i })
+    expect(within(operationSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /documents/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /assets/i })).toBeInTheDocument()
+    expect(within(operationSections).queryByRole('link', { name: /lifecycle/i })).not.toBeInTheDocument()
+  }, 15000)
+
+  it('blocks an employee persona from the operations route', () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/operations'],
+    })
+
+    expect(screen.getByRole('heading', { name: /operations workspace unavailable/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /hr and it operations center/i })).not.toBeInTheDocument()
+  })
 })

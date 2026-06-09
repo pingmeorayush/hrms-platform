@@ -1,4 +1,4 @@
-export type DemoPersona = 'platformAdmin' | 'tenantAdmin' | 'manager' | 'employee'
+export type DemoPersona = 'platformAdmin' | 'tenantAdmin' | 'itOperator' | 'manager' | 'employee'
 
 export interface TenantInfo {
   company_id: number
@@ -8,11 +8,19 @@ export interface TenantInfo {
   currency: string | null
 }
 
+export interface LinkedEmployeeSummary {
+  id: number
+  employee_code: string
+  full_name: string
+  email: string | null
+}
+
 export interface AccessUser {
   id: number
   name: string
   initials: string
   email: string
+  employee: LinkedEmployeeSummary | null
   roles: string[]
   permissions: string[]
   tenant: TenantInfo

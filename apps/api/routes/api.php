@@ -1,5 +1,7 @@
 <?php
 
+use App\Modules\AssetManagement\Controllers\AssetCategoryController;
+use App\Modules\AssetManagement\Controllers\AssetController;
 use App\Modules\AttendanceManagement\Controllers\AttendanceCorrectionController;
 use App\Modules\AttendanceManagement\Controllers\AttendanceOperationalReviewController;
 use App\Modules\AttendanceManagement\Controllers\AttendancePolicyController;
@@ -9,6 +11,8 @@ use App\Modules\AttendanceManagement\Controllers\HolidayController;
 use App\Modules\AttendanceManagement\Controllers\ShiftAssignmentController;
 use App\Modules\AttendanceManagement\Controllers\ShiftController;
 use App\Modules\AttendanceManagement\Controllers\ShiftRosterController;
+use App\Modules\DocumentManagement\Controllers\DocumentCategoryController;
+use App\Modules\DocumentManagement\Controllers\DocumentController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeAddressController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeBankAccountController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeBulkImportController;
@@ -16,7 +20,11 @@ use App\Modules\EmployeeManagement\Controllers\EmployeeContactController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeDocumentController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeEmergencyContactController;
+use App\Modules\EmployeeManagement\Controllers\EmployeeLifecycleTaskTemplateController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeOnboardingTaskController;
+use App\Modules\EmployeeManagement\Controllers\EmployeeSelfServiceController;
+use App\Modules\EmployeeManagement\Controllers\EmployeeTaskCenterController;
+use App\Modules\EmployeeManagement\Controllers\PolicyAcknowledgementController;
 use App\Modules\LeaveManagement\Controllers\LeaveAccrualController;
 use App\Modules\LeaveManagement\Controllers\LeaveBalanceController;
 use App\Modules\LeaveManagement\Controllers\LeavePolicyController;
@@ -66,6 +74,20 @@ Route::prefix('v1')
             });
 
             Route::get('ui/visibility', [UiVisibilityController::class, 'show']);
+            Route::get('task-center', [EmployeeTaskCenterController::class, 'index']);
+            Route::patch('task-center/lifecycle-tasks/{taskId}', [EmployeeTaskCenterController::class, 'updateLifecycleTask']);
+            Route::get('policy-acknowledgements', [PolicyAcknowledgementController::class, 'index']);
+            Route::post('policy-acknowledgements', [PolicyAcknowledgementController::class, 'store'])->middleware('permission:employee.manage');
+            Route::patch('policy-acknowledgements/{policyAcknowledgementId}/acknowledge', [PolicyAcknowledgementController::class, 'acknowledge']);
+            Route::get('policy-acknowledgements/{policyAcknowledgementId}/download', [PolicyAcknowledgementController::class, 'download'])
+                ->name('policy.acknowledgements.download');
+            Route::prefix('self-service')->group(function (): void {
+                Route::get('workspace', [EmployeeSelfServiceController::class, 'show']);
+                Route::get('employee-documents/{employeeDocumentId}/download', [EmployeeSelfServiceController::class, 'downloadEmployeeDocument'])
+                    ->name('self-service.employee-documents.download');
+                Route::get('repository-documents/{documentId}/download', [EmployeeSelfServiceController::class, 'downloadRepositoryDocument'])
+                    ->name('self-service.repository-documents.download');
+            });
             Route::prefix('admin')->group(function (): void {
                 Route::get('roles', [RoleController::class, 'index'])->middleware('permission:auth.manage_roles');
                 Route::post('roles', [RoleController::class, 'store'])->middleware('permission:auth.manage_roles');
@@ -124,6 +146,30 @@ Route::prefix('v1')
                 Route::post('rosters', [ShiftRosterController::class, 'store'])->middleware('permission:attendance.manage_roster');
                 Route::patch('rosters/{shiftRosterId}', [ShiftRosterController::class, 'update'])->middleware('permission:attendance.manage_roster');
                 Route::get('{attendanceRecordId}', [AttendanceRecordController::class, 'show'])->middleware('permission:attendance.view');
+            });
+
+            Route::prefix('documents')->group(function (): void {
+                Route::get('/', [DocumentController::class, 'index'])->middleware('permission:document.view|document.manage');
+                Route::post('/', [DocumentController::class, 'store'])->middleware('permission:document.manage');
+                Route::get('categories', [DocumentCategoryController::class, 'index'])->middleware('permission:document.view|document.manage');
+                Route::post('categories', [DocumentCategoryController::class, 'store'])->middleware('permission:document.manage');
+                Route::patch('categories/{documentCategoryId}', [DocumentCategoryController::class, 'update'])->middleware('permission:document.manage');
+                Route::get('{documentId}', [DocumentController::class, 'show'])->middleware('permission:document.view|document.manage');
+                Route::get('{documentId}/download', [DocumentController::class, 'download'])
+                    ->middleware('permission:document.view|document.manage')
+                    ->name('documents.download');
+            });
+
+            Route::prefix('assets')->group(function (): void {
+                Route::get('/', [AssetController::class, 'index'])->middleware('permission:asset.view|asset.manage');
+                Route::post('/', [AssetController::class, 'store'])->middleware('permission:asset.manage');
+                Route::get('categories', [AssetCategoryController::class, 'index'])->middleware('permission:asset.view|asset.manage');
+                Route::post('categories', [AssetCategoryController::class, 'store'])->middleware('permission:asset.manage');
+                Route::patch('categories/{assetCategoryId}', [AssetCategoryController::class, 'update'])->middleware('permission:asset.manage');
+                Route::get('{assetId}', [AssetController::class, 'show'])->middleware('permission:asset.view|asset.manage');
+                Route::post('{assetId}/assign', [AssetController::class, 'assign'])->middleware('permission:asset.manage');
+                Route::post('{assetId}/issue', [AssetController::class, 'issue'])->middleware('permission:asset.manage');
+                Route::post('{assetId}/return', [AssetController::class, 'return'])->middleware('permission:asset.manage');
             });
 
             Route::prefix('leave')->group(function (): void {
@@ -219,6 +265,10 @@ Route::prefix('v1')
 
             Route::get('employees', [EmployeeController::class, 'index'])->middleware('permission:employee.view|employee.manage');
             Route::get('employees/onboarding-status', [EmployeeOnboardingTaskController::class, 'incompleteStatus'])->middleware('permission:employee.view|employee.manage');
+            Route::get('employees/lifecycle-task-status', [EmployeeOnboardingTaskController::class, 'lifecycleStatus'])->middleware('permission:employee.view|employee.manage');
+            Route::get('employee-task-templates', [EmployeeLifecycleTaskTemplateController::class, 'index'])->middleware('permission:employee.view|employee.manage');
+            Route::post('employee-task-templates', [EmployeeLifecycleTaskTemplateController::class, 'store'])->middleware('permission:employee.manage');
+            Route::patch('employee-task-templates/{template}', [EmployeeLifecycleTaskTemplateController::class, 'update'])->middleware('permission:employee.manage');
             Route::post('employees/bulk-import/validate', [EmployeeBulkImportController::class, 'validate'])->middleware('permission:employee.manage');
             Route::post('employees', [EmployeeController::class, 'store'])->middleware('permission:employee.manage');
             Route::patch('employees/{employeeId}', [EmployeeController::class, 'update'])->middleware('permission:employee.manage');
@@ -235,6 +285,10 @@ Route::prefix('v1')
             Route::get('employees/{employeeId}/emergency-contacts', [EmployeeEmergencyContactController::class, 'index'])->middleware('permission:employee.view|employee.manage');
             Route::post('employees/{employeeId}/emergency-contacts', [EmployeeEmergencyContactController::class, 'store'])->middleware('permission:employee.manage');
             Route::patch('employees/{employeeId}/emergency-contacts/{emergencyContactId}', [EmployeeEmergencyContactController::class, 'update'])->middleware('permission:employee.manage');
+            Route::get('employees/{employeeId}/lifecycle-tasks', [EmployeeOnboardingTaskController::class, 'lifecycleIndex'])->middleware('permission:employee.view|employee.manage');
+            Route::post('employees/{employeeId}/lifecycle-tasks', [EmployeeOnboardingTaskController::class, 'lifecycleStore'])->middleware('permission:employee.manage');
+            Route::patch('employees/{employeeId}/lifecycle-tasks/{taskId}', [EmployeeOnboardingTaskController::class, 'lifecycleUpdate'])->middleware('permission:employee.manage');
+            Route::post('employees/{employeeId}/lifecycle-tasks/apply-templates', [EmployeeLifecycleTaskTemplateController::class, 'apply'])->middleware('permission:employee.manage');
             Route::get('employees/{employeeId}/onboarding-tasks', [EmployeeOnboardingTaskController::class, 'index'])->middleware('permission:employee.view|employee.manage');
             Route::post('employees/{employeeId}/onboarding-tasks', [EmployeeOnboardingTaskController::class, 'store'])->middleware('permission:employee.manage');
             Route::patch('employees/{employeeId}/onboarding-tasks/{taskId}', [EmployeeOnboardingTaskController::class, 'update'])->middleware('permission:employee.manage');

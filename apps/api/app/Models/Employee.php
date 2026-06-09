@@ -106,9 +106,36 @@ class Employee extends Model
         return $this->hasMany(EmployeeDocument::class);
     }
 
-    public function onboardingTasks(): HasMany
+    public function policyAcknowledgements(): HasMany
+    {
+        return $this->hasMany(PolicyAcknowledgement::class)
+            ->orderByRaw("case when status = 'assigned' then 0 else 1 end")
+            ->orderBy('due_date')
+            ->orderByDesc('id');
+    }
+
+    public function assetAssignments(): HasMany
+    {
+        return $this->hasMany(AssetAssignment::class)
+            ->orderByDesc('assigned_at')
+            ->orderByDesc('id');
+    }
+
+    public function lifecycleTasks(): HasMany
     {
         return $this->hasMany(EmployeeOnboardingTask::class);
+    }
+
+    public function onboardingTasks(): HasMany
+    {
+        return $this->hasMany(EmployeeOnboardingTask::class)
+            ->where('lifecycle_type', 'onboarding');
+    }
+
+    public function offboardingTasks(): HasMany
+    {
+        return $this->hasMany(EmployeeOnboardingTask::class)
+            ->where('lifecycle_type', 'offboarding');
     }
 
     public function contacts(): HasMany

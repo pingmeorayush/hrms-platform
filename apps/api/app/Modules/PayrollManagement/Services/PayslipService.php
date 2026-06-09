@@ -51,7 +51,12 @@ class PayslipService
             }
 
             $items = $run->items()
-                ->with(['employee', 'employeeCompensation'])
+                ->with([
+                    'employee.department',
+                    'employee.designation',
+                    'employee.location',
+                    'employeeCompensation.salaryStructure',
+                ])
                 ->where('status', 'calculated')
                 ->orderBy('employee_id')
                 ->orderBy('id')
@@ -73,11 +78,22 @@ class PayslipService
             ];
 
             $payslips = $items->map(function (PayrollItem $item) use ($actor, $run, $generatedAt, $companySnapshot): Payslip {
+                $compensation = $item->employeeCompensation;
+                $salaryStructure = $compensation?->salaryStructure;
                 $employeeSnapshot = [
                     'id' => $item->employee?->id,
                     'employee_code' => $item->employee?->employee_code,
                     'full_name' => $item->employee?->full_name,
                     'email' => $item->employee?->email,
+                    'department_name' => $item->employee?->department?->name,
+                    'designation_name' => $item->employee?->designation?->name,
+                    'location_name' => $item->employee?->location?->name,
+                    'date_of_joining' => $item->employee?->date_of_joining?->toDateString(),
+                    'employment_type' => $item->employee?->employment_type,
+                    'pay_frequency' => $compensation?->pay_frequency,
+                    'salary_structure_code' => $compensation?->salary_structure_code ?? $salaryStructure?->code,
+                    'salary_structure_name' => $salaryStructure?->name,
+                    'salary_structure_version' => $compensation?->salary_structure_version ?? $salaryStructure?->version,
                 ];
 
                 $fileName = sprintf(
@@ -104,6 +120,16 @@ class PayslipService
                     'earningsBreakdown' => $item->earnings_breakdown ?? [],
                     'deductionsBreakdown' => $item->deductions_breakdown ?? [],
                     'employerContributionBreakdown' => $item->employer_contribution_breakdown ?? [],
+                    'employmentDays' => (float) $item->employment_days,
+                    'unpaidDays' => (float) $item->unpaid_days,
+                    'lopDays' => (float) $item->lop_days,
+                    'overtimeMinutes' => (int) $item->overtime_minutes,
+                    'annualCtcAmount' => (float) ($compensation?->annual_ctc_amount ?? 0),
+                    'basicSalaryAmount' => (float) ($compensation?->basic_salary_amount ?? 0),
+                    'salaryStructureCode' => $compensation?->salary_structure_code ?? $salaryStructure?->code,
+                    'salaryStructureName' => $salaryStructure?->name,
+                    'salaryStructureVersion' => $compensation?->salary_structure_version ?? $salaryStructure?->version,
+                    'payFrequency' => $compensation?->pay_frequency,
                     'generatedAt' => $generatedAt->toIso8601String(),
                 ])->render();
 

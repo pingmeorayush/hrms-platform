@@ -2,7 +2,10 @@ import type { PermissionMatch } from '../../shared/auth/permissions'
 import { attendanceSectionNavigation } from '../../modules/attendance/navigation'
 import { employeeWorkspaceSectionNavigation } from '../../modules/employees/navigation'
 import { leaveSectionNavigation } from '../../modules/leave/navigation'
+import { operationsSectionNavigation } from '../../modules/operations/navigation'
 import { organizationSectionNavigation } from '../../modules/organization/navigation'
+import { payrollSectionNavigation } from '../../modules/payroll/navigation'
+import { selfServiceSectionNavigation } from '../../modules/self-service/navigation'
 
 export interface AppNavChildItem {
   id: string
@@ -18,7 +21,7 @@ export interface AppNavItem {
   label: string
   to: string
   description: string
-  icon: 'foundation' | 'organization' | 'employees' | 'attendance' | 'leave' | 'access'
+  icon: 'foundation' | 'organization' | 'employees' | 'operations' | 'attendance' | 'leave' | 'payroll' | 'selfService' | 'access'
   requiredPermissions: string[]
   match?: PermissionMatch
   status: 'live' | 'planned'
@@ -58,6 +61,17 @@ export const appNavigation: AppNavItem[] = [
     children: employeeWorkspaceSectionNavigation,
   },
   {
+    id: 'operations',
+    label: 'Operations',
+    to: '/operations',
+    description: 'HR and IT control tower for document governance, asset handoffs, and onboarding-offboarding progress.',
+    icon: 'operations',
+    requiredPermissions: ['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage'],
+    match: 'any',
+    status: 'live',
+    children: operationsSectionNavigation,
+  },
+  {
     id: 'attendance',
     label: 'Attendance',
     to: '/attendance',
@@ -92,6 +106,35 @@ export const appNavigation: AppNavItem[] = [
     match: 'any',
     status: 'live',
     children: leaveSectionNavigation,
+  },
+  {
+    id: 'payroll',
+    label: 'Payroll',
+    to: '/payroll',
+    description: 'Run payroll operations, inspect blocked or failed runs, and access employee payslip self-service from one module.',
+    icon: 'payroll',
+    requiredPermissions: [
+      'payroll.view',
+      'payroll.process',
+      'payroll.approve',
+      'payroll.lock',
+      'payroll.reopen',
+      'payslip.view',
+      'compensation.view',
+    ],
+    match: 'any',
+    status: 'live',
+    children: payrollSectionNavigation,
+  },
+  {
+    id: 'self-service',
+    label: 'Self service',
+    to: '/self-service',
+    description: 'Review the linked employee profile, download approved files, and track issued assets from one personal workspace.',
+    icon: 'selfService',
+    requiredPermissions: [],
+    status: 'live',
+    children: selfServiceSectionNavigation,
   },
   {
     id: 'access',

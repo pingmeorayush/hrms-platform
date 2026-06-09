@@ -112,7 +112,10 @@ class PayslipApiTest extends TestCase
             ->assertOk()
             ->assertHeader('content-type', 'text/html; charset=UTF-8')
             ->assertSee($employee->full_name, false)
-            ->assertSee('Net Salary', false);
+            ->assertSee('Salary Slip', false)
+            ->assertSee('Employee Details', false)
+            ->assertSee('Payroll Summary', false)
+            ->assertSee('Net Pay Released', false);
 
         $this->getJson('/api/v1/payroll/payslips/'.$peerPayslipId)
             ->assertNotFound();

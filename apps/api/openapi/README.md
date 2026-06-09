@@ -12,6 +12,10 @@ This directory holds the version-controlled OpenAPI contract files published by 
   - Attendance capture, calculation, operational review, correction, policy configuration, holiday calendars, shifts, assignments, and roster APIs
 - `sprint-04-leave-manager-workflows.yaml`
   - Leave types, leave policies, accrual preview, balance ledger, leave requests, and workflow-backed approval APIs
+- `sprint-05-payroll-compensation.yaml`
+  - Payroll calendars, payroll periods, payroll runs, salary components, salary structures, employee compensation assignments, input snapshots, adjustments, calculation lifecycle, and payslip APIs
+- `sprint-06-documents-assets-ess-onoffboarding.yaml`
+  - Repository documents, document categories, asset catalog and lifecycle, policy acknowledgements, employee task-center, and self-service workspace APIs
 
 ## Contract Conventions
 

@@ -11,7 +11,7 @@ export function ConsoleToolbar({
   return (
     <div
       className={cn(
-        'space-y-2.5 rounded-xl border border-line/80 bg-card px-3.5 py-3.5 shadow-[var(--shadow-sm)]',
+        'space-y-2 rounded-[0.95rem] border border-line/80 bg-card px-3 py-2.5 shadow-[var(--shadow-sm)]',
         className,
       )}
       {...props}
@@ -26,7 +26,7 @@ export function ConsoleToolbarRow({
   return (
     <div
       className={cn(
-        'flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between',
+        'flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between',
         className,
       )}
       {...props}
@@ -44,12 +44,12 @@ export function ConsoleSearchField({
   return (
     <div className={cn('relative w-full max-w-2xl', className)}>
       <Search
-        className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+        className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground"
         aria-hidden="true"
       />
       <Input
         type="search"
-        className={cn('h-10 rounded-lg bg-panel pl-8.5', inputClassName)}
+        className={cn('h-9 rounded-lg bg-panel pl-8', inputClassName)}
         {...props}
       />
     </div>
@@ -60,7 +60,7 @@ export function ConsoleMetricRow({
   className,
   ...props
 }: ComponentPropsWithoutRef<'div'>) {
-  return <div className={cn('flex flex-wrap items-center gap-1.5', className)} {...props} />
+  return <div className={cn('flex flex-wrap items-center gap-1.25', className)} {...props} />
 }
 
 export function ConsoleMetricChip({
@@ -84,7 +84,7 @@ export function ConsoleMetricChip({
   return (
     <span
       className={cn(
-        'ui-console-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.25 font-medium',
+        'ui-console-chip inline-flex items-center gap-1.25 rounded-full border px-2.25 py-1 font-medium',
         toneClassName,
         className,
       )}
@@ -107,12 +107,12 @@ export function ConsoleBulkBar({
   return (
     <div
       className={cn(
-        'sticky bottom-3 z-10 mt-3 flex flex-col gap-2.5 rounded-xl border border-slate-950/90 bg-slate-950 px-3.5 py-2.5 text-slate-100 shadow-[0_18px_40px_rgba(15,23,42,0.28)] xl:flex-row xl:items-center xl:justify-between',
+        'sticky bottom-3 z-10 mt-2.5 flex flex-col gap-2 rounded-[0.95rem] border border-slate-950/90 bg-slate-950 px-3 py-2 text-slate-100 shadow-[0_18px_40px_rgba(15,23,42,0.28)] xl:flex-row xl:items-center xl:justify-between',
         className,
       )}
     >
-      <div className="flex items-center gap-2.5">{summary}</div>
-      {actions ? <div className="flex flex-wrap items-center gap-1.5">{actions}</div> : null}
+      <div className="flex items-center gap-2">{summary}</div>
+      {actions ? <div className="flex flex-wrap items-center gap-1.25">{actions}</div> : null}
     </div>
   )
 }

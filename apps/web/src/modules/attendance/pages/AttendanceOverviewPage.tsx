@@ -484,12 +484,12 @@ export function AttendanceOverviewPage() {
           </div>
           <WorkspaceHeaderActions>
             {canReview ? (
-              <Button asChild size="sm" variant="secondary">
+              <Button asChild size="xs" variant="secondary">
                 <Link to="/attendance/operational-review">Open review queue</Link>
               </Button>
             ) : null}
             {canManageAny ? (
-              <Button asChild size="sm" variant="primary">
+              <Button asChild size="xs" variant="primary">
                 <Link to="/attendance/admin-setup/assignments">New assignment</Link>
               </Button>
             ) : null}
@@ -515,7 +515,7 @@ export function AttendanceOverviewPage() {
                 title="Needs attention"
                 action={
                   canReview ? (
-                    <Button asChild size="sm" variant="ghost">
+                    <Button asChild size="xs" variant="ghost">
                       <Link to="/attendance/operational-review">View review workspace</Link>
                     </Button>
                   ) : undefined
@@ -550,11 +550,8 @@ export function AttendanceOverviewPage() {
 
               <WorkspaceSurface>
                 <WorkspaceHeader compact>
-                  <div className="space-y-1">
+                  <div>
                     <CardTitle>Operations workspace</CardTitle>
-                    <CardDescription>
-                      Use the same control surface for scheduling coverage, shift setup, roster execution, and queue review.
-                    </CardDescription>
                   </div>
                   <Badge variant="subtle">{collectionCount} record(s) in view</Badge>
                 </WorkspaceHeader>
@@ -579,7 +576,7 @@ export function AttendanceOverviewPage() {
                         <Badge variant="subtle">
                           {activeTab === 'review' ? 'Decision queue' : 'Setup registry'}
                         </Badge>
-                        <Button size="sm" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
+                        <Button size="xs" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
                           Clear search
                         </Button>
                       </div>

@@ -92,6 +92,7 @@ export function OrganizationOverviewPage() {
     delta: string
     icon: ReactNode
     tone: MetricCardTone
+    valueSize?: 'stat' | 'compact' | 'long'
   }> = data
     ? [
         {
@@ -128,6 +129,7 @@ export function OrganizationOverviewPage() {
           delta: `${data.companyProfile.subscription_plan ?? 'plan pending'} plan`,
           icon: <ShieldCheck className="h-4 w-4" />,
           tone: 'info',
+          valueSize: 'compact',
         },
         {
           label: 'Master-data warnings',
@@ -379,10 +381,10 @@ export function OrganizationOverviewPage() {
               </CardDescription>
             </div>
             <WorkspaceHeaderActions>
-              <Button asChild size="sm" variant="secondary">
+              <Button asChild size="xs" variant="secondary">
                 <Link to="/admin/organization/structure">Open structure</Link>
               </Button>
-              <Button asChild size="sm" variant="primary">
+              <Button asChild size="xs" variant="primary">
                 <Link to={canManage ? '/admin/organization/company-profile' : '/admin/organization/locations'}>
                   {canManage ? 'Open company profile' : 'Open locations'}
                 </Link>
@@ -399,6 +401,7 @@ export function OrganizationOverviewPage() {
                   delta={card.delta}
                   icon={card.icon}
                   tone={card.tone}
+                  valueSize={card.valueSize}
                 />
               ))}
             </CommandCenterMetricGrid>
@@ -408,7 +411,7 @@ export function OrganizationOverviewPage() {
                 <CommandCenterAttentionStrip
                   title="Needs attention"
                   action={
-                    <Button asChild size="sm" variant="ghost">
+                    <Button asChild size="xs" variant="ghost">
                       <Link to="/admin/organization/structure">View structure</Link>
                     </Button>
                   }
@@ -442,11 +445,8 @@ export function OrganizationOverviewPage() {
 
                 <WorkspaceSurface>
                   <WorkspaceHeader compact>
-                    <div className="space-y-1">
+                    <div>
                       <CardTitle>Organization workspace</CardTitle>
-                      <CardDescription>
-                        Keep company defaults, structure, locations, and cost centers visible from one command surface.
-                      </CardDescription>
                     </div>
                     <Badge variant="subtle">{collectionCount} record(s) in view</Badge>
                   </WorkspaceHeader>
@@ -477,7 +477,7 @@ export function OrganizationOverviewPage() {
                                   ? 'Location coverage'
                                   : 'Finance mapping'}
                           </Badge>
-                          <Button size="sm" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
+                          <Button size="xs" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
                             Clear search
                           </Button>
                         </div>
@@ -552,7 +552,7 @@ export function OrganizationOverviewPage() {
                 <CommandCenterPanel
                   title="Recent activity"
                   actions={
-                    <Button asChild size="sm" variant="ghost">
+                    <Button asChild size="xs" variant="ghost">
                       <Link to="/admin/organization/company-profile">Open profile</Link>
                     </Button>
                   }

@@ -247,6 +247,7 @@ export function AccessContractPage() {
     delta: string
     icon: ReactNode
     tone: 'neutral' | 'info' | 'success' | 'warning' | 'danger'
+    valueSize?: 'stat' | 'compact' | 'long'
   }> = snapshot
     ? [
         {
@@ -290,6 +291,7 @@ export function AccessContractPage() {
           delta: source === 'live' ? 'Real backend access contract' : 'Seeded governance contract',
           icon: <ShieldCheck className="h-4 w-4" />,
           tone: source === 'live' ? 'success' : 'info',
+          valueSize: 'compact',
         },
       ]
     : []
@@ -430,10 +432,10 @@ export function AccessContractPage() {
                   pinned={isFavorite(activeWorkspaceFavorite.path)}
                   onToggle={() => toggleFavorite(activeWorkspaceFavorite)}
                 />
-                <Button size="sm" variant="secondary" onClick={() => setAccessTab('diagnostics')}>
+                <Button size="xs" variant="secondary" onClick={() => setAccessTab('diagnostics')}>
                   Review diagnostics
                 </Button>
-                <Button size="sm" variant="primary" onClick={() => setAccessTab('actions')}>
+                <Button size="xs" variant="primary" onClick={() => setAccessTab('actions')}>
                   Open actions
                 </Button>
               </WorkspaceHeaderActions>
@@ -448,6 +450,7 @@ export function AccessContractPage() {
                     delta={card.delta}
                     icon={card.icon}
                     tone={card.tone}
+                    valueSize={card.valueSize}
                   />
                 ))}
               </CommandCenterMetricGrid>
@@ -484,11 +487,8 @@ export function AccessContractPage() {
 
                   <WorkspaceSurface>
                     <WorkspaceHeader compact>
-                      <div className="space-y-1">
+                      <div>
                         <CardTitle>Governance workspace</CardTitle>
-                        <CardDescription>
-                          Inspect route exposure, permitted actions, and enforcement diagnostics from one command surface.
-                        </CardDescription>
                       </div>
                       <Badge variant="subtle">{activeRowCount} record(s) in view</Badge>
                     </WorkspaceHeader>
@@ -532,7 +532,7 @@ export function AccessContractPage() {
                                   ? 'Action contract'
                                   : 'Enforcement signals'}
                             </Badge>
-                            <Button size="sm" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
+                            <Button size="xs" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
                               Clear search
                             </Button>
                           </div>

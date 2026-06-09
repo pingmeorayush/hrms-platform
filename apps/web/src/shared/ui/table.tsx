@@ -45,7 +45,7 @@ export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCel
   return (
     <th
       className={cn(
-        'ui-table__head h-10 px-3.5 text-left align-middle text-text-subtle [&:has([role=checkbox])]:pr-0',
+        'ui-table__head h-9 px-3 text-left align-middle text-text-subtle [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}
@@ -57,7 +57,7 @@ export function TableCell({ className, ...props }: TdHTMLAttributes<HTMLTableCel
   return (
     <td
       className={cn(
-        'ui-table__cell px-3.5 py-2.5 align-middle text-foreground [&:has([role=checkbox])]:pr-0',
+        'ui-table__cell px-3 py-2 align-middle text-foreground [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}

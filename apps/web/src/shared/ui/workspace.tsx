@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from './card'
 import { cn } from './cn'
 
 const workspaceTabVariants = cva(
-  'inline-flex items-center justify-center rounded-xl border px-3 py-1.5 text-sm font-semibold transition-all outline-none focus-visible:ring-4 focus-visible:ring-ring/35',
+  'inline-flex items-center justify-center rounded-lg border px-2.5 py-1.25 text-[0.82rem] font-semibold transition-all outline-none focus-visible:ring-4 focus-visible:ring-ring/35',
   {
     variants: {
       active: {
@@ -50,8 +50,11 @@ export function WorkspaceHeader({
   return (
     <CardHeader
       className={cn(
-        'relative gap-3 border-b border-line/80 bg-[linear-gradient(180deg,rgba(252,253,255,0.98)_0%,rgba(245,248,252,0.98)_100%)] px-4 py-4 shadow-[inset_0_-1px_0_rgba(255,255,255,0.55)] before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent,rgba(124,174,255,0.32),rgba(234,138,52,0.24),transparent)] [&>*:first-child]:min-w-0 [&>*:last-child]:shrink-0',
-        compact ? 'md:flex-row md:items-start md:justify-between md:gap-4' : 'lg:flex-row lg:items-start lg:justify-between lg:gap-4',
+        '!flex !flex-col relative gap-3 border-b border-line/80 bg-[linear-gradient(180deg,rgba(252,253,255,0.98)_0%,rgba(245,248,252,0.98)_100%)] px-4 py-4 shadow-[inset_0_-1px_0_rgba(255,255,255,0.55)] before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent,rgba(124,174,255,0.32),rgba(234,138,52,0.24),transparent)] [&>*:first-child]:min-w-0 [&>*:last-child]:shrink-0',
+        compact && 'gap-2.5 px-3.5 py-3',
+        compact
+          ? 'md:!flex-row md:items-start md:justify-between md:gap-4'
+          : 'lg:!flex-row lg:items-start lg:justify-between lg:gap-4',
         className,
       )}
       {...props}
@@ -63,7 +66,7 @@ export function WorkspaceContent({
   className,
   ...props
 }: ComponentPropsWithoutRef<typeof CardContent>) {
-  return <CardContent className={cn('space-y-4 p-4 pt-4', className)} {...props} />
+  return <CardContent className={cn('space-y-3.5 p-3.5 pt-3.5', className)} {...props} />
 }
 
 export function WorkspacePillRow({
@@ -252,7 +255,7 @@ export function WorkspaceHeaderActions({
 }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      className={cn('flex flex-wrap items-center gap-2 self-start md:ml-auto md:justify-end', className)}
+      className={cn('flex flex-wrap items-center gap-1.5 self-start md:ml-auto md:justify-end', className)}
       {...props}
     />
   )
@@ -273,18 +276,18 @@ export function WorkspacePinButton({
 }) {
   return (
     <Button
-      size="sm"
+      size="xs"
       variant="secondary"
       aria-pressed={pinned}
       onClick={onToggle}
       className={cn(
-        'min-w-[8.4rem] justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.74)]',
+        'min-w-[7.4rem] justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.74)]',
         pinned &&
           'border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,251,235,0.98)_0%,rgba(254,243,199,0.9)_100%)] text-amber-800 hover:border-amber-300 hover:bg-[linear-gradient(180deg,rgba(255,248,220,0.98)_0%,rgba(253,230,138,0.9)_100%)]',
         className,
       )}
     >
-      <Star className={cn('h-4 w-4', pinned && 'fill-current')} />
+      <Star className={cn('h-3.5 w-3.5', pinned && 'fill-current')} />
       {pinned ? unpinLabel : pinLabel}
     </Button>
   )

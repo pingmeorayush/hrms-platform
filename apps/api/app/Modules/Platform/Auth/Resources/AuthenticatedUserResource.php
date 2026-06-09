@@ -17,6 +17,14 @@ class AuthenticatedUserResource extends JsonResource
             'name' => $this->name,
             'initials' => $this->initials,
             'email' => $this->email,
+            'employee' => $this->employee
+                ? [
+                    'id' => $this->employee->id,
+                    'employee_code' => $this->employee->employee_code,
+                    'full_name' => $this->employee->full_name,
+                    'email' => $this->employee->email,
+                ]
+                : null,
             'roles' => $this->getRoleNames()->values()->all(),
             'permissions' => $this->getAllPermissions()->pluck('name')->sort()->values()->all(),
             'tenant' => [

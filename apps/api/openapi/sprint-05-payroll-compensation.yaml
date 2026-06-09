@@ -1,0 +1,2145 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 05 Payroll and Compensation API
+  version: 1.0.0
+  description: Tenant-scoped payroll calendar, payroll run, salary configuration, employee compensation, input aggregation, calculation, and payslip APIs implemented during Sprint 05.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /payroll/calendars:
+    get:
+      operationId: listPayrollCalendars
+      summary: List tenant payroll calendars
+      responses:
+        '200':
+          description: Payroll calendars loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PayrollCalendar'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createPayrollCalendar
+      summary: Create a tenant payroll calendar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayrollCalendarRequest'
+      responses:
+        '201':
+          description: Payroll calendar created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollCalendar'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/calendars/{payrollCalendarId}:
+    patch:
+      operationId: updatePayrollCalendar
+      summary: Update a tenant payroll calendar
+      parameters:
+        - $ref: '#/components/parameters/PayrollCalendarId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayrollCalendarRequest'
+      responses:
+        '200':
+          description: Payroll calendar updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollCalendar'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/periods:
+    get:
+      operationId: listPayrollPeriods
+      summary: List payroll periods within the caller's tenant scope
+      parameters:
+        - in: query
+          name: payroll_calendar_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, open, prepared, closed]
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Payroll periods loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PayrollPeriod'
+                          meta:
+                            $ref: '#/components/schemas/PaginationMeta'
+                        required: [items, meta]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createPayrollPeriod
+      summary: Create a payroll period
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayrollPeriodRequest'
+      responses:
+        '201':
+          description: Payroll period created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollPeriod'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/periods/{payrollPeriodId}:
+    get:
+      operationId: getPayrollPeriodDetail
+      summary: Load one payroll period with prerequisite preview
+      parameters:
+        - $ref: '#/components/parameters/PayrollPeriodId'
+      responses:
+        '200':
+          description: Payroll period loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          period:
+                            $ref: '#/components/schemas/PayrollPeriod'
+                          prerequisites:
+                            $ref: '#/components/schemas/PayrollPrerequisiteSnapshot'
+                        required: [period, prerequisites]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /payroll/periods/{payrollPeriodId}/open:
+    post:
+      operationId: openPayrollPeriod
+      summary: Open a draft payroll period
+      parameters:
+        - $ref: '#/components/parameters/PayrollPeriodId'
+      responses:
+        '200':
+          description: Payroll period opened
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollPeriod'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/periods/{payrollPeriodId}/prepare:
+    post:
+      operationId: preparePayrollPeriod
+      summary: Prepare a payroll period and persist its prerequisite snapshot plus run baseline
+      parameters:
+        - $ref: '#/components/parameters/PayrollPeriodId'
+      responses:
+        '200':
+          description: Payroll period prepared
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          period:
+                            $ref: '#/components/schemas/PayrollPeriod'
+                          prerequisites:
+                            $ref: '#/components/schemas/PayrollPrerequisiteSnapshot'
+                          run:
+                            $ref: '#/components/schemas/PayrollRun'
+                        required: [period, prerequisites, run]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/periods/{payrollPeriodId}/close:
+    post:
+      operationId: closePayrollPeriod
+      summary: Close a payroll period after a locked run exists
+      parameters:
+        - $ref: '#/components/parameters/PayrollPeriodId'
+      responses:
+        '200':
+          description: Payroll period closed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollPeriod'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs:
+    get:
+      operationId: listPayrollRuns
+      summary: List payroll runs within the caller's tenant scope
+      parameters:
+        - in: query
+          name: payroll_period_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ready, blocked, calculated, failed, approved, locked]
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Payroll runs loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PayrollRun'
+                          meta:
+                            $ref: '#/components/schemas/PaginationMeta'
+                        required: [items, meta]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}:
+    get:
+      operationId: getPayrollRunDetail
+      summary: Load one payroll run with calculation items
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+      responses:
+        '200':
+          description: Payroll run loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollRun'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /payroll/runs/{payrollRunId}/calculate:
+    post:
+      operationId: calculatePayrollRun
+      summary: Calculate one payroll run from stored run inputs and employee compensation snapshots
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+      responses:
+        '200':
+          description: Payroll run calculated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollRun'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}/approve:
+    post:
+      operationId: approvePayrollRun
+      summary: Approve a calculated payroll run
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovePayrollRunRequest'
+      responses:
+        '200':
+          description: Payroll run approved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollRun'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}/lock:
+    post:
+      operationId: lockPayrollRun
+      summary: Lock an approved payroll run before period close and payslip generation
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+      responses:
+        '200':
+          description: Payroll run locked
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollRun'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}/reopen:
+    post:
+      operationId: reopenPayrollRun
+      summary: Reopen a locked payroll run for audited recalculation
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReopenPayrollRunRequest'
+      responses:
+        '200':
+          description: Payroll run reopened
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollRun'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}/generate-payslips:
+    post:
+      operationId: generatePayslipsForPayrollRun
+      summary: Generate frozen payslip snapshots for a locked payroll run
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+      responses:
+        '200':
+          description: Payslips generated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          generated_count:
+                            type: integer
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Payslip'
+                        required: [generated_count, items]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}/inputs:
+    get:
+      operationId: listPayrollRunInputs
+      summary: List run-linked payroll input snapshots
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: source_type
+          schema:
+            type: string
+            enum: [attendance_summary, leave_summary, manual_adjustment]
+      responses:
+        '200':
+          description: Payroll inputs loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          run:
+                            $ref: '#/components/schemas/PayrollInputCollectionContext'
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PayrollInput'
+                        required: [run, items]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}/adjustments:
+    get:
+      operationId: listPayrollAdjustments
+      summary: List manual payroll adjustments for a payroll run
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, cancelled]
+      responses:
+        '200':
+          description: Payroll adjustments loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PayrollAdjustment'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createPayrollAdjustment
+      summary: Create a manual payroll adjustment and resync run inputs
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayrollAdjustmentRequest'
+      responses:
+        '201':
+          description: Payroll adjustment created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollAdjustment'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/runs/{payrollRunId}/adjustments/{payrollAdjustmentId}:
+    patch:
+      operationId: updatePayrollAdjustment
+      summary: Update a manual payroll adjustment and resync run inputs
+      parameters:
+        - $ref: '#/components/parameters/PayrollRunId'
+        - $ref: '#/components/parameters/PayrollAdjustmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayrollAdjustmentRequest'
+      responses:
+        '200':
+          description: Payroll adjustment updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PayrollAdjustment'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/salary-components:
+    get:
+      operationId: listSalaryComponents
+      summary: List tenant salary components
+      responses:
+        '200':
+          description: Salary components loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SalaryComponent'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createSalaryComponent
+      summary: Create a salary component definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaryComponentRequest'
+      responses:
+        '201':
+          description: Salary component created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalaryComponent'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/salary-components/{salaryComponentId}:
+    patch:
+      operationId: updateSalaryComponent
+      summary: Update a salary component definition
+      parameters:
+        - $ref: '#/components/parameters/SalaryComponentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaryComponentRequest'
+      responses:
+        '200':
+          description: Salary component updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalaryComponent'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/salary-structures:
+    get:
+      operationId: listSalaryStructures
+      summary: List versioned salary structures
+      responses:
+        '200':
+          description: Salary structures loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SalaryStructure'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    post:
+      operationId: createSalaryStructure
+      summary: Create a new salary structure revision baseline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaryStructureRequest'
+      responses:
+        '201':
+          description: Salary structure created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalaryStructure'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/salary-structures/{salaryStructureId}:
+    patch:
+      operationId: versionSalaryStructure
+      summary: Create the next version of an existing salary structure
+      parameters:
+        - $ref: '#/components/parameters/SalaryStructureId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaryStructureRequest'
+      responses:
+        '200':
+          description: Salary structure version created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalaryStructure'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/compensations:
+    get:
+      operationId: listEmployeeCompensations
+      summary: List employee compensation assignments
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: current_only
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Employee compensations loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EmployeeCompensation'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: assignEmployeeCompensation
+      summary: Create an immutable employee compensation revision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCompensationRequest'
+      responses:
+        '201':
+          description: Employee compensation assigned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeCompensation'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/compensations/{employeeId}:
+    get:
+      operationId: getEmployeeCompensationDetail
+      summary: Load one employee's current compensation assignment and revision history
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee compensation detail loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeCompensationDetail'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/payslips:
+    get:
+      operationId: listPayslips
+      summary: List payslips within the caller's access scope
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: payroll_run_id
+          schema:
+            type: integer
+        - in: query
+          name: payroll_period_id
+          schema:
+            type: integer
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Payslips loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Payslip'
+                          meta:
+                            $ref: '#/components/schemas/PaginationMeta'
+                        required: [items, meta]
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /payroll/payslips/{payslipId}:
+    get:
+      operationId: getPayslipDetail
+      summary: Load one frozen payslip snapshot
+      parameters:
+        - $ref: '#/components/parameters/PayslipId'
+      responses:
+        '200':
+          description: Payslip loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Payslip'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /payroll/payslips/{payslipId}/download:
+    get:
+      operationId: downloadPayslip
+      summary: Download the rendered HTML payslip artifact
+      parameters:
+        - $ref: '#/components/parameters/PayslipId'
+      responses:
+        '200':
+          description: Payslip HTML downloaded
+          content:
+            text/html:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  parameters:
+    PayrollCalendarId:
+      in: path
+      name: payrollCalendarId
+      required: true
+      schema:
+        type: integer
+    PayrollPeriodId:
+      in: path
+      name: payrollPeriodId
+      required: true
+      schema:
+        type: integer
+    PayrollRunId:
+      in: path
+      name: payrollRunId
+      required: true
+      schema:
+        type: integer
+    PayrollAdjustmentId:
+      in: path
+      name: payrollAdjustmentId
+      required: true
+      schema:
+        type: integer
+    SalaryComponentId:
+      in: path
+      name: salaryComponentId
+      required: true
+      schema:
+        type: integer
+    SalaryStructureId:
+      in: path
+      name: salaryStructureId
+      required: true
+      schema:
+        type: integer
+    EmployeeId:
+      in: path
+      name: employeeId
+      required: true
+      schema:
+        type: integer
+    PayslipId:
+      in: path
+      name: payslipId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+      required: [id, employee_code, full_name, email]
+    EmployeeCompensationEmployee:
+      allOf:
+        - $ref: '#/components/schemas/EmployeeReference'
+        - type: object
+          properties:
+            employment_status:
+              type: [string, 'null']
+          required: [employment_status]
+    PayrollCalendar:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, weekly, biweekly, semi_monthly, custom]
+        timezone:
+          type: string
+        payroll_day:
+          type: [integer, 'null']
+        payroll_weekday:
+          type: [integer, 'null']
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, name, frequency, timezone, payroll_day, payroll_weekday, is_default, status, created_at, updated_at]
+    PayrollCalendarRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        frequency:
+          type: string
+          enum: [monthly, weekly, biweekly, semi_monthly, custom]
+        timezone:
+          type: string
+        payroll_day:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 31
+        payroll_weekday:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 6
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [name, frequency, timezone, status]
+    PayrollPrerequisiteCheck:
+      type: object
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [passed, warning, failed]
+        blocking:
+          type: boolean
+        message:
+          type: string
+        metrics:
+          type: object
+          additionalProperties: true
+      required: [code, label, status, blocking, message, metrics]
+    PayrollPrerequisiteSummary:
+      type: object
+      properties:
+        ready_for_calculation:
+          type: boolean
+        blocking_count:
+          type: integer
+        warning_count:
+          type: integer
+        passed_count:
+          type: integer
+      required: [ready_for_calculation, blocking_count, warning_count, passed_count]
+    PayrollPrerequisiteSnapshot:
+      type: object
+      properties:
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollPrerequisiteCheck'
+        summary:
+          $ref: '#/components/schemas/PayrollPrerequisiteSummary'
+      required: [checks, summary]
+    PayrollInputSummary:
+      type: object
+      properties:
+        employee_count:
+          type: integer
+        input_count:
+          type: integer
+        manual_adjustment_count:
+          type: integer
+        attendance_record_count:
+          type: integer
+        approved_leave_request_count:
+          type: integer
+        total_worked_minutes:
+          type: number
+        total_overtime_minutes:
+          type: number
+        total_lop_days:
+          type: number
+        total_paid_leave_days:
+          type: number
+        total_unpaid_leave_days:
+          type: number
+        total_manual_adjustment_amount:
+          type: number
+      required: [employee_count, input_count, manual_adjustment_count, attendance_record_count, approved_leave_request_count, total_worked_minutes, total_overtime_minutes, total_lop_days, total_paid_leave_days, total_unpaid_leave_days, total_manual_adjustment_amount]
+    PayrollCalculationSummary:
+      type: object
+      properties:
+        employee_count:
+          type: integer
+        item_count:
+          type: integer
+        error_count:
+          type: integer
+        gross_salary_total:
+          type: number
+        total_earnings:
+          type: number
+        total_deductions:
+          type: number
+        net_salary_total:
+          type: number
+        employer_cost_total:
+          type: number
+        total_lop_days:
+          type: number
+        total_unpaid_days:
+          type: number
+        total_overtime_earnings:
+          type: number
+      required: [employee_count, item_count, error_count, gross_salary_total, total_earnings, total_deductions, net_salary_total, employer_cost_total, total_lop_days, total_unpaid_days, total_overtime_earnings]
+    PayrollBreakdownLine:
+      type: object
+      properties:
+        code:
+          type: [string, 'null']
+        name:
+          type: [string, 'null']
+        base_amount:
+          type: number
+        prorated_amount:
+          type: number
+        is_proratable:
+          type: boolean
+      required: [code, name, base_amount, prorated_amount, is_proratable]
+    PayrollInputSnapshotLine:
+      type: object
+      properties:
+        source_type:
+          type: string
+        input_code:
+          type: string
+        quantity:
+          type: [number, 'null']
+        amount:
+          type: [number, 'null']
+        metadata:
+          type: object
+          additionalProperties: true
+      required: [source_type, input_code, quantity, amount, metadata]
+    PayrollItemInputSnapshot:
+      type: object
+      properties:
+        payable_days:
+          type: number
+        paid_leave_days:
+          type: number
+        unpaid_leave_days:
+          type: number
+        manual_adjustment_amount:
+          type: number
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollInputSnapshotLine'
+      required: [payable_days, paid_leave_days, unpaid_leave_days, manual_adjustment_amount, inputs]
+    PayrollItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        employee:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        employee_compensation_id:
+          type: integer
+        status:
+          type: string
+          enum: [calculated, error]
+        employment_days:
+          type: number
+        unpaid_days:
+          type: number
+        lop_days:
+          type: number
+        overtime_minutes:
+          type: integer
+        overtime_earnings:
+          type: number
+        gross_salary:
+          type: number
+        total_earnings:
+          type: number
+        total_deductions:
+          type: number
+        net_salary:
+          type: number
+        employer_cost:
+          type: number
+        earnings_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollBreakdownLine'
+        deductions_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollBreakdownLine'
+        employer_contribution_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollBreakdownLine'
+        input_snapshot:
+          $ref: '#/components/schemas/PayrollItemInputSnapshot'
+        validation_errors:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_id, employee, employee_compensation_id, status, employment_days, unpaid_days, lop_days, overtime_minutes, overtime_earnings, gross_salary, total_earnings, total_deductions, net_salary, employer_cost, earnings_breakdown, deductions_breakdown, employer_contribution_breakdown, input_snapshot, validation_errors, created_at, updated_at]
+    PayrollRun:
+      type: object
+      properties:
+        id:
+          type: integer
+        payroll_period_id:
+          type: integer
+        name:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, weekly, biweekly, semi_monthly, custom]
+        start_date:
+          type: [string, 'null']
+          format: date
+        end_date:
+          type: [string, 'null']
+          format: date
+        status:
+          type: string
+          enum: [ready, blocked, calculated, failed, approved, locked]
+        prerequisite_summary:
+          $ref: '#/components/schemas/PayrollPrerequisiteSummary'
+        prerequisite_snapshot:
+          $ref: '#/components/schemas/PayrollPrerequisiteSnapshot'
+        input_summary:
+          anyOf:
+            - $ref: '#/components/schemas/PayrollInputSummary'
+            - type: object
+              additionalProperties: true
+        calculation_summary:
+          anyOf:
+            - $ref: '#/components/schemas/PayrollCalculationSummary'
+            - type: object
+              additionalProperties: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollItem'
+        prepared_at:
+          type: [string, 'null']
+          format: date-time
+        inputs_generated_at:
+          type: [string, 'null']
+          format: date-time
+        calculated_at:
+          type: [string, 'null']
+          format: date-time
+        approved_at:
+          type: [string, 'null']
+          format: date-time
+        locked_at:
+          type: [string, 'null']
+          format: date-time
+        reopened_at:
+          type: [string, 'null']
+          format: date-time
+        closed_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, payroll_period_id, name, frequency, start_date, end_date, status, prerequisite_summary, prerequisite_snapshot, input_summary, calculation_summary, items, prepared_at, inputs_generated_at, calculated_at, approved_at, locked_at, reopened_at, closed_at, created_at, updated_at]
+    PayrollPeriod:
+      type: object
+      properties:
+        id:
+          type: integer
+        payroll_calendar_id:
+          type: integer
+        payroll_calendar:
+          anyOf:
+            - $ref: '#/components/schemas/PayrollCalendar'
+            - type: 'null'
+        name:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, weekly, biweekly, semi_monthly, custom]
+        start_date:
+          type: [string, 'null']
+          format: date
+        end_date:
+          type: [string, 'null']
+          format: date
+        payroll_date:
+          type: [string, 'null']
+          format: date
+        status:
+          type: string
+          enum: [draft, open, prepared, closed]
+        opened_at:
+          type: [string, 'null']
+          format: date-time
+        prepared_at:
+          type: [string, 'null']
+          format: date-time
+        closed_at:
+          type: [string, 'null']
+          format: date-time
+        latest_run:
+          anyOf:
+            - $ref: '#/components/schemas/PayrollRun'
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, payroll_calendar_id, payroll_calendar, name, frequency, start_date, end_date, payroll_date, status, opened_at, prepared_at, closed_at, latest_run, created_at, updated_at]
+    PayrollPeriodRequest:
+      type: object
+      properties:
+        payroll_calendar_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 100
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        payroll_date:
+          type: string
+          format: date
+      required: [payroll_calendar_id, name, start_date, end_date, payroll_date]
+    PayrollInputCollectionContext:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [ready, blocked, calculated, failed, approved, locked]
+        input_summary:
+          anyOf:
+            - $ref: '#/components/schemas/PayrollInputSummary'
+            - type: object
+              additionalProperties: true
+        inputs_generated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, status, input_summary, inputs_generated_at]
+    PayrollInput:
+      type: object
+      properties:
+        id:
+          type: integer
+        payroll_run_id:
+          type: integer
+        employee_id:
+          type: integer
+        employee:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        employee_compensation_id:
+          type: integer
+        payroll_adjustment_id:
+          type: [integer, 'null']
+        source_type:
+          type: string
+          enum: [attendance_summary, leave_summary, manual_adjustment]
+        input_code:
+          type: string
+        unit:
+          type: [string, 'null']
+        quantity:
+          type: [number, 'null']
+        amount:
+          type: [number, 'null']
+        effective_date:
+          type: [string, 'null']
+          format: date
+        source_record_id:
+          type: [integer, 'null']
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, payroll_run_id, employee_id, employee, employee_compensation_id, payroll_adjustment_id, source_type, input_code, unit, quantity, amount, effective_date, source_record_id, metadata, created_at, updated_at]
+    PayrollAdjustment:
+      type: object
+      properties:
+        id:
+          type: integer
+        payroll_run_id:
+          type: integer
+        employee_id:
+          type: integer
+        employee:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        adjustment_code:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [earning, deduction, reimbursement, bonus, custom]
+        amount:
+          type: number
+        effective_date:
+          type: [string, 'null']
+          format: date
+        status:
+          type: string
+          enum: [active, cancelled]
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, payroll_run_id, employee_id, employee, adjustment_code, name, category, amount, effective_date, status, notes, created_at, updated_at]
+    PayrollAdjustmentRequest:
+      type: object
+      properties:
+        employee_id:
+          type: integer
+        adjustment_code:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 120
+        category:
+          type: string
+          enum: [earning, deduction, reimbursement, bonus, custom]
+        amount:
+          type: number
+          minimum: 0.01
+        effective_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, cancelled]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [employee_id, adjustment_code, name, category, amount, effective_date]
+    SalaryComponentFormulaInputs:
+      type: object
+      properties:
+        flat_amount:
+          type: [number, 'null']
+        percentage_value:
+          type: [number, 'null']
+        percentage_basis_component_codes:
+          type: array
+          items:
+            type: string
+        expression_formula:
+          type: [string, 'null']
+      required: [flat_amount, percentage_value, percentage_basis_component_codes, expression_formula]
+    SalaryComponent:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [earning, deduction, employer_contribution]
+        calculation_type:
+          type: string
+          enum: [fixed, percentage, expression]
+        default_formula_inputs:
+          $ref: '#/components/schemas/SalaryComponentFormulaInputs'
+        is_taxable:
+          type: boolean
+        is_proratable:
+          type: boolean
+        display_order:
+          type: integer
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, category, calculation_type, default_formula_inputs, is_taxable, is_proratable, display_order, status, created_at, updated_at]
+    SalaryComponentRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 30
+        name:
+          type: string
+          maxLength: 100
+        category:
+          type: string
+          enum: [earning, deduction, employer_contribution]
+        calculation_type:
+          type: string
+          enum: [fixed, percentage, expression]
+        flat_amount:
+          type: [number, 'null']
+          minimum: 0
+        percentage_value:
+          type: [number, 'null']
+          minimum: 0
+        percentage_basis_component_codes:
+          type: array
+          items:
+            type: string
+            maxLength: 30
+        expression_formula:
+          type: [string, 'null']
+          maxLength: 500
+        is_taxable:
+          type: boolean
+        is_proratable:
+          type: boolean
+        display_order:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [code, name, category, calculation_type, status]
+    SalaryStructureResolvedFormulaInputs:
+      type: object
+      properties:
+        calculation_type:
+          type: [string, 'null']
+        flat_amount:
+          type: [number, 'null']
+        percentage_value:
+          type: [number, 'null']
+        percentage_basis_component_codes:
+          type: array
+          items:
+            type: string
+        expression_formula:
+          type: [string, 'null']
+      required: [calculation_type, flat_amount, percentage_value, percentage_basis_component_codes, expression_formula]
+    SalaryStructureComponent:
+      type: object
+      properties:
+        id:
+          type: integer
+        salary_component_id:
+          type: integer
+        salary_component:
+          $ref: '#/components/schemas/SalaryComponent'
+        display_order:
+          type: integer
+        resolved_formula_inputs:
+          $ref: '#/components/schemas/SalaryStructureResolvedFormulaInputs'
+      required: [id, salary_component_id, salary_component, display_order, resolved_formula_inputs]
+    SalaryStructureComponentRequest:
+      type: object
+      properties:
+        salary_component_id:
+          type: integer
+        display_order:
+          type: integer
+          minimum: 0
+        configured_amount:
+          type: [number, 'null']
+          minimum: 0
+        configured_percentage:
+          type: [number, 'null']
+          minimum: 0
+        configured_basis_component_codes:
+          type: array
+          items:
+            type: string
+            maxLength: 30
+        configured_expression_formula:
+          type: [string, 'null']
+          maxLength: 500
+      required: [salary_component_id]
+    SalaryStructure:
+      type: object
+      properties:
+        id:
+          type: integer
+        previous_version_id:
+          type: [integer, 'null']
+        code:
+          type: string
+        name:
+          type: string
+        currency:
+          type: string
+        country_code:
+          type: string
+        pay_frequency:
+          type: string
+          enum: [monthly, weekly, biweekly, semi_monthly, custom]
+        grade:
+          type: [string, 'null']
+        band:
+          type: [string, 'null']
+        level:
+          type: [string, 'null']
+        annual_ctc_amount:
+          type: number
+        basic_salary_amount:
+          type: number
+        gross_salary_amount:
+          type: number
+        net_salary_amount:
+          type: number
+        effective_from:
+          type: [string, 'null']
+          format: date
+        revision_date:
+          type: [string, 'null']
+          format: date
+        version:
+          type: integer
+        status:
+          type: string
+          enum: [draft, active, inactive]
+        notes:
+          type: [string, 'null']
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalaryStructureComponent'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, previous_version_id, code, name, currency, country_code, pay_frequency, grade, band, level, annual_ctc_amount, basic_salary_amount, gross_salary_amount, net_salary_amount, effective_from, revision_date, version, status, notes, components, created_at, updated_at]
+    SalaryStructureRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 120
+        currency:
+          type: string
+          maxLength: 10
+        country_code:
+          type: string
+          minLength: 2
+          maxLength: 2
+        pay_frequency:
+          type: string
+          enum: [monthly, weekly, biweekly, semi_monthly, custom]
+        grade:
+          type: [string, 'null']
+          maxLength: 30
+        band:
+          type: [string, 'null']
+          maxLength: 30
+        level:
+          type: [string, 'null']
+          maxLength: 30
+        annual_ctc_amount:
+          type: number
+          minimum: 0
+        basic_salary_amount:
+          type: number
+          minimum: 0
+        gross_salary_amount:
+          type: number
+          minimum: 0
+        net_salary_amount:
+          type: number
+          minimum: 0
+        effective_from:
+          type: string
+          format: date
+        revision_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [draft, active, inactive]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        components:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SalaryStructureComponentRequest'
+      required: [code, name, currency, country_code, pay_frequency, annual_ctc_amount, basic_salary_amount, gross_salary_amount, net_salary_amount, effective_from, revision_date, status, components]
+    EmployeeCompensationStructureSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: [string, 'null']
+        version:
+          type: integer
+        currency:
+          type: [string, 'null']
+        pay_frequency:
+          type: [string, 'null']
+      required: [id, code, name, version, currency, pay_frequency]
+    EmployeeCompensationComponentSnapshotLine:
+      type: object
+      properties:
+        salary_component_id:
+          type: integer
+        code:
+          type: [string, 'null']
+        name:
+          type: [string, 'null']
+        category:
+          type: [string, 'null']
+        display_order:
+          type: integer
+        resolved_formula_inputs:
+          $ref: '#/components/schemas/SalaryStructureResolvedFormulaInputs'
+      required: [salary_component_id, code, name, category, display_order, resolved_formula_inputs]
+    EmployeeCompensation:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        employee:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        salary_structure_id:
+          type: integer
+        salary_structure:
+          $ref: '#/components/schemas/EmployeeCompensationStructureSummary'
+        previous_revision_id:
+          type: [integer, 'null']
+        revision_reason:
+          type: string
+          enum: [initial_assignment, annual_revision, promotion, transfer, market_adjustment, correction, manual_change]
+        effective_from:
+          type: [string, 'null']
+          format: date
+        revision_date:
+          type: [string, 'null']
+          format: date
+        annual_ctc_amount:
+          type: number
+        basic_salary_amount:
+          type: number
+        gross_salary_amount:
+          type: number
+        net_salary_amount:
+          type: number
+        notes:
+          type: [string, 'null']
+        component_snapshot:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeCompensationComponentSnapshotLine'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_id, employee, salary_structure_id, salary_structure, previous_revision_id, revision_reason, effective_from, revision_date, annual_ctc_amount, basic_salary_amount, gross_salary_amount, net_salary_amount, notes, component_snapshot, created_at, updated_at]
+    EmployeeCompensationRequest:
+      type: object
+      properties:
+        employee_id:
+          type: integer
+        salary_structure_id:
+          type: integer
+        revision_reason:
+          type: string
+          enum: [initial_assignment, annual_revision, promotion, transfer, market_adjustment, correction, manual_change]
+        effective_from:
+          type: string
+          format: date
+        revision_date:
+          type: string
+          format: date
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [employee_id, salary_structure_id, revision_reason, effective_from, revision_date]
+    EmployeeCompensationDetail:
+      type: object
+      properties:
+        employee:
+          $ref: '#/components/schemas/EmployeeCompensationEmployee'
+        current_assignment:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeCompensation'
+            - type: 'null'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeCompensation'
+      required: [employee, current_assignment, history]
+    ApprovePayrollRunRequest:
+      type: object
+      properties:
+        comment:
+          type: [string, 'null']
+          maxLength: 500
+    ReopenPayrollRunRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+      required: [reason]
+    Payslip:
+      type: object
+      properties:
+        id:
+          type: integer
+        payroll_run_id:
+          type: integer
+        payroll_period_id:
+          type: integer
+        payroll_item_id:
+          type: integer
+        employee_id:
+          type: integer
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        slip_number:
+          type: string
+        status:
+          type: string
+          enum: [generated]
+        currency:
+          type: string
+        start_date:
+          type: [string, 'null']
+          format: date
+        end_date:
+          type: [string, 'null']
+          format: date
+        payroll_date:
+          type: [string, 'null']
+          format: date
+        file_name:
+          type: string
+        gross_salary:
+          type: number
+        total_earnings:
+          type: number
+        total_deductions:
+          type: number
+        net_salary:
+          type: number
+        employer_cost:
+          type: number
+        earnings_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollBreakdownLine'
+        deductions_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollBreakdownLine'
+        employer_contribution_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayrollBreakdownLine'
+        company_snapshot:
+          type: object
+          additionalProperties: true
+        rendered_format:
+          type: [string, 'null']
+        generated_at:
+          type: [string, 'null']
+          format: date-time
+        payroll_run_status:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, payroll_run_id, payroll_period_id, payroll_item_id, employee_id, employee, slip_number, status, currency, start_date, end_date, payroll_date, file_name, gross_salary, total_earnings, total_deductions, net_salary, employer_cost, earnings_breakdown, deductions_breakdown, employer_contribution_breakdown, company_snapshot, rendered_format, generated_at, payroll_run_status, created_at, updated_at]

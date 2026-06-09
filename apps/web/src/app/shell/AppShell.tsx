@@ -136,6 +136,14 @@ function ShellIcon({ name }: { name: NavIconName }) {
           <path d="M4.5 16a5.5 5.5 0 0 1 11 0" />
         </svg>
       )
+    case 'operations':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 5h12v10H4z" />
+          <path d="M7 8h6M7 11h2M11 11h2" />
+          <path d="M6 3v4M14 3v4" />
+        </svg>
+      )
     case 'attendance':
       return (
         <svg {...iconProps}>
@@ -148,6 +156,22 @@ function ShellIcon({ name }: { name: NavIconName }) {
         <svg {...iconProps}>
           <path d="M6 4h8l2 2v10H4V4z" />
           <path d="M7 8h6M7 11h6M7 14h4" />
+        </svg>
+      )
+    case 'payroll':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 5h12v10H4z" />
+          <path d="M7 8h6M7 11h3M12 11h1.5M12 8h1.5" />
+          <path d="M6 3v4M14 3v4" />
+        </svg>
+      )
+    case 'selfService':
+      return (
+        <svg {...iconProps}>
+          <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+          <path d="M5.5 16a4.5 4.5 0 0 1 9 0" />
+          <path d="M14.5 5.5h2M15.5 4.5v2" />
         </svg>
       )
     case 'access':
@@ -177,21 +201,18 @@ export function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const { snapshot } = useAccessSnapshot()
-  const [isRailCollapsed, setIsRailCollapsed] = useState(false)
+  const [isRailCollapsed, setIsRailCollapsed] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    return window.localStorage.getItem(SHELL_COLLAPSE_STORAGE_KEY) === 'true'
+  })
   const [isCommandCenterOpen, setIsCommandCenterOpen] = useState(false)
   const [commandQuery, setCommandQuery] = useState('')
   const { recentItems, touchRecent, removeRecent, clearRecent } = useShellRecent()
 
   const grantedPermissions = useMemo(() => snapshot?.user.permissions ?? [], [snapshot?.user.permissions])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const storedCollapse = window.localStorage.getItem(SHELL_COLLAPSE_STORAGE_KEY)
-    setIsRailCollapsed(storedCollapse === 'true')
-  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -229,6 +250,8 @@ export function AppShell() {
   const userName = snapshot?.user.name ?? 'PhoenixHRMS User'
   const userInitials = snapshot?.user.initials ?? initialsFromName(userName)
   const currentSectionLabel = currentSection?.label ?? null
+  const shellHeaderEyebrow =
+    currentSectionLabel ?? (currentPage.status === 'live' ? 'Live module' : 'Planned module')
   const currentRecentLabel = useMemo(() => {
     const employeeDetailMatch = location.pathname.match(/^\/employees\/(\d+)\/([^/]+)/)
     if (employeeDetailMatch) {
@@ -453,7 +476,7 @@ export function AppShell() {
               {!isRailCollapsed ? (
                 <div className="min-w-0">
                   <p className="ui-type-page-eyebrow text-[#9daaba]">PhoenixHRMS</p>
-                  <strong className="ui-type-card-title block text-white">Operations console</strong>
+                  <strong className="ui-type-card-title block text-white">{currentPage.label}</strong>
                 </div>
               ) : null}
             </div>
@@ -870,43 +893,31 @@ export function AppShell() {
       </aside>
 
       <main className="min-w-0 bg-[radial-gradient(circle_at_top_right,rgba(92,167,255,0.08),transparent_26%),radial-gradient(circle_at_top_left,rgba(234,138,52,0.06),transparent_22%),var(--page-bg)]">
-        <header className="relative overflow-hidden border-b border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.9)_0%,rgba(248,250,253,0.96)_100%)] px-4 py-4 shadow-[inset_0_-1px_0_rgba(255,255,255,0.7)] lg:px-6">
+        <header className="relative overflow-hidden border-b border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,253,0.94)_100%)] px-4 py-3 shadow-[inset_0_-1px_0_rgba(255,255,255,0.7)] lg:px-6">
           <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(124,174,255,0.28),rgba(234,138,52,0.18),transparent)]" />
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-            <div className="min-w-0 space-y-1">
-              <p className="ui-type-page-eyebrow text-text-subtle">
-                {currentPage.status === 'live' ? 'Live module' : 'Planned module'}
-                {currentSection ? ` · ${currentSection.label}` : ''}
-              </p>
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 space-y-0.5">
+              <p className="ui-type-page-eyebrow text-text-subtle">{shellHeaderEyebrow}</p>
               <h1 className="ui-type-page-title text-foreground">{currentPage.label}</h1>
-              <p className="ui-type-body max-w-3xl text-muted-foreground">
-                {currentSection?.description ?? currentPage.description}
-              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-muted-foreground" aria-label="Session context">
+            <div className="flex items-center gap-2 text-muted-foreground" aria-label="Page tools">
               <button
                 type="button"
                 onClick={openCommandCenter}
-                className="inline-flex items-center gap-2 rounded-full border border-line/80 bg-white/74 px-3 py-1.5 text-[0.83rem] font-semibold text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition-colors hover:bg-white"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-line/80 bg-white/74 px-3 text-[0.83rem] font-semibold text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition-colors hover:bg-white"
               >
-                <Command className="h-3.5 w-3.5 text-primary" />
-                Command center
+                <Search className="h-3.5 w-3.5 text-primary" />
+                Search
                 <span className="inline-flex items-center gap-1 rounded-md border border-line/80 bg-page px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-text-subtle">
                   <Command className="h-3 w-3" />
                   K
                 </span>
               </button>
-              <span className="ui-type-label rounded-full border border-line/80 bg-white/74 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
-                {tenantLabel}
-              </span>
-              <span className="ui-type-label rounded-full border border-line/80 bg-white/74 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
-                {currentRoleLabel}
-              </span>
             </div>
           </div>
         </header>
 
-        <section className="mx-auto w-full max-w-[1400px] px-4 py-4 lg:px-6 lg:py-5">
+        <section className="mx-auto w-full max-w-[1400px] px-4 py-3 lg:px-6 lg:py-4">
           <Outlet />
         </section>
       </main>

@@ -99,6 +99,32 @@ class WorkflowTemplateSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'key' => 'employee-offboarding-clearance',
+                'name' => 'Employee Offboarding Clearance Workflow',
+                'module' => 'employee',
+                'description' => 'Sequential offboarding clearance through the employee manager and HR.',
+                'stages' => [
+                    [
+                        'key' => 'manager_clearance',
+                        'name' => 'Manager Clearance',
+                        'sequence' => 1,
+                        'approver_type' => 'employee_manager',
+                        'approver_value' => 'employee_manager',
+                        'available_actions' => ['approve', 'reject', 'request_changes'],
+                        'sla_hours' => 24,
+                    ],
+                    [
+                        'key' => 'hr_clearance',
+                        'name' => 'HR Clearance',
+                        'sequence' => 2,
+                        'approver_type' => 'role',
+                        'approver_value' => 'hr.admin',
+                        'available_actions' => ['approve', 'reject'],
+                        'sla_hours' => 24,
+                    ],
+                ],
+            ],
         ];
 
         foreach ($templates as $template) {

@@ -1,0 +1,1897 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 06 Documents, Assets, and ESS API
+  version: 1.0.0
+  description: Tenant-scoped document repository, asset lifecycle, employee task-center, policy acknowledgement, and self-service APIs implemented during Sprint 06.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /documents:
+    get:
+      operationId: listRepositoryDocuments
+      summary: List tenant repository documents within the caller's access scope
+      parameters:
+        - in: query
+          name: document_category_id
+          schema:
+            type: integer
+        - in: query
+          name: repository_scope
+          schema:
+            type: string
+            enum: [general, employee, policy, compliance, payroll, asset, onboarding, offboarding]
+        - in: query
+          name: linked_entity_type
+          schema:
+            type: string
+        - in: query
+          name: linked_entity_id
+          schema:
+            type: integer
+        - in: query
+          name: visibility_scope
+          schema:
+            type: string
+            enum: [internal, restricted, confidential]
+        - in: query
+          name: retention_until_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: retention_until_to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Repository documents loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Document'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createRepositoryDocument
+      summary: Upload a document into the tenant repository
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DocumentUploadRequest'
+      responses:
+        '201':
+          description: Repository document uploaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Document'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /documents/categories:
+    get:
+      operationId: listDocumentCategories
+      summary: List document categories and governance defaults
+      parameters:
+        - in: query
+          name: repository_scope
+          schema:
+            type: string
+            enum: [general, employee, policy, compliance, payroll, asset, onboarding, offboarding]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, inactive]
+      responses:
+        '200':
+          description: Document categories loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DocumentCategory'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createDocumentCategory
+      summary: Create a document category with retention and role defaults
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentCategoryRequest'
+      responses:
+        '201':
+          description: Document category created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DocumentCategory'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /documents/categories/{documentCategoryId}:
+    patch:
+      operationId: updateDocumentCategory
+      summary: Update a document category
+      parameters:
+        - $ref: '#/components/parameters/DocumentCategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentCategoryRequest'
+      responses:
+        '200':
+          description: Document category updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DocumentCategory'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /documents/{documentId}:
+    get:
+      operationId: getRepositoryDocument
+      summary: Load one repository document with governance metadata
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Repository document loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Document'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /documents/{documentId}/download:
+    get:
+      operationId: downloadRepositoryDocument
+      summary: Download one repository document file
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Repository document downloaded
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /assets:
+    get:
+      operationId: listAssets
+      summary: List tenant assets with current assignment state
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [available, assigned, issued, returned, maintenance, retired]
+        - in: query
+          name: asset_category_id
+          schema:
+            type: integer
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Assets loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Asset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createAsset
+      summary: Register a new asset in the tenant catalog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetRequest'
+      responses:
+        '201':
+          description: Asset created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Asset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /assets/categories:
+    get:
+      operationId: listAssetCategories
+      summary: List asset categories
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, inactive]
+      responses:
+        '200':
+          description: Asset categories loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AssetCategory'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createAssetCategory
+      summary: Create an asset category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCategoryRequest'
+      responses:
+        '201':
+          description: Asset category created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AssetCategory'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /assets/categories/{assetCategoryId}:
+    patch:
+      operationId: updateAssetCategory
+      summary: Update an asset category
+      parameters:
+        - $ref: '#/components/parameters/AssetCategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCategoryRequest'
+      responses:
+        '200':
+          description: Asset category updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AssetCategory'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /assets/{assetId}:
+    get:
+      operationId: getAsset
+      summary: Load one asset with current assignment and history
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: Asset loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Asset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /assets/{assetId}/assign:
+    post:
+      operationId: assignAsset
+      summary: Assign an available or returned asset to an employee
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetAssignRequest'
+      responses:
+        '200':
+          description: Asset assigned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Asset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /assets/{assetId}/issue:
+    post:
+      operationId: issueAsset
+      summary: Mark an assigned asset as issued
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetIssueRequest'
+      responses:
+        '200':
+          description: Asset issued
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Asset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /assets/{assetId}/return:
+    post:
+      operationId: returnAsset
+      summary: Return an assigned or issued asset
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetReturnRequest'
+      responses:
+        '200':
+          description: Asset returned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Asset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /policy-acknowledgements:
+    get:
+      operationId: listPolicyAcknowledgements
+      summary: List policy acknowledgement assignments within the caller's access scope
+      parameters:
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [assigned, acknowledged]
+      responses:
+        '200':
+          description: Policy acknowledgements loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PolicyAcknowledgement'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    post:
+      operationId: assignPolicyAcknowledgements
+      summary: Assign one policy document to one or more employees
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyAcknowledgementAssignmentRequest'
+      responses:
+        '201':
+          description: Policy acknowledgements assigned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PolicyAcknowledgement'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /policy-acknowledgements/{policyAcknowledgementId}/acknowledge:
+    patch:
+      operationId: acknowledgePolicyDocument
+      summary: Record acknowledgement of one assigned policy document
+      parameters:
+        - $ref: '#/components/parameters/PolicyAcknowledgementId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyAcknowledgementAcknowledgeRequest'
+      responses:
+        '200':
+          description: Policy acknowledgement recorded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PolicyAcknowledgement'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /policy-acknowledgements/{policyAcknowledgementId}/download:
+    get:
+      operationId: downloadPolicyAcknowledgementDocument
+      summary: Download the document attached to one policy acknowledgement assignment
+      parameters:
+        - $ref: '#/components/parameters/PolicyAcknowledgementId'
+      responses:
+        '200':
+          description: Policy document downloaded
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /task-center:
+    get:
+      operationId: getEmployeeTaskCenter
+      summary: Load the linked employee task-center overview
+      responses:
+        '200':
+          description: Employee task center loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TaskCenterOverview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /task-center/lifecycle-tasks/{taskId}:
+    patch:
+      operationId: updateEmployeeTaskCenterLifecycleTask
+      summary: Update one employee-owned lifecycle task from the task center
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LifecycleTaskUpdateRequest'
+      responses:
+        '200':
+          description: Lifecycle task updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeLifecycleTask'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /self-service/workspace:
+    get:
+      operationId: getEmployeeSelfServiceWorkspace
+      summary: Load the linked employee self-service workspace
+      responses:
+        '200':
+          description: Self-service workspace loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SelfServiceWorkspace'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /self-service/employee-documents/{employeeDocumentId}/download:
+    get:
+      operationId: downloadSelfServiceEmployeeDocument
+      summary: Download one employee-master document from self-service
+      parameters:
+        - $ref: '#/components/parameters/EmployeeDocumentId'
+      responses:
+        '200':
+          description: Employee document downloaded
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /self-service/repository-documents/{documentId}/download:
+    get:
+      operationId: downloadSelfServiceRepositoryDocument
+      summary: Download one visible repository document from self-service
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Repository document downloaded
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  parameters:
+    DocumentId:
+      in: path
+      name: documentId
+      required: true
+      schema:
+        type: integer
+    DocumentCategoryId:
+      in: path
+      name: documentCategoryId
+      required: true
+      schema:
+        type: integer
+    AssetId:
+      in: path
+      name: assetId
+      required: true
+      schema:
+        type: integer
+    AssetCategoryId:
+      in: path
+      name: assetCategoryId
+      required: true
+      schema:
+        type: integer
+    PolicyAcknowledgementId:
+      in: path
+      name: policyAcknowledgementId
+      required: true
+      schema:
+        type: integer
+    TaskId:
+      in: path
+      name: taskId
+      required: true
+      schema:
+        type: integer
+    EmployeeDocumentId:
+      in: path
+      name: employeeDocumentId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+      required: [id, employee_code, full_name, email]
+    DocumentCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        repository_scope:
+          type: string
+          enum: [general, employee, policy, compliance, payroll, asset, onboarding, offboarding]
+        default_visibility_scope:
+          type: string
+          enum: [internal, restricted, confidential]
+        retention_days:
+          type: [integer, 'null']
+        allowed_role_names:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, repository_scope, default_visibility_scope, retention_days, allowed_role_names, status, notes, created_at, updated_at]
+    DocumentCategoryRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 100
+        repository_scope:
+          type: string
+          enum: [general, employee, policy, compliance, payroll, asset, onboarding, offboarding]
+        default_visibility_scope:
+          type: string
+          enum: [internal, restricted, confidential]
+        retention_days:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 3650
+        allowed_role_names:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [code, name, repository_scope, default_visibility_scope, status]
+    DocumentCategoryInline:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        default_visibility_scope:
+          type: string
+          enum: [internal, restricted, confidential]
+        retention_days:
+          type: [integer, 'null']
+        allowed_role_names:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [id, code, name, default_visibility_scope, retention_days, allowed_role_names, status]
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        document_category_id:
+          type: [integer, 'null']
+        document_category:
+          anyOf:
+            - $ref: '#/components/schemas/DocumentCategoryInline'
+            - type: 'null'
+        title:
+          type: string
+        repository_scope:
+          type: string
+          enum: [general, employee, policy, compliance, payroll, asset, onboarding, offboarding]
+        linked_entity_type:
+          type: [string, 'null']
+        linked_entity_id:
+          type: [integer, 'null']
+        visibility_scope:
+          type: string
+          enum: [internal, restricted, confidential]
+        original_file_name:
+          type: string
+        mime_type:
+          type: string
+        file_size_bytes:
+          type: integer
+        checksum_sha256:
+          type: string
+        retention_until:
+          type: [string, 'null']
+          format: date
+        metadata:
+          type: object
+          additionalProperties: true
+        notes:
+          type: [string, 'null']
+        download_url:
+          type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, document_category_id, document_category, title, repository_scope, linked_entity_type, linked_entity_id, visibility_scope, original_file_name, mime_type, file_size_bytes, checksum_sha256, retention_until, metadata, notes, download_url, created_at, updated_at]
+    DocumentUploadRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 150
+        document_category_id:
+          type: [integer, 'null']
+        repository_scope:
+          type: [string, 'null']
+          enum: [general, employee, policy, compliance, payroll, asset, onboarding, offboarding]
+        linked_entity_type:
+          type: [string, 'null']
+          maxLength: 100
+        linked_entity_id:
+          type: [integer, 'null']
+          minimum: 1
+        visibility_scope:
+          type: [string, 'null']
+          enum: [internal, restricted, confidential]
+        retention_until:
+          type: [string, 'null']
+          format: date
+        metadata:
+          type: object
+          additionalProperties: true
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        file:
+          type: string
+          format: binary
+      required: [title, file]
+    AssetCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, code, name, status, notes, created_at, updated_at]
+    AssetCategoryRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+          enum: [active, inactive]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [code, name, status]
+    AssetCategoryInline:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [id, code, name, status]
+    AssetAssignment:
+      type: object
+      properties:
+        id:
+          type: integer
+        asset_id:
+          type: integer
+        employee_id:
+          type: integer
+        employee:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        status:
+          type: string
+          enum: [assigned, issued, returned]
+        assigned_at:
+          type: [string, 'null']
+          format: date-time
+        issued_at:
+          type: [string, 'null']
+          format: date-time
+        expected_return_date:
+          type: [string, 'null']
+          format: date
+        returned_at:
+          type: [string, 'null']
+          format: date-time
+        handover_condition:
+          type: [string, 'null']
+        return_condition:
+          type: [string, 'null']
+        assignment_notes:
+          type: [string, 'null']
+        issue_notes:
+          type: [string, 'null']
+        return_notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, asset_id, employee_id, employee, status, assigned_at, issued_at, expected_return_date, returned_at, handover_condition, return_condition, assignment_notes, issue_notes, return_notes, created_at, updated_at]
+    Asset:
+      type: object
+      properties:
+        id:
+          type: integer
+        asset_category_id:
+          type: integer
+        asset_category:
+          anyOf:
+            - $ref: '#/components/schemas/AssetCategoryInline'
+            - type: 'null'
+        asset_tag:
+          type: string
+        name:
+          type: string
+        asset_type:
+          type: string
+          enum: [physical, digital, accessory, license]
+        serial_number:
+          type: [string, 'null']
+        manufacturer:
+          type: [string, 'null']
+        model_name:
+          type: [string, 'null']
+        purchase_date:
+          type: [string, 'null']
+          format: date
+        status:
+          type: string
+          enum: [available, assigned, issued, returned, maintenance, retired]
+        notes:
+          type: [string, 'null']
+        current_assignment:
+          anyOf:
+            - $ref: '#/components/schemas/AssetAssignment'
+            - type: 'null'
+        assignment_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetAssignment'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, asset_category_id, asset_category, asset_tag, name, asset_type, serial_number, manufacturer, model_name, purchase_date, status, notes, current_assignment, assignment_history, created_at, updated_at]
+    AssetRequest:
+      type: object
+      properties:
+        asset_category_id:
+          type: integer
+        asset_tag:
+          type: string
+          maxLength: 60
+        name:
+          type: string
+          maxLength: 150
+        asset_type:
+          type: string
+          enum: [physical, digital, accessory, license]
+        serial_number:
+          type: [string, 'null']
+          maxLength: 100
+        manufacturer:
+          type: [string, 'null']
+          maxLength: 100
+        model_name:
+          type: [string, 'null']
+          maxLength: 100
+        purchase_date:
+          type: [string, 'null']
+          format: date
+        status:
+          type: [string, 'null']
+          enum: [available, maintenance, retired]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [asset_category_id, asset_tag, name, asset_type]
+    AssetAssignRequest:
+      type: object
+      properties:
+        employee_id:
+          type: integer
+        assigned_at:
+          type: [string, 'null']
+          format: date-time
+        expected_return_date:
+          type: [string, 'null']
+          format: date
+        handover_condition:
+          type: [string, 'null']
+          maxLength: 150
+        assignment_notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [employee_id]
+    AssetIssueRequest:
+      type: object
+      properties:
+        issued_at:
+          type: [string, 'null']
+          format: date-time
+        issue_notes:
+          type: [string, 'null']
+          maxLength: 1000
+    AssetReturnRequest:
+      type: object
+      properties:
+        returned_at:
+          type: [string, 'null']
+          format: date-time
+        return_condition:
+          type: [string, 'null']
+          maxLength: 150
+        return_notes:
+          type: [string, 'null']
+          maxLength: 1000
+    PolicyAcknowledgementDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        repository_scope:
+          type: string
+          enum: [general, employee, policy, compliance, payroll, asset, onboarding, offboarding]
+        original_file_name:
+          type: string
+        mime_type:
+          type: string
+        download_url:
+          type: string
+      required: [id, title, repository_scope, original_file_name, mime_type, download_url]
+    PolicyAcknowledgement:
+      type: object
+      properties:
+        id:
+          type: integer
+        document_id:
+          type: integer
+        employee_id:
+          type: integer
+        policy_title:
+          type: string
+        policy_version:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [assigned, acknowledged]
+        due_date:
+          type: [string, 'null']
+          format: date
+        assignment_notes:
+          type: [string, 'null']
+        acknowledged_at:
+          type: [string, 'null']
+          format: date-time
+        acknowledgement_notes:
+          type: [string, 'null']
+        document:
+          anyOf:
+            - $ref: '#/components/schemas/PolicyAcknowledgementDocument'
+            - type: 'null'
+        employee:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        assigned_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, document_id, employee_id, policy_title, policy_version, status, due_date, assignment_notes, acknowledged_at, acknowledgement_notes, document, employee, assigned_at, created_at, updated_at]
+    PolicyAcknowledgementAssignmentRequest:
+      type: object
+      properties:
+        document_id:
+          type: integer
+        employee_ids:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+        policy_version:
+          type: [string, 'null']
+          maxLength: 50
+        due_date:
+          type: [string, 'null']
+          format: date
+        assignment_notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [document_id, employee_ids]
+    PolicyAcknowledgementAcknowledgeRequest:
+      type: object
+      properties:
+        acknowledgement_notes:
+          type: [string, 'null']
+          maxLength: 1000
+    TaskCenterSummary:
+      type: object
+      properties:
+        total_count:
+          type: integer
+        pending_count:
+          type: integer
+        policy_count:
+          type: integer
+        lifecycle_task_count:
+          type: integer
+        asset_count:
+          type: integer
+      required: [total_count, pending_count, policy_count, lifecycle_task_count, asset_count]
+    TaskCenterLinks:
+      type: object
+      properties:
+        download:
+          type: [string, 'null']
+        acknowledge:
+          type: [string, 'null']
+        update:
+          type: [string, 'null']
+      additionalProperties: true
+    TaskCenterItem:
+      type: object
+      properties:
+        id:
+          type: string
+        source_type:
+          type: string
+          enum: [policy_acknowledgement, lifecycle_task, asset_assignment]
+        source_id:
+          type: integer
+        action_domain:
+          type: string
+        lifecycle_type:
+          type: [string, 'null']
+          enum: [onboarding, offboarding, 'null']
+        title:
+          type: string
+        subtitle:
+          type: string
+        status:
+          type: string
+        due_date:
+          type: [string, 'null']
+          format: date
+        due_state:
+          type: string
+          enum: [overdue, due_today, upcoming, no_due_date, closed]
+        actionable:
+          type: boolean
+        action:
+          type: [string, 'null']
+        links:
+          $ref: '#/components/schemas/TaskCenterLinks'
+        metadata:
+          type: object
+          additionalProperties: true
+      required: [id, source_type, source_id, action_domain, lifecycle_type, title, subtitle, status, due_date, due_state, actionable, action, links, metadata]
+    TaskCenterOverview:
+      type: object
+      properties:
+        employee:
+          type: object
+          properties:
+            id:
+              type: integer
+            employee_code:
+              type: string
+            full_name:
+              type: string
+          required: [id, employee_code, full_name]
+        summary:
+          $ref: '#/components/schemas/TaskCenterSummary'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskCenterItem'
+      required: [employee, summary, items]
+    LifecycleTaskUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [in_progress, completed]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [status]
+    EmployeeLifecycleTask:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        lifecycle_type:
+          type: string
+          enum: [onboarding, offboarding]
+        template_id:
+          type: [integer, 'null']
+        title:
+          type: string
+        category:
+          type: string
+        task_type:
+          type: string
+        assignee_type:
+          type: string
+        assigned_to_user_id:
+          type: [integer, 'null']
+        assigned_to_user_name:
+          type: [string, 'null']
+        requires_approval:
+          type: boolean
+        approval_workflow_key:
+          type: [string, 'null']
+        workflow_instance_id:
+          type: [integer, 'null']
+        status:
+          type: string
+        sort_order:
+          type: [integer, 'null']
+        due_date:
+          type: [string, 'null']
+          format: date
+        due_state:
+          type: string
+          enum: [overdue, due_today, upcoming, no_due_date, closed]
+        completed_at:
+          type: [string, 'null']
+          format: date-time
+        completed_by_user_id:
+          type: [integer, 'null']
+        latest_action_by_user_id:
+          type: [integer, 'null']
+        approved_at:
+          type: [string, 'null']
+          format: date-time
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_id, lifecycle_type, template_id, title, category, task_type, assignee_type, assigned_to_user_id, assigned_to_user_name, requires_approval, approval_workflow_key, workflow_instance_id, status, sort_order, due_date, due_state, completed_at, completed_by_user_id, latest_action_by_user_id, approved_at, notes, created_at, updated_at]
+    OrganizationUnitReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        status:
+          type: [string, 'null']
+      required: [id, code, name, status]
+    LocationReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: [string, 'null']
+        currency:
+          type: [string, 'null']
+        city:
+          type: [string, 'null']
+        country:
+          type: [string, 'null']
+        status:
+          type: [string, 'null']
+      required: [id, code, name, timezone, currency, city, country, status]
+    SelfServiceEmployee:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        first_name:
+          type: [string, 'null']
+        middle_name:
+          type: [string, 'null']
+        last_name:
+          type: [string, 'null']
+        full_name:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+        phone:
+          type: [string, 'null']
+        date_of_birth:
+          type: [string, 'null']
+          format: date
+        gender:
+          type: [string, 'null']
+        marital_status:
+          type: [string, 'null']
+        date_of_joining:
+          type: [string, 'null']
+          format: date
+        employment_type:
+          type: [string, 'null']
+        employment_status:
+          type: [string, 'null']
+        termination_reason:
+          type: [string, 'null']
+        terminated_at:
+          type: [string, 'null']
+          format: date-time
+        department:
+          anyOf:
+            - $ref: '#/components/schemas/OrganizationUnitReference'
+            - type: 'null'
+        designation:
+          anyOf:
+            - $ref: '#/components/schemas/OrganizationUnitReference'
+            - type: 'null'
+        manager:
+          anyOf:
+            - $ref: '#/components/schemas/EmployeeReference'
+            - type: 'null'
+        location:
+          anyOf:
+            - $ref: '#/components/schemas/LocationReference'
+            - type: 'null'
+        cost_center:
+          anyOf:
+            - $ref: '#/components/schemas/OrganizationUnitReference'
+            - type: 'null'
+        user_id:
+          type: [integer, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_code, first_name, middle_name, last_name, full_name, email, phone, date_of_birth, gender, marital_status, date_of_joining, employment_type, employment_status, termination_reason, terminated_at, department, designation, manager, location, cost_center, user_id, created_at, updated_at]
+    EmployeeContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        type:
+          type: string
+        label:
+          type: [string, 'null']
+        value:
+          type: string
+        is_primary:
+          type: boolean
+        status:
+          type: [string, 'null']
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_id, type, label, value, is_primary, status, notes, created_at, updated_at]
+    EmployeeAddress:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        type:
+          type: string
+        address_line_1:
+          type: string
+        address_line_2:
+          type: [string, 'null']
+        city:
+          type: [string, 'null']
+        state:
+          type: [string, 'null']
+        country:
+          type: [string, 'null']
+        postal_code:
+          type: [string, 'null']
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_id, type, address_line_1, address_line_2, city, state, country, postal_code, notes, created_at, updated_at]
+    EmployeeEmergencyContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        name:
+          type: string
+        relationship:
+          type: [string, 'null']
+        phone_number:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+        address:
+          type: [string, 'null']
+        priority:
+          type: [integer, 'null']
+        notes:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, employee_id, name, relationship, phone_number, email, address, priority, notes, created_at, updated_at]
+    SensitivePanelState:
+      type: object
+      properties:
+        visible:
+          type: boolean
+        message:
+          type: [string, 'null']
+      required: [visible, message]
+    SelfServiceProfile:
+      type: object
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeContact'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeAddress'
+        emergency_contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeEmergencyContact'
+        sensitive_panels:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SensitivePanelState'
+      required: [contacts, addresses, emergency_contacts, sensitive_panels]
+    SelfServiceDocumentSummary:
+      type: object
+      properties:
+        total_count:
+          type: integer
+        pending_acknowledgement_count:
+          type: integer
+        acknowledged_count:
+          type: integer
+        downloadable_count:
+          type: integer
+        hidden_sensitive_count:
+          type: integer
+      required: [total_count, pending_acknowledgement_count, acknowledged_count, downloadable_count, hidden_sensitive_count]
+    SelfServiceDocumentCategoryInline:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+      required: [id, code, name]
+    SelfServiceDocumentItem:
+      type: object
+      properties:
+        id:
+          type: string
+        source_type:
+          type: string
+          enum: [policy_acknowledgement, employee_document, repository_document]
+        source_id:
+          type: integer
+        title:
+          type: string
+        subtitle:
+          type: string
+        status:
+          type: string
+        document_type:
+          type: [string, 'null']
+        file_name:
+          type: [string, 'null']
+        mime_type:
+          type: [string, 'null']
+        file_size_bytes:
+          type: [integer, 'null']
+        due_date:
+          type: [string, 'null']
+          format: date
+        expiry_date:
+          type: [string, 'null']
+          format: date
+        visibility_scope:
+          type: [string, 'null']
+        download_url:
+          type: [string, 'null']
+        acknowledge_url:
+          type: [string, 'null']
+        action_required:
+          type: boolean
+        notes:
+          type: [string, 'null']
+        category:
+          anyOf:
+            - $ref: '#/components/schemas/SelfServiceDocumentCategoryInline'
+            - type: 'null'
+        repository_scope:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, source_type, source_id, title, subtitle, status, document_type, file_name, mime_type, file_size_bytes, due_date, expiry_date, visibility_scope, download_url, acknowledge_url, action_required, notes, category, repository_scope, created_at, updated_at]
+    SelfServiceDocumentSection:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/SelfServiceDocumentSummary'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelfServiceDocumentItem'
+      required: [summary, items]
+    SelfServiceAssetSummary:
+      type: object
+      properties:
+        active_count:
+          type: integer
+        assigned_count:
+          type: integer
+        issued_count:
+          type: integer
+        overdue_count:
+          type: integer
+      required: [active_count, assigned_count, issued_count, overdue_count]
+    SelfServiceAssetAssignment:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [assigned, issued, returned]
+        assigned_at:
+          type: [string, 'null']
+          format: date-time
+        issued_at:
+          type: [string, 'null']
+          format: date-time
+        expected_return_date:
+          type: [string, 'null']
+          format: date
+        returned_at:
+          type: [string, 'null']
+          format: date-time
+        handover_condition:
+          type: [string, 'null']
+        return_condition:
+          type: [string, 'null']
+        assignment_notes:
+          type: [string, 'null']
+        issue_notes:
+          type: [string, 'null']
+        return_notes:
+          type: [string, 'null']
+        due_state:
+          type: string
+          enum: [overdue, due_today, upcoming, no_due_date]
+      required: [id, status, assigned_at, issued_at, expected_return_date, returned_at, handover_condition, return_condition, assignment_notes, issue_notes, return_notes, due_state]
+    SelfServiceAssignedAsset:
+      type: object
+      properties:
+        id:
+          type: integer
+        asset_tag:
+          type: string
+        name:
+          type: string
+        asset_type:
+          type: string
+          enum: [physical, digital, accessory, license]
+        status:
+          type: string
+        serial_number:
+          type: [string, 'null']
+        manufacturer:
+          type: [string, 'null']
+        model_name:
+          type: [string, 'null']
+        purchase_date:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+        category:
+          anyOf:
+            - $ref: '#/components/schemas/AssetCategoryInline'
+            - type: 'null'
+        assignment:
+          anyOf:
+            - $ref: '#/components/schemas/SelfServiceAssetAssignment'
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, asset_tag, name, asset_type, status, serial_number, manufacturer, model_name, purchase_date, notes, category, assignment, created_at, updated_at]
+    SelfServiceAssetSection:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/SelfServiceAssetSummary'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelfServiceAssignedAsset'
+      required: [summary, items]
+    SelfServiceWorkspace:
+      type: object
+      properties:
+        employee:
+          $ref: '#/components/schemas/SelfServiceEmployee'
+        profile:
+          $ref: '#/components/schemas/SelfServiceProfile'
+        documents:
+          $ref: '#/components/schemas/SelfServiceDocumentSection'
+        assets:
+          $ref: '#/components/schemas/SelfServiceAssetSection'
+      required: [employee, profile, documents, assets]

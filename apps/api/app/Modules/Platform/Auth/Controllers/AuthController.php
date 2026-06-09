@@ -95,7 +95,7 @@ class AuthController
     {
         $payload = ApiResponse::success(
             'Authenticated user loaded successfully.',
-            new AuthenticatedUserResource($request->user()->loadMissing('roles', 'permissions', 'company')),
+            new AuthenticatedUserResource($request->user()->loadMissing('roles', 'permissions', 'company', 'employee')),
         );
 
         return response()->json($payload['body'], $payload['status']);

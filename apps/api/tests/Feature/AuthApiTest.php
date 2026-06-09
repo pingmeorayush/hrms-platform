@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -225,6 +226,24 @@ class AuthApiTest extends TestCase
         $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
             ->getJson('/api/v1/auth/me')
             ->assertStatus(401);
+    }
+
+    public function test_me_endpoint_includes_linked_employee_context_when_available(): void
+    {
+        $user = User::factory()->create();
+        $employee = Employee::factory()->create([
+            'company_id' => $user->company_id,
+            'user_id' => $user->id,
+        ]);
+        $token = $user->createToken('browser');
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertJsonPath('data.id', $user->id)
+            ->assertJsonPath('data.employee.id', $employee->id)
+            ->assertJsonPath('data.employee.employee_code', $employee->employee_code)
+            ->assertJsonPath('data.employee.full_name', $employee->full_name);
     }
 
     private function generateTotp(string $secret): string

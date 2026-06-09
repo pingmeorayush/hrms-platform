@@ -365,10 +365,10 @@ export function LeaveOverviewPage() {
               </CardDescription>
             </div>
             <WorkspaceHeaderActions>
-              <Button asChild size="sm" variant="secondary">
+              <Button asChild size="xs" variant="secondary">
                 <Link to="/leave/approvals">Open approvals</Link>
               </Button>
-              <Button asChild size="sm" variant="primary">
+              <Button asChild size="xs" variant="primary">
                 <Link to={canManagePolicy ? '/leave/policy-admin' : '/leave/requests'}>
                   {canManagePolicy ? 'Open policy admin' : 'Open requests'}
                 </Link>
@@ -394,7 +394,7 @@ export function LeaveOverviewPage() {
                 <CommandCenterAttentionStrip
                   title="Needs attention"
                   action={
-                    <Button asChild size="sm" variant="ghost">
+                    <Button asChild size="xs" variant="ghost">
                       <Link to="/leave/approvals">View approval queue</Link>
                     </Button>
                   }
@@ -428,11 +428,8 @@ export function LeaveOverviewPage() {
 
                 <WorkspaceSurface>
                   <WorkspaceHeader compact>
-                    <div className="space-y-1">
+                    <div>
                       <CardTitle>Leave workspace</CardTitle>
-                      <CardDescription>
-                        Keep requests, approvals, policies, and leave calendar coverage visible from one command surface.
-                      </CardDescription>
                     </div>
                     <Badge variant="subtle">{collectionCount} record(s) in view</Badge>
                   </WorkspaceHeader>
@@ -463,7 +460,7 @@ export function LeaveOverviewPage() {
                                   ? 'Coverage calendar'
                                   : 'Leave requests'}
                           </Badge>
-                          <Button size="sm" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
+                          <Button size="xs" variant="secondary" onClick={() => setSearch('')} disabled={!search.length}>
                             Clear search
                           </Button>
                         </div>
@@ -535,10 +532,10 @@ export function LeaveOverviewPage() {
               </CommandCenterMain>
 
               <CommandCenterRail>
-                <CommandCenterPanel
-                  title="Recent activity"
-                  actions={
-                    <Button asChild size="sm" variant="ghost">
+              <CommandCenterPanel
+                title="Recent activity"
+                actions={
+                    <Button asChild size="xs" variant="ghost">
                       <Link to={canManagePolicy ? '/leave/policy-admin' : '/leave/requests'}>
                         Open {canManagePolicy ? 'policy admin' : 'requests'}
                       </Link>
