@@ -1,0 +1,948 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 08 Reporting Governance and Query API
+  version: 1.0.0
+  description: KPI catalog, report dataset registry, and governed reporting query APIs implemented during Sprint 08.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /reporting/kpis:
+    get:
+      operationId: listReportingKpis
+      summary: List reporting KPI definitions visible to the caller
+      parameters:
+        - in: query
+          name: domain
+          schema:
+            $ref: '#/components/schemas/ReportingDomain'
+        - in: query
+          name: certification_status
+          schema:
+            $ref: '#/components/schemas/CertificationStatus'
+        - in: query
+          name: owner_user_id
+          schema:
+            type: integer
+        - in: query
+          name: q
+          schema:
+            type: string
+            maxLength: 120
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: KPI definitions loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/KpiDefinitionCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createReportingKpi
+      summary: Create a reporting KPI definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKpiDefinitionRequest'
+      responses:
+        '201':
+          description: KPI definition created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/KpiDefinition'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/kpis/{kpiDefinitionId}:
+    get:
+      operationId: getReportingKpi
+      summary: Load one reporting KPI definition
+      parameters:
+        - $ref: '#/components/parameters/KpiDefinitionId'
+      responses:
+        '200':
+          description: KPI definition loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/KpiDefinition'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateReportingKpi
+      summary: Update a reporting KPI definition
+      parameters:
+        - $ref: '#/components/parameters/KpiDefinitionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateKpiDefinitionRequest'
+      responses:
+        '200':
+          description: KPI definition updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/KpiDefinition'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/datasets:
+    get:
+      operationId: listReportingDatasets
+      summary: List reporting datasets visible to the caller
+      parameters:
+        - in: query
+          name: domain
+          schema:
+            $ref: '#/components/schemas/ReportingDomain'
+        - in: query
+          name: certification_status
+          schema:
+            $ref: '#/components/schemas/CertificationStatus'
+        - in: query
+          name: owner_user_id
+          schema:
+            type: integer
+        - in: query
+          name: grain
+          schema:
+            type: string
+            maxLength: 64
+        - in: query
+          name: q
+          schema:
+            type: string
+            maxLength: 120
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Reporting datasets loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportDatasetCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createReportingDataset
+      summary: Create a governed reporting dataset definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportDatasetRequest'
+      responses:
+        '201':
+          description: Reporting dataset created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportDataset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/datasets/{reportDatasetId}:
+    get:
+      operationId: getReportingDataset
+      summary: Load one governed reporting dataset definition
+      parameters:
+        - $ref: '#/components/parameters/ReportDatasetId'
+      responses:
+        '200':
+          description: Reporting dataset loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportDataset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateReportingDataset
+      summary: Update a governed reporting dataset definition
+      parameters:
+        - $ref: '#/components/parameters/ReportDatasetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReportDatasetRequest'
+      responses:
+        '200':
+          description: Reporting dataset updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportDataset'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/reports/{datasetKey}:
+    get:
+      operationId: queryReportingDataset
+      summary: Query a governed reporting dataset by stable dataset key
+      parameters:
+        - $ref: '#/components/parameters/DatasetKeyPath'
+        - in: query
+          name: filters
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties: true
+        - in: query
+          name: filter_operators
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+              maxLength: 32
+        - in: query
+          name: sort_by
+          schema:
+            $ref: '#/components/schemas/CatalogKey'
+        - in: query
+          name: sort_direction
+          schema:
+            type: string
+            enum: [asc, desc]
+        - in: query
+          name: drilldown_path
+          schema:
+            $ref: '#/components/schemas/CatalogKey'
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Reporting dataset rows loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportingQueryResult'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    KpiDefinitionId:
+      in: path
+      name: kpiDefinitionId
+      required: true
+      schema:
+        type: integer
+    ReportDatasetId:
+      in: path
+      name: reportDatasetId
+      required: true
+      schema:
+        type: integer
+    DatasetKeyPath:
+      in: path
+      name: datasetKey
+      required: true
+      schema:
+        $ref: '#/components/schemas/CatalogKey'
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    CatalogKey:
+      type: string
+      maxLength: 64
+      pattern: '^[a-z0-9_.-]+$'
+    ReportingDomain:
+      type: string
+      enum: [workforce, attendance, leave, payroll, recruitment, performance, learning, operations, cross_domain]
+    CertificationStatus:
+      type: string
+      enum: [draft, under_review, certified, deprecated]
+    ReportingFieldType:
+      type: string
+      enum: [string, number, currency, percentage, date, datetime, boolean, status]
+    ReportingFilterType:
+      type: string
+      enum: [string, number, currency, percentage, date, datetime, boolean, status, entity]
+    ReportingFilterOperator:
+      type: string
+      enum: [eq, neq, in, not_in, contains, starts_with, ends_with, lt, lte, gt, gte, between, date_between]
+    ReportingMaskingStrategy:
+      type: string
+      enum: [none, redact, partial, aggregate_only]
+    UserReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+      required: [id, name, email]
+    SourceReference:
+      type: object
+      properties:
+        module:
+          type: string
+          maxLength: 64
+        entity:
+          type: string
+          maxLength: 128
+        field:
+          type: [string, 'null']
+          maxLength: 128
+        notes:
+          type: [string, 'null']
+          maxLength: 500
+      required: [module, entity, field, notes]
+    ReportingGovernance:
+      type: object
+      properties:
+        version:
+          type: integer
+        certification_status:
+          $ref: '#/components/schemas/CertificationStatus'
+        review_notes:
+          type: [string, 'null']
+          maxLength: 2000
+        reviewed_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        reviewed_at:
+          type: [string, 'null']
+          format: date-time
+        certified_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        certified_at:
+          type: [string, 'null']
+          format: date-time
+      required: [version, certification_status, review_notes, reviewed_by, reviewed_at, certified_by, certified_at]
+    ApprovedField:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        label:
+          type: string
+          maxLength: 120
+        type:
+          $ref: '#/components/schemas/ReportingFieldType'
+        description:
+          type: [string, 'null']
+          maxLength: 500
+        sensitive:
+          type: boolean
+        masking_strategy:
+          anyOf:
+            - $ref: '#/components/schemas/ReportingMaskingStrategy'
+            - type: 'null'
+      required: [key, label, type, description, sensitive, masking_strategy]
+    ApprovedFilter:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        label:
+          type: string
+          maxLength: 120
+        type:
+          $ref: '#/components/schemas/ReportingFilterType'
+        required:
+          type: boolean
+        operators:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ReportingFilterOperator'
+      required: [key, label, type, required, operators]
+    DrilldownPath:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        label:
+          type: string
+          maxLength: 120
+        target_dataset_key:
+          anyOf:
+            - $ref: '#/components/schemas/CatalogKey'
+            - type: 'null'
+        description:
+          type: [string, 'null']
+          maxLength: 500
+        allowed_filter_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+      required: [key, label, target_dataset_key, description, allowed_filter_keys]
+    MaskingPosture:
+      type: object
+      properties:
+        default_strategy:
+          $ref: '#/components/schemas/ReportingMaskingStrategy'
+        sensitive_field_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+        notes:
+          type: [string, 'null']
+          maxLength: 500
+      required: [default_strategy, sensitive_field_keys, notes]
+    KpiDefinition:
+      type: object
+      properties:
+        id:
+          type: integer
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+        domain:
+          $ref: '#/components/schemas/ReportingDomain'
+        description:
+          type: [string, 'null']
+        formula:
+          type: string
+        source_references:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        grain:
+          type: string
+        owner:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        governance:
+          $ref: '#/components/schemas/ReportingGovernance'
+        created_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        updated_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, key, name, domain, description, formula, source_references, grain, owner, governance, created_by, updated_by, created_at, updated_at]
+    KpiDefinitionCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/KpiDefinition'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    CreateKpiDefinitionRequest:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+          maxLength: 150
+        domain:
+          $ref: '#/components/schemas/ReportingDomain'
+        description:
+          type: [string, 'null']
+          maxLength: 2000
+        formula:
+          type: string
+          maxLength: 4000
+        grain:
+          type: string
+          maxLength: 64
+        certification_status:
+          $ref: '#/components/schemas/CertificationStatus'
+        review_notes:
+          type: [string, 'null']
+          maxLength: 2000
+        owner_user_id:
+          type: [integer, 'null']
+        source_references:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SourceReference'
+      required: [key, name, domain, formula, grain, source_references]
+    UpdateKpiDefinitionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        domain:
+          $ref: '#/components/schemas/ReportingDomain'
+        description:
+          type: [string, 'null']
+          maxLength: 2000
+        formula:
+          type: string
+          maxLength: 4000
+        grain:
+          type: string
+          maxLength: 64
+        certification_status:
+          $ref: '#/components/schemas/CertificationStatus'
+        review_notes:
+          type: [string, 'null']
+          maxLength: 2000
+        owner_user_id:
+          type: [integer, 'null']
+        source_references:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SourceReference'
+    ReportDataset:
+      type: object
+      properties:
+        id:
+          type: integer
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+        domain:
+          $ref: '#/components/schemas/ReportingDomain'
+        description:
+          type: [string, 'null']
+        source_references:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        grain:
+          type: string
+        approved_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApprovedField'
+        approved_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApprovedFilter'
+        drilldown_paths:
+          type: array
+          items:
+            $ref: '#/components/schemas/DrilldownPath'
+        masking_posture:
+          $ref: '#/components/schemas/MaskingPosture'
+        freshness_expectation_minutes:
+          type: [integer, 'null']
+        owner:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        governance:
+          $ref: '#/components/schemas/ReportingGovernance'
+        created_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        updated_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, key, name, domain, description, source_references, grain, approved_fields, approved_filters, drilldown_paths, masking_posture, freshness_expectation_minutes, owner, governance, created_by, updated_by, created_at, updated_at]
+    ReportDatasetCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportDataset'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    CreateReportDatasetRequest:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+          maxLength: 150
+        domain:
+          $ref: '#/components/schemas/ReportingDomain'
+        description:
+          type: [string, 'null']
+          maxLength: 2000
+        grain:
+          type: string
+          maxLength: 64
+        freshness_expectation_minutes:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 10080
+        certification_status:
+          $ref: '#/components/schemas/CertificationStatus'
+        review_notes:
+          type: [string, 'null']
+          maxLength: 2000
+        owner_user_id:
+          type: [integer, 'null']
+        source_references:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        approved_fields:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ApprovedField'
+        approved_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApprovedFilter'
+        drilldown_paths:
+          type: array
+          items:
+            $ref: '#/components/schemas/DrilldownPath'
+        masking_posture:
+          $ref: '#/components/schemas/MaskingPosture'
+      required: [key, name, domain, grain, source_references, approved_fields, masking_posture]
+    UpdateReportDatasetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        domain:
+          $ref: '#/components/schemas/ReportingDomain'
+        description:
+          type: [string, 'null']
+          maxLength: 2000
+        grain:
+          type: string
+          maxLength: 64
+        freshness_expectation_minutes:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 10080
+        certification_status:
+          $ref: '#/components/schemas/CertificationStatus'
+        review_notes:
+          type: [string, 'null']
+          maxLength: 2000
+        owner_user_id:
+          type: [integer, 'null']
+        source_references:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        approved_fields:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ApprovedField'
+        approved_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApprovedFilter'
+        drilldown_paths:
+          type: array
+          items:
+            $ref: '#/components/schemas/DrilldownPath'
+        masking_posture:
+          $ref: '#/components/schemas/MaskingPosture'
+    ReportingRow:
+      type: object
+      additionalProperties: true
+    QueryAppliedFilter:
+      type: object
+      properties:
+        operator:
+          $ref: '#/components/schemas/ReportingFilterOperator'
+        value: {}
+      required: [operator, value]
+    ReportingQueryMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+        sort_by:
+          $ref: '#/components/schemas/CatalogKey'
+        sort_direction:
+          type: string
+          enum: [asc, desc]
+        drilldown_path:
+          anyOf:
+            - $ref: '#/components/schemas/CatalogKey'
+            - type: 'null'
+      required: [page, per_page, total, last_page, sort_by, sort_direction, drilldown_path]
+    ReportingFiltersState:
+      type: object
+      properties:
+        available:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApprovedFilter'
+        applied:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/QueryAppliedFilter'
+      required: [available, applied]
+    ReportingQueryFreshness:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        expectation_minutes:
+          type: [integer, 'null']
+      required: [generated_at, expectation_minutes]
+    ReportingVisibility:
+      type: object
+      properties:
+        masked_field_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+        hidden_field_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+        drilldown_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+      required: [masked_field_keys, hidden_field_keys, drilldown_keys]
+    ReportingQueryResult:
+      type: object
+      properties:
+        dataset:
+          $ref: '#/components/schemas/ReportDataset'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportingRow'
+        meta:
+          $ref: '#/components/schemas/ReportingQueryMeta'
+        filters:
+          $ref: '#/components/schemas/ReportingFiltersState'
+        freshness:
+          $ref: '#/components/schemas/ReportingQueryFreshness'
+        visibility:
+          $ref: '#/components/schemas/ReportingVisibility'
+      required: [dataset, items, meta, filters, freshness, visibility]

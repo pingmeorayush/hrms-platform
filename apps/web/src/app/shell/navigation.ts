@@ -180,7 +180,7 @@ export const appNavigation: AppNavItem[] = [
     id: 'reporting',
     label: 'Reporting',
     to: '/reporting',
-    description: 'Governed dashboards for workforce, team, payroll, recruiting, and leadership reporting posture.',
+    description: 'Governed dashboards, report explorer, exports, and recurring delivery posture for workforce, payroll, recruiting, and leadership reporting.',
     icon: 'reporting',
     requiredPermissions: ['reporting.view', 'reporting.manage', 'reporting.certify', 'reporting.export'],
     match: 'any',

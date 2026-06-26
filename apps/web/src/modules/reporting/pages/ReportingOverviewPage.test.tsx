@@ -30,6 +30,18 @@ vi.mock('./useReportingRouteWorkspace', () => ({
 }))
 
 describe('ReportingOverviewPage', () => {
+  function createEmptyWorkspaceData(): ReportingWorkspaceData {
+    return {
+      dashboards: {},
+      failures: [],
+      activity: [],
+      datasets: [],
+      savedViews: [],
+      exports: [],
+      subscriptions: [],
+    }
+  }
+
   function renderWithRouter(element: ReactElement) {
     return render(<MemoryRouter>{element}</MemoryRouter>)
   }
@@ -51,7 +63,7 @@ describe('ReportingOverviewPage', () => {
 
   it('shows an empty state when no governed dashboard is available in scope', () => {
     mockWorkspace = {
-      data: { dashboards: {}, failures: [], activity: [] },
+      data: createEmptyWorkspaceData(),
       isLoading: false,
       error: null,
       source: 'demo',
@@ -67,6 +79,7 @@ describe('ReportingOverviewPage', () => {
   it('surfaces stale dashboard posture in the command center', () => {
     mockWorkspace = {
       data: {
+        ...createEmptyWorkspaceData(),
         dashboards: {
           leadership_overview: {
             dashboard: {
@@ -92,8 +105,6 @@ describe('ReportingOverviewPage', () => {
             widgets: [],
           },
         },
-        failures: [],
-        activity: [],
       },
       isLoading: false,
       error: null,
@@ -111,6 +122,7 @@ describe('ReportingOverviewPage', () => {
   it('shows masked-data posture for the manager dashboard', () => {
     mockWorkspace = {
       data: {
+        ...createEmptyWorkspaceData(),
         dashboards: {
           manager_overview: {
             dashboard: {
@@ -164,8 +176,6 @@ describe('ReportingOverviewPage', () => {
             ],
           },
         },
-        failures: [],
-        activity: [],
       },
       isLoading: false,
       error: null,
@@ -183,9 +193,7 @@ describe('ReportingOverviewPage', () => {
   it('shows a permission-style empty state when the dashboard is outside the current scope', () => {
     mockWorkspace = {
       data: {
-        dashboards: {},
-        failures: [],
-        activity: [],
+        ...createEmptyWorkspaceData(),
       },
       isLoading: false,
       error: null,

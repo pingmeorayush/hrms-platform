@@ -66,6 +66,8 @@ import { OperationsIndexRedirect } from '../../modules/operations/pages/Operatio
 import { OperationsLifecyclePage } from '../../modules/operations/pages/OperationsLifecyclePage'
 import { OperationsOverviewPage } from '../../modules/operations/pages/OperationsOverviewPage'
 import { ReportingAdminPage } from '../../modules/reporting/pages/ReportingAdminPage'
+import { ReportingExplorerPage } from '../../modules/reporting/pages/ReportingExplorerPage'
+import { ReportingExportsPage } from '../../modules/reporting/pages/ReportingExportsPage'
 import {
   ReportingExecutivePage,
   ReportingOverviewPage,
@@ -75,6 +77,7 @@ import {
   ReportingWorkforcePage,
 } from '../../modules/reporting/pages/ReportingOverviewPage'
 import { ReportingIndexRedirect } from '../../modules/reporting/pages/ReportingPage'
+import { ReportingSubscriptionsPage } from '../../modules/reporting/pages/ReportingSubscriptionsPage'
 import { SelfServiceAssetsPage } from '../../modules/self-service/pages/SelfServiceAssetsPage'
 import { SelfServiceDocumentsPage } from '../../modules/self-service/pages/SelfServiceDocumentsPage'
 import { SelfServiceIndexRedirect, SelfServicePage } from '../../modules/self-service/pages/SelfServicePage'
@@ -459,6 +462,9 @@ export function AppRoutes() {
         >
           <Route index element={<ReportingIndexRedirect />} />
           <Route path="overview" element={<ReportingOverviewPage />} />
+          <Route path="explorer" element={<ReportingExplorerPage />} />
+          <Route path="exports" element={<ReportingExportsPage />} />
+          <Route path="subscriptions" element={<ReportingSubscriptionsPage />} />
           <Route path="workforce" element={<ReportingWorkforcePage />} />
           <Route path="team" element={<ReportingTeamPage />} />
           <Route path="payroll" element={<ReportingPayrollPage />} />

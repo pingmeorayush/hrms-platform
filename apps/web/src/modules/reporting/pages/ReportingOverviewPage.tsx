@@ -240,7 +240,7 @@ export function ReportingOverviewPage() {
         <WorkspaceHeroHeader
           moduleLabel="Reporting"
           title="Reporting Command Center"
-          description="Monitor governed dashboard freshness, blocked widgets, masking posture, and persona-specific KPI coverage before deeper report exploration arrives."
+          description="Monitor governed dashboard freshness, blocked widgets, masking posture, and persona-specific KPI coverage before diving into report exploration and delivery workflows."
           badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
           context={[
             `${dashboards.length} dashboard${dashboards.length === 1 ? '' : 's'} in scope`,
@@ -418,7 +418,7 @@ export function ReportingOverviewPage() {
 
               <CommandCenterPanel
                 title="Recent governance signals"
-                description="Surface trust and delivery posture while deeper export and subscription pages are still ahead."
+                description="Surface trust, masking, and delivery posture across the live reporting, export, and subscription workflows."
               >
                 <div className="space-y-3 p-4">
                   {workspace.data.activity.length ? (
@@ -434,7 +434,7 @@ export function ReportingOverviewPage() {
                     ))
                   ) : (
                     <div className="rounded-xl border border-dashed border-line bg-panel/60 px-3 py-4 text-sm text-muted-foreground">
-                      Recent export and subscription delivery signals will appear here as the next reporting wave lands.
+                      Export, subscription, and governance activity will appear here as this reporting workspace accumulates live delivery history.
                     </div>
                   )}
                 </div>

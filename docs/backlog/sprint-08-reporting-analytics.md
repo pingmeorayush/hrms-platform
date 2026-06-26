@@ -169,6 +169,11 @@ Acceptance Criteria:
 - Saved views preserve approved filter state and presentation preferences without bypassing current permission or masking rules
 - UI states cover no-results, stale-data, queued-export, completed-export, expired-export, and blocked-export scenarios
 
+Implementation Status:
+
+- Implemented in `apps/web` with `/reporting/explorer`, `/reporting/exports`, and `/reporting/subscriptions`.
+- Verification now includes `AppRoutes.test.tsx`, `ReportingOverviewPage.test.tsx`, `ReportingOperationsPages.test.tsx`, `npm run typecheck`, targeted `eslint`, `npm run build`, and browser verification against the running local routes.
+
 ### S08-007: Implement reporting access control, audit visibility, and sensitive-data masking
 
 Type: Story  

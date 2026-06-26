@@ -88,7 +88,7 @@ The Reporting and Analytics module turns trusted transactional state from earlie
 ## Current Workspace Baseline
 
 - A dedicated reporting backend module now exists in `apps/api` with governed KPI and dataset catalog APIs.
-- A routed reporting workspace now exists in `apps/web` at `/reporting` with a command-center overview plus workforce, team, payroll, recruitment, and executive dashboard routes.
+- A routed reporting workspace now exists in `apps/web` at `/reporting` with a command-center overview, workforce, team, payroll, recruitment, and executive dashboards, plus `/reporting/explorer`, `/reporting/exports`, and `/reporting/subscriptions`.
 - Some useful adjacent patterns already exist:
   - payroll review and exception surfaces in Sprint 05
   - command-center style module overview pages across the web app
@@ -108,10 +108,10 @@ The Reporting and Analytics module turns trusted transactional state from earlie
 - `S08-003` is now implemented in `apps/api`, adding governed report export requests, sync-versus-queued execution control, async processing, retention posture, requestor-scoped completion notifications, and controlled download flows for approved formats.
 - `S08-004` is now implemented in `apps/api`, adding governed dashboard retrieval with persisted widget definitions, per-scope snapshot caching, freshness posture, and lineage back to certified KPI and dataset records.
 - `S08-005` is now implemented in `apps/web`, introducing the routed reporting module with a command-center overview plus role-aware workforce, manager, payroll, recruiter, and leadership dashboards that surface stale-data, masked-data, blocked-widget, and permission-denied states using the shared command-center design language.
+- `S08-006` is now implemented in `apps/web`, adding the governed explorer, saved-view creation and archive flow, export queue, and subscription center with demo/live workspace wiring, explicit no-results or blocked-state handling, and route coverage for `/reporting/explorer`, `/reporting/exports`, and `/reporting/subscriptions`.
 - `S08-009` is now implemented in `apps/api`, adding governed saved report views, owner-scoped subscriptions, role or company share posture for reusable views, manual delivery triggering, and permission revalidation before each recurring export delivery.
 - `S08-007` is now implemented in `apps/api`, hardening report consumption with tenant-scoped dataset resolution, role-sensitive field masking, drilldown-target access filtering, response-level visibility metadata, and audit payloads that record masked fields plus returned drilldown keys.
-- `S08-006` should extend the routed reporting module with the governed explorer, saved-view consumption, export queue, and subscription-delivery screens using the same command-center and dense-table UI language.
-- `S08-008` should publish focused Sprint 08 reporting contracts for query, dashboard, export, and subscription flows.
+- `S08-008` is now implemented through focused Sprint 08 contract files for reporting governance/query, dashboards, and delivery flows, closing the final publication and consistency-hardening pass for the module.
 
 ## Current Implemented Dataset Query Baseline
 

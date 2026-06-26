@@ -3,6 +3,9 @@ import { reportingSectionDefinitions } from './config'
 
 export type ReportingWorkspaceSectionId =
   | 'overview'
+  | 'explorer'
+  | 'exports'
+  | 'subscriptions'
   | 'workforce'
   | 'team'
   | 'payroll'

@@ -74,7 +74,7 @@ In Progress
 ## Current Workspace Baseline
 
 - A dedicated reporting backend module now exists in `apps/api` with the Sprint 08 KPI and dataset governance baseline.
-- A routed reporting module now exists in `apps/web` with `/reporting/overview`, `/reporting/workforce`, `/reporting/team`, `/reporting/payroll`, `/reporting/recruitment`, and `/reporting/executive`.
+- A routed reporting module now exists in `apps/web` with `/reporting/overview`, `/reporting/explorer`, `/reporting/exports`, `/reporting/subscriptions`, `/reporting/workforce`, `/reporting/team`, `/reporting/payroll`, `/reporting/recruitment`, and `/reporting/executive`.
 - Some adjacent UI patterns already exist and should be reused instead of reinvented:
   - payroll review in Sprint 05
   - overview and command-center style module landing pages in Sprints 02 to 07
@@ -89,7 +89,7 @@ The planning pass for Sprint 08 surfaced several important corrections:
 - There was no dedicated frontend rollout plan, which would have made dashboards and report explorer work arrive as disconnected screens rather than a coherent reporting product.
 - The backlog mentioned saved views in the UI but did not explicitly give them a governed backend home, so saved-view and subscription persistence now needs its own explicit story.
 - Enterprise-grade reporting requires more than query endpoints: metric lineage, certification state, freshness timestamps, row-level scope, masking rules, and export auditability all need to be first-class from the start.
-- The current workspace has no reporting scaffold yet, so Sprint 08 should remain strongly backend-first and avoid designing report UIs before dataset and permission contracts exist.
+- The sprint started from zero reporting scaffold, so delivery stayed backend-first until dataset, masking, and permission contracts were stable enough for dashboard and explorer work.
 
 ## Recommended Delivery Order
 
@@ -108,7 +108,9 @@ The planning pass for Sprint 08 surfaced several important corrections:
 7. `S08-005` role-specific dashboard screens
    Status: Implemented in `apps/web` with a routed reporting command center, persona-aware dashboard sections, demo/live governed dashboard wiring, and explicit stale-data, masked-data, empty, and permission-denied states.
 8. `S08-006` report explorer, saved-view, and export-consumption UI
+   Status: Implemented in `apps/web` with `/reporting/explorer`, `/reporting/exports`, and `/reporting/subscriptions`, governed filter and saved-view flows, blocked and expired export-state handling, recurring delivery controls, targeted Vitest coverage, and passing `typecheck`, `eslint`, `build`, and local browser verification.
 9. `S08-008` contract publication and final hardening
+   Status: Implemented with focused Sprint 08 reporting contract files for governance/query, dashboards, and delivery flows, plus final reporting UI copy hardening so the live workspace no longer reads like an unfinished future wave.
 
 ## Sprint 08 MVP Boundaries
 

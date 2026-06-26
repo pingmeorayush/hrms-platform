@@ -22,6 +22,12 @@ This directory holds the version-controlled OpenAPI contract files published by 
   - Goal libraries, competencies, review cycles, review execution, calibration, finalization, publication, and reopen APIs
 - `sprint-07-learning-management.yaml`
   - Learning catalog items, assignments, resolved targets, learner completion, and self-service learning APIs
+- `sprint-08-reporting-governance-query.yaml`
+  - Reporting KPI catalog, governed dataset registry, dataset query, freshness, and visibility APIs
+- `sprint-08-reporting-dashboards.yaml`
+  - Persona-specific reporting dashboards, snapshot caching, widget governance, and freshness APIs
+- `sprint-08-reporting-delivery.yaml`
+  - Reporting exports, saved views, subscriptions, delivery lifecycle, and download APIs
 
 ## Contract Conventions
 

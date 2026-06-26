@@ -1,0 +1,314 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 08 Reporting Dashboards API
+  version: 1.0.0
+  description: Role-specific reporting dashboard, snapshot, widget-lineage, and freshness APIs implemented during Sprint 08.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /reporting/dashboards/{dashboardKey}:
+    get:
+      operationId: getReportingDashboard
+      summary: Load a persona-specific governed reporting dashboard
+      parameters:
+        - $ref: '#/components/parameters/DashboardKeyPath'
+        - in: query
+          name: force_refresh
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Reporting dashboard loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportingDashboardResult'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    DashboardKeyPath:
+      in: path
+      name: dashboardKey
+      required: true
+      schema:
+        $ref: '#/components/schemas/DashboardKey'
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    CatalogKey:
+      type: string
+      maxLength: 64
+      pattern: '^[a-z0-9_.-]+$'
+    DashboardKey:
+      type: string
+      enum: [hr_overview, manager_overview, payroll_overview, recruiter_overview, leadership_overview]
+    DashboardPersona:
+      type: string
+      enum: [hr, manager, payroll, recruiter, leadership]
+    CertificationStatus:
+      type: string
+      enum: [draft, under_review, certified, deprecated]
+    ReportingDomain:
+      type: string
+      enum: [workforce, attendance, leave, payroll, recruitment, performance, learning, operations, cross_domain]
+    ReportingMaskingStrategy:
+      type: string
+      enum: [none, redact, partial, aggregate_only]
+    SourceReference:
+      type: object
+      properties:
+        module:
+          type: string
+        entity:
+          type: string
+        field:
+          type: [string, 'null']
+        notes:
+          type: [string, 'null']
+      required: [module, entity, field, notes]
+    MaskingPosture:
+      type: object
+      properties:
+        default_strategy:
+          $ref: '#/components/schemas/ReportingMaskingStrategy'
+        sensitive_field_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+        notes:
+          type: [string, 'null']
+      required: [default_strategy, sensitive_field_keys, notes]
+    DashboardSummary:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/DashboardKey'
+        name:
+          type: string
+        persona:
+          $ref: '#/components/schemas/DashboardPersona'
+        description:
+          type: string
+      required: [key, name, persona, description]
+    DashboardSnapshot:
+      type: object
+      properties:
+        id:
+          type: [integer, 'null']
+        cache_hit:
+          type: boolean
+        generated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        scope_signature:
+          type: string
+        source_signature:
+          type: string
+      required: [id, cache_hit, generated_at, expires_at, scope_signature, source_signature]
+    DashboardFreshness:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        expectation_minutes:
+          type: integer
+        is_stale:
+          type: boolean
+      required: [generated_at, expires_at, expectation_minutes, is_stale]
+    DashboardWidgetDrilldown:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        label:
+          type: string
+        target_dataset_key:
+          anyOf:
+            - $ref: '#/components/schemas/CatalogKey'
+            - type: 'null'
+        description:
+          type: [string, 'null']
+      required: [key, label, target_dataset_key, description]
+    DashboardWidgetKpiGovernance:
+      type: object
+      properties:
+        key:
+          anyOf:
+            - $ref: '#/components/schemas/CatalogKey'
+            - type: 'null'
+        name:
+          type: [string, 'null']
+        formula:
+          type: [string, 'null']
+        version:
+          type: [integer, 'null']
+        certification_status:
+          anyOf:
+            - $ref: '#/components/schemas/CertificationStatus'
+            - type: 'null'
+        source_references:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceReference'
+      required: [key, name, formula, version, certification_status, source_references]
+    DashboardWidgetDatasetGovernance:
+      type: object
+      properties:
+        key:
+          anyOf:
+            - $ref: '#/components/schemas/CatalogKey'
+            - type: 'null'
+        name:
+          type: [string, 'null']
+        domain:
+          anyOf:
+            - $ref: '#/components/schemas/ReportingDomain'
+            - type: 'null'
+        version:
+          type: [integer, 'null']
+        certification_status:
+          anyOf:
+            - $ref: '#/components/schemas/CertificationStatus'
+            - type: 'null'
+        freshness_expectation_minutes:
+          type: [integer, 'null']
+        masking_posture:
+          $ref: '#/components/schemas/MaskingPosture'
+      required: [key, name, domain, version, certification_status, freshness_expectation_minutes, masking_posture]
+    DashboardWidgetGovernance:
+      type: object
+      properties:
+        kpi:
+          $ref: '#/components/schemas/DashboardWidgetKpiGovernance'
+        dataset:
+          $ref: '#/components/schemas/DashboardWidgetDatasetGovernance'
+      required: [kpi, dataset]
+    DashboardWidget:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+        widget_type:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [ready, blocked]
+        blocked_reason:
+          type: [string, 'null']
+        value:
+          type: [number, 'null']
+        unit:
+          type: string
+        drilldown:
+          anyOf:
+            - $ref: '#/components/schemas/DashboardWidgetDrilldown'
+            - type: 'null'
+        governance:
+          $ref: '#/components/schemas/DashboardWidgetGovernance'
+        freshness:
+          $ref: '#/components/schemas/DashboardFreshness'
+      required: [key, name, widget_type, description, status, blocked_reason, value, unit, drilldown, governance, freshness]
+    ReportingDashboardResult:
+      type: object
+      properties:
+        dashboard:
+          $ref: '#/components/schemas/DashboardSummary'
+        snapshot:
+          $ref: '#/components/schemas/DashboardSnapshot'
+        freshness:
+          $ref: '#/components/schemas/DashboardFreshness'
+        widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardWidget'
+      required: [dashboard, snapshot, freshness, widgets]

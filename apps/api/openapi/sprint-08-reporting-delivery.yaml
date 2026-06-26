@@ -1,0 +1,1215 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 08 Reporting Delivery API
+  version: 1.0.0
+  description: Reporting export, saved-view, subscription, and delivery-governance APIs implemented during Sprint 08.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /reporting/exports:
+    get:
+      operationId: listReportingExports
+      summary: List report exports visible to the caller
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/ReportExportStatus'
+        - in: query
+          name: dataset_key
+          schema:
+            $ref: '#/components/schemas/CatalogKey'
+        - in: query
+          name: requested_by_me
+          schema:
+            type: boolean
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Report exports loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportExportCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createReportingExport
+      summary: Request a governed report export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportingExportRequest'
+      responses:
+        '201':
+          description: Report export created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportExport'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/exports/{reportExportId}:
+    get:
+      operationId: getReportingExport
+      summary: Load one report export request
+      parameters:
+        - $ref: '#/components/parameters/ReportExportId'
+      responses:
+        '200':
+          description: Report export loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportExport'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /reporting/exports/{reportExportId}/process:
+    post:
+      operationId: processReportingExport
+      summary: Process a queued or pending report export
+      parameters:
+        - $ref: '#/components/parameters/ReportExportId'
+      responses:
+        '200':
+          description: Report export processed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportExport'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/exports/{reportExportId}/download:
+    get:
+      operationId: downloadReportingExport
+      summary: Download a completed report export file
+      parameters:
+        - $ref: '#/components/parameters/ReportExportId'
+      responses:
+        '200':
+          description: Export file streamed to the caller
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/saved-views:
+    get:
+      operationId: listSavedReportViews
+      summary: List saved report views visible to the caller
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/SavedViewStatus'
+        - in: query
+          name: share_scope
+          schema:
+            $ref: '#/components/schemas/SavedViewShareScope'
+        - in: query
+          name: dataset_key
+          schema:
+            $ref: '#/components/schemas/CatalogKey'
+        - in: query
+          name: owned_by_me
+          schema:
+            type: boolean
+        - in: query
+          name: include_shared
+          schema:
+            type: boolean
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Saved report views loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SavedReportViewCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createSavedReportView
+      summary: Create a saved report view against an approved dataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavedReportViewRequest'
+      responses:
+        '201':
+          description: Saved report view created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SavedReportView'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/saved-views/{savedReportViewId}:
+    get:
+      operationId: getSavedReportView
+      summary: Load one saved report view
+      parameters:
+        - $ref: '#/components/parameters/SavedReportViewId'
+      responses:
+        '200':
+          description: Saved report view loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SavedReportView'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateSavedReportView
+      summary: Update a saved report view
+      parameters:
+        - $ref: '#/components/parameters/SavedReportViewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSavedReportViewRequest'
+      responses:
+        '200':
+          description: Saved report view updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SavedReportView'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      operationId: archiveSavedReportView
+      summary: Archive a saved report view
+      parameters:
+        - $ref: '#/components/parameters/SavedReportViewId'
+      responses:
+        '200':
+          description: Saved report view archived
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SavedReportView'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /reporting/subscriptions:
+    get:
+      operationId: listReportingSubscriptions
+      summary: List report subscriptions visible to the caller
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/ReportSubscriptionStatus'
+        - in: query
+          name: frequency
+          schema:
+            $ref: '#/components/schemas/ReportSubscriptionFrequency'
+        - in: query
+          name: dataset_key
+          schema:
+            $ref: '#/components/schemas/CatalogKey'
+        - in: query
+          name: owned_by_me
+          schema:
+            type: boolean
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Report subscriptions loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportSubscriptionCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createReportingSubscription
+      summary: Create a recurring governed report subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportSubscriptionRequest'
+      responses:
+        '201':
+          description: Report subscription created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportSubscription'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /reporting/subscriptions/{reportSubscriptionId}:
+    get:
+      operationId: getReportingSubscription
+      summary: Load one report subscription
+      parameters:
+        - $ref: '#/components/parameters/ReportSubscriptionId'
+      responses:
+        '200':
+          description: Report subscription loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportSubscription'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateReportingSubscription
+      summary: Update a report subscription
+      parameters:
+        - $ref: '#/components/parameters/ReportSubscriptionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReportSubscriptionRequest'
+      responses:
+        '200':
+          description: Report subscription updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportSubscription'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      operationId: revokeReportingSubscription
+      summary: Revoke a report subscription
+      parameters:
+        - $ref: '#/components/parameters/ReportSubscriptionId'
+      responses:
+        '200':
+          description: Report subscription revoked
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportSubscription'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /reporting/subscriptions/{reportSubscriptionId}/deliver:
+    post:
+      operationId: deliverReportingSubscription
+      summary: Trigger immediate delivery for a report subscription
+      parameters:
+        - $ref: '#/components/parameters/ReportSubscriptionId'
+      responses:
+        '200':
+          description: Report subscription delivery attempted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportSubscription'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ReportExportId:
+      in: path
+      name: reportExportId
+      required: true
+      schema:
+        type: integer
+    SavedReportViewId:
+      in: path
+      name: savedReportViewId
+      required: true
+      schema:
+        type: integer
+    ReportSubscriptionId:
+      in: path
+      name: reportSubscriptionId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    CatalogKey:
+      type: string
+      maxLength: 64
+      pattern: '^[a-z0-9_.-]+$'
+    ReportingDomain:
+      type: string
+      enum: [workforce, attendance, leave, payroll, recruitment, performance, learning, operations, cross_domain]
+    ReportExportFormat:
+      type: string
+      enum: [csv, json]
+    ReportExportExecutionMode:
+      type: string
+      enum: [auto, sync, async]
+    ReportExportDeliveryTarget:
+      type: string
+      enum: [requestor_download]
+    ReportExportStatus:
+      type: string
+      enum: [queued, processing, completed, failed, expired]
+    SavedViewShareScope:
+      type: string
+      enum: [private, roles, company]
+    SavedViewStatus:
+      type: string
+      enum: [active, archived]
+    ReportSubscriptionStatus:
+      type: string
+      enum: [active, paused, blocked, revoked]
+    ReportSubscriptionChannel:
+      type: string
+      enum: [in_app_notification]
+    ReportSubscriptionDeliveryTarget:
+      type: string
+      enum: [owner_only]
+    ReportSubscriptionFrequency:
+      type: string
+      enum: [daily, weekly, monthly]
+    UserReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+      required: [id, name, email]
+    ReportDatasetSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+        domain:
+          $ref: '#/components/schemas/ReportingDomain'
+      required: [id, key, name, domain]
+    SavedReportViewSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        view_uuid:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/SavedViewStatus'
+      required: [id, view_uuid, name, status]
+    ReportingQueryState:
+      type: object
+      properties:
+        filters:
+          type: object
+          additionalProperties: true
+        filter_operators:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 32
+        sort_by:
+          anyOf:
+            - $ref: '#/components/schemas/CatalogKey'
+            - type: 'null'
+        sort_direction:
+          type: [string, 'null']
+          enum: [asc, desc, null]
+        drilldown_path:
+          anyOf:
+            - $ref: '#/components/schemas/CatalogKey'
+            - type: 'null'
+      required: [filters, filter_operators, sort_by, sort_direction, drilldown_path]
+    ReportingVisibility:
+      type: object
+      properties:
+        masked_field_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+        hidden_field_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+        drilldown_keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogKey'
+      required: [masked_field_keys, hidden_field_keys, drilldown_keys]
+    ReportingFreshness:
+      type: object
+      properties:
+        generated_at:
+          type: [string, 'null']
+          format: date-time
+        expectation_minutes:
+          type: [integer, 'null']
+      required: [generated_at, expectation_minutes]
+    ReportExportCounts:
+      type: object
+      properties:
+        estimated_row_count:
+          type: [integer, 'null']
+        exported_row_count:
+          type: [integer, 'null']
+      required: [estimated_row_count, exported_row_count]
+    ReportExportFile:
+      type: object
+      properties:
+        name:
+          type: [string, 'null']
+        size_bytes:
+          type: [integer, 'null']
+        checksum_sha256:
+          type: [string, 'null']
+        download_available:
+          type: boolean
+        download_url:
+          type: [string, 'null']
+      required: [name, size_bytes, checksum_sha256, download_available, download_url]
+    ReportExportRetention:
+      type: object
+      properties:
+        expires_at:
+          type: [string, 'null']
+          format: date-time
+        is_expired:
+          type: boolean
+      required: [expires_at, is_expired]
+    ReportExport:
+      type: object
+      properties:
+        id:
+          type: integer
+        export_uuid:
+          type: string
+        status:
+          $ref: '#/components/schemas/ReportExportStatus'
+        format:
+          $ref: '#/components/schemas/ReportExportFormat'
+        execution_mode:
+          $ref: '#/components/schemas/ReportExportExecutionMode'
+        delivery_target:
+          $ref: '#/components/schemas/ReportExportDeliveryTarget'
+        dataset:
+          anyOf:
+            - $ref: '#/components/schemas/ReportDatasetSummary'
+            - type: 'null'
+        requested_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        query:
+          $ref: '#/components/schemas/ReportingQueryState'
+        counts:
+          $ref: '#/components/schemas/ReportExportCounts'
+        visibility:
+          $ref: '#/components/schemas/ReportingVisibility'
+        freshness:
+          $ref: '#/components/schemas/ReportingFreshness'
+        file:
+          $ref: '#/components/schemas/ReportExportFile'
+        retention:
+          $ref: '#/components/schemas/ReportExportRetention'
+        requested_at:
+          type: [string, 'null']
+          format: date-time
+        started_at:
+          type: [string, 'null']
+          format: date-time
+        completed_at:
+          type: [string, 'null']
+          format: date-time
+        failed_at:
+          type: [string, 'null']
+          format: date-time
+        notified_at:
+          type: [string, 'null']
+          format: date-time
+        last_error:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, export_uuid, status, format, execution_mode, delivery_target, dataset, requested_by, query, counts, visibility, freshness, file, retention, requested_at, started_at, completed_at, failed_at, notified_at, last_error, created_at, updated_at]
+    ReportExportCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportExport'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    ReportingExportRequest:
+      type: object
+      properties:
+        dataset_key:
+          $ref: '#/components/schemas/CatalogKey'
+        format:
+          $ref: '#/components/schemas/ReportExportFormat'
+        execution_mode:
+          $ref: '#/components/schemas/ReportExportExecutionMode'
+        delivery_target:
+          $ref: '#/components/schemas/ReportExportDeliveryTarget'
+        filters:
+          type: object
+          additionalProperties: true
+        filter_operators:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 32
+        sort_by:
+          $ref: '#/components/schemas/CatalogKey'
+        sort_direction:
+          type: string
+          enum: [asc, desc]
+        drilldown_path:
+          $ref: '#/components/schemas/CatalogKey'
+      required: [dataset_key]
+    ValidationState:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [unknown, valid, blocked]
+        reason:
+          type: [string, 'null']
+      required: [status, reason]
+    SavedReportViewShare:
+      type: object
+      properties:
+        scope:
+          $ref: '#/components/schemas/SavedViewShareScope'
+        shared_role_names:
+          type: array
+          items:
+            type: string
+      required: [scope, shared_role_names]
+    SavedReportView:
+      type: object
+      properties:
+        id:
+          type: integer
+        view_uuid:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/SavedViewStatus'
+        share:
+          $ref: '#/components/schemas/SavedReportViewShare'
+        dataset:
+          anyOf:
+            - $ref: '#/components/schemas/ReportDatasetSummary'
+            - type: 'null'
+        owner:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        query:
+          $ref: '#/components/schemas/ReportingQueryState'
+        presentation_preferences:
+          type: object
+          additionalProperties: true
+        validation:
+          $ref: '#/components/schemas/ValidationState'
+        created_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        updated_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, view_uuid, name, description, status, share, dataset, owner, query, presentation_preferences, validation, created_by, updated_by, created_at, updated_at]
+    SavedReportViewCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedReportView'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    SavedReportViewRequest:
+      type: object
+      properties:
+        dataset_key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: [string, 'null']
+          maxLength: 500
+        share_scope:
+          $ref: '#/components/schemas/SavedViewShareScope'
+        shared_role_names:
+          type: array
+          items:
+            type: string
+            maxLength: 64
+        filters:
+          type: object
+          additionalProperties: true
+        filter_operators:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 32
+        sort_by:
+          $ref: '#/components/schemas/CatalogKey'
+        sort_direction:
+          type: string
+          enum: [asc, desc]
+        drilldown_path:
+          $ref: '#/components/schemas/CatalogKey'
+        presentation_preferences:
+          type: object
+          additionalProperties: true
+      required: [dataset_key, name]
+    UpdateSavedReportViewRequest:
+      type: object
+      properties:
+        dataset_key:
+          $ref: '#/components/schemas/CatalogKey'
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: [string, 'null']
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/SavedViewStatus'
+        share_scope:
+          $ref: '#/components/schemas/SavedViewShareScope'
+        shared_role_names:
+          type: array
+          items:
+            type: string
+            maxLength: 64
+        filters:
+          type: object
+          additionalProperties: true
+        filter_operators:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 32
+        sort_by:
+          $ref: '#/components/schemas/CatalogKey'
+        sort_direction:
+          type: string
+          enum: [asc, desc]
+        drilldown_path:
+          $ref: '#/components/schemas/CatalogKey'
+        presentation_preferences:
+          type: object
+          additionalProperties: true
+    DeliveryScheduleConfig:
+      type: object
+      properties:
+        time_of_day:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$'
+        weekday:
+          type: integer
+          minimum: 0
+          maximum: 6
+        day_of_month:
+          type: integer
+          minimum: 1
+          maximum: 28
+      required: [time_of_day]
+    ReportSubscriptionSource:
+      type: object
+      properties:
+        dataset:
+          anyOf:
+            - $ref: '#/components/schemas/ReportDatasetSummary'
+            - type: 'null'
+        saved_view:
+          anyOf:
+            - $ref: '#/components/schemas/SavedReportViewSummary'
+            - type: 'null'
+      required: [dataset, saved_view]
+    ReportSubscriptionDelivery:
+      type: object
+      properties:
+        channel:
+          $ref: '#/components/schemas/ReportSubscriptionChannel'
+        target:
+          $ref: '#/components/schemas/ReportSubscriptionDeliveryTarget'
+        export_format:
+          $ref: '#/components/schemas/ReportExportFormat'
+      required: [channel, target, export_format]
+    ReportSubscriptionSchedule:
+      type: object
+      properties:
+        frequency:
+          $ref: '#/components/schemas/ReportSubscriptionFrequency'
+        timezone:
+          type: string
+        config:
+          $ref: '#/components/schemas/DeliveryScheduleConfig'
+        next_delivery_at:
+          type: [string, 'null']
+          format: date-time
+      required: [frequency, timezone, config, next_delivery_at]
+    ReportSubscriptionLastDelivery:
+      type: object
+      properties:
+        status:
+          type: [string, 'null']
+        error:
+          type: [string, 'null']
+        delivered_at:
+          type: [string, 'null']
+          format: date-time
+        report_export_id:
+          type: [integer, 'null']
+      required: [status, error, delivered_at, report_export_id]
+    ReportSubscription:
+      type: object
+      properties:
+        id:
+          type: integer
+        subscription_uuid:
+          type: string
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/ReportSubscriptionStatus'
+        owner:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        source:
+          $ref: '#/components/schemas/ReportSubscriptionSource'
+        delivery:
+          $ref: '#/components/schemas/ReportSubscriptionDelivery'
+        schedule:
+          $ref: '#/components/schemas/ReportSubscriptionSchedule'
+        query:
+          $ref: '#/components/schemas/ReportingQueryState'
+        validation:
+          $ref: '#/components/schemas/ValidationState'
+        last_delivery:
+          $ref: '#/components/schemas/ReportSubscriptionLastDelivery'
+        created_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        updated_by:
+          anyOf:
+            - $ref: '#/components/schemas/UserReference'
+            - type: 'null'
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, subscription_uuid, name, description, status, owner, source, delivery, schedule, query, validation, last_delivery, created_by, updated_by, created_at, updated_at]
+    ReportSubscriptionCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportSubscription'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    ReportSubscriptionRequest:
+      type: object
+      properties:
+        dataset_key:
+          $ref: '#/components/schemas/CatalogKey'
+        saved_report_view_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: [string, 'null']
+          maxLength: 500
+        delivery_channel:
+          $ref: '#/components/schemas/ReportSubscriptionChannel'
+        delivery_target:
+          $ref: '#/components/schemas/ReportSubscriptionDeliveryTarget'
+        export_format:
+          $ref: '#/components/schemas/ReportExportFormat'
+        frequency:
+          $ref: '#/components/schemas/ReportSubscriptionFrequency'
+        timezone:
+          type: string
+          maxLength: 64
+        schedule_config:
+          $ref: '#/components/schemas/DeliveryScheduleConfig'
+        filters:
+          type: object
+          additionalProperties: true
+        filter_operators:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 32
+        sort_by:
+          $ref: '#/components/schemas/CatalogKey'
+        sort_direction:
+          type: string
+          enum: [asc, desc]
+        drilldown_path:
+          $ref: '#/components/schemas/CatalogKey'
+      required: [name, frequency, timezone, schedule_config]
+    UpdateReportSubscriptionRequest:
+      type: object
+      properties:
+        dataset_key:
+          $ref: '#/components/schemas/CatalogKey'
+        saved_report_view_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: [string, 'null']
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/ReportSubscriptionStatus'
+        delivery_channel:
+          $ref: '#/components/schemas/ReportSubscriptionChannel'
+        delivery_target:
+          $ref: '#/components/schemas/ReportSubscriptionDeliveryTarget'
+        export_format:
+          $ref: '#/components/schemas/ReportExportFormat'
+        frequency:
+          $ref: '#/components/schemas/ReportSubscriptionFrequency'
+        timezone:
+          type: string
+          maxLength: 64
+        schedule_config:
+          $ref: '#/components/schemas/DeliveryScheduleConfig'
+        filters:
+          type: object
+          additionalProperties: true
+        filter_operators:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 32
+        sort_by:
+          $ref: '#/components/schemas/CatalogKey'
+        sort_direction:
+          type: string
+          enum: [asc, desc]
+        drilldown_path:
+          $ref: '#/components/schemas/CatalogKey'

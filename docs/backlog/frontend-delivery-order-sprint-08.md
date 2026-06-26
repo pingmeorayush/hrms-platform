@@ -6,7 +6,7 @@ Turn Sprint 08 reporting and analytics scope into a practical frontend rollout s
 
 ## Current Workspace Baseline
 
-- There is no routed reporting module yet in `apps/web`.
+- A routed reporting module now exists in `apps/web` with dashboard routes plus the governed explorer, export queue, and subscription center.
 - Several adjacent patterns already exist and should be reused:
   - module command-center pages across recruitment, performance, learning, payroll, attendance, employees, and operations
   - dense table and detail patterns from the current admin UI system
@@ -42,9 +42,9 @@ Turn Sprint 08 reporting and analytics scope into a practical frontend rollout s
 
 ## Current Delivery Status
 
-- `S08-005` is now implemented in `apps/web`, which means Wave 0 route/state foundation plus Waves 1 to 3 of the dashboard rollout are now live.
-- The next frontend move is `S08-006`, building the explorer, saved-view consumption, export queue, and subscription-delivery surfaces on top of the routed reporting module.
-- The backend prerequisites for export lifecycle, saved views, and subscriptions are now implemented in `apps/api`, so Wave 5 can build on stable governed state instead of placeholders once the explorer UI exists.
+- `S08-005` is implemented in `apps/web`, which means Wave 0 route/state foundation plus Waves 1 to 3 of the dashboard rollout are live.
+- `S08-006` is now implemented in `apps/web`, bringing the explorer, saved-view consumption, export queue, and subscription-delivery surfaces online with demo/live workspace wiring.
+- `S08-008` is now implemented through published Sprint 08 reporting contracts plus final reporting command-center copy hardening so the workspace messaging matches the already-live export and subscription flows.
 
 ## Wave Details
 
@@ -172,6 +172,8 @@ If implementation starts immediately, the first Sprint 08 frontend sequence shou
 2. Wave 1 reporting command center baseline
    Status: Implemented through `/reporting/overview`.
 3. Wave 4 report explorer baseline
-   Status: Next recommended frontend slice in `S08-006`.
+   Status: Implemented through `/reporting/explorer` with governed dataset filters, no-results handling, saved-view consumption, and controlled export requests.
+4. Wave 5 export, saved-view, and subscription UX
+   Status: Implemented through `/reporting/exports` and `/reporting/subscriptions` with queued, completed, expired, and blocked-state visibility plus recurring delivery controls.
 
 That gives us the strongest operational shape early while keeping dashboard growth disciplined and avoiding premature chart sprawl.

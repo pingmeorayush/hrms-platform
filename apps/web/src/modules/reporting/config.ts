@@ -22,6 +22,33 @@ export const reportingSectionDefinitions: ReportingSectionDefinition[] = [
     match: 'any',
   },
   {
+    id: 'explorer',
+    label: 'Explorer',
+    to: '/reporting/explorer',
+    description:
+      'Governed report explorer for dataset discovery, approved filters, drilldowns, and saved-view consumption.',
+    requiredPermissions: ['reporting.view', 'reporting.manage', 'reporting.certify', 'reporting.export'],
+    match: 'any',
+  },
+  {
+    id: 'exports',
+    label: 'Exports',
+    to: '/reporting/exports',
+    description:
+      'Queue visibility for requested exports, blocked delivery, retention posture, and governed downloads.',
+    requiredPermissions: ['reporting.view', 'reporting.manage', 'reporting.certify', 'reporting.export'],
+    match: 'any',
+  },
+  {
+    id: 'subscriptions',
+    label: 'Subscriptions',
+    to: '/reporting/subscriptions',
+    description:
+      'Recurring report delivery setup with owner scope, saved-view sources, and blocked-state visibility.',
+    requiredPermissions: ['reporting.view', 'reporting.manage', 'reporting.certify', 'reporting.export'],
+    match: 'any',
+  },
+  {
     id: 'workforce',
     label: 'Workforce',
     to: '/reporting/workforce',
