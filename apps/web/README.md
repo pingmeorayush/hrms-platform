@@ -1,73 +1,37 @@
-# React + TypeScript + Vite
+# PhoenixHRMS Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React, TypeScript, and Vite frontend for PhoenixHRMS.
 
-Currently, two official plugins are available:
+## Daily Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Quality Gates
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run typecheck
+npm run lint
+npm run test:run
+npm run build
+npm run quality
 ```
+
+`npm run quality` is the main frontend gate and runs typecheck, lint, tests, and production build validation together.
+
+## Engineering Baseline
+
+- TypeScript runs in strict mode.
+- ESLint is enforced with zero warnings.
+- `Vitest` and `React Testing Library` are the standard unit and component test baseline.
+- Large workspace components should be split by concern instead of accumulating orchestration, modal flows, and editor forms in one file.
+- The attendance admin workspace is the current reference split between:
+  - [AttendanceAdminWorkspace.tsx](/Users/ayushchauhan/Documents/phoenix-hrms-boilerplate/apps/web/src/modules/attendance/components/AttendanceAdminWorkspace.tsx)
+  - [AttendanceAdminEditors.tsx](/Users/ayushchauhan/Documents/phoenix-hrms-boilerplate/apps/web/src/modules/attendance/components/AttendanceAdminEditors.tsx)
+
+## Related Docs
+
+- [DEC-004: Engineering Test Toolchain](/Users/ayushchauhan/Documents/phoenix-hrms-boilerplate/docs/decisions/004-engineering-test-toolchain.md)
+- [Engineering Hardening Baseline](/Users/ayushchauhan/Documents/phoenix-hrms-boilerplate/docs/architecture/engineering-hardening-baseline.md)

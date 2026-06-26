@@ -29,7 +29,7 @@ class EmployeeController
         $payload = ApiResponse::success(
             'Employees loaded successfully.',
             [
-                'items' => EmployeeResource::collection($employees->getCollection()),
+                'items' => EmployeeResource::collection($employees->items()),
                 'meta' => [
                     'page' => $employees->currentPage(),
                     'per_page' => $employees->perPage(),

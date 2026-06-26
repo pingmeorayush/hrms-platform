@@ -16,11 +16,14 @@
     "jsx": "react-jsx",
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
+    "strict": true,
     "paths": {
       "@/*": ["./src/*"]
     },
 
     /* Linting */
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,

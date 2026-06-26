@@ -2,13 +2,20 @@
 
 namespace App\Modules\EmployeeManagement\Services;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
+/**
+ * @phpstan-type EmployeeCreationPayload array<string, mixed>
+ */
 class EmployeeCreationRules
 {
     public function __construct(private readonly EmployeeCodeService $employeeCodeService) {}
 
+    /**
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, \Closure|\Illuminate\Contracts\Validation\Rule|ValidationRule|string>|string>
+     */
     public function rulesForCompany(int $companyId): array
     {
         return [
@@ -44,6 +51,9 @@ class EmployeeCreationRules
         ];
     }
 
+    /**
+     * @param  EmployeeCreationPayload  $payload
+     */
     public function applyCodePolicyValidation(Validator $validator, int $companyId, array $payload): void
     {
         $manualMode = $this->employeeCodeService->isManualMode($companyId);

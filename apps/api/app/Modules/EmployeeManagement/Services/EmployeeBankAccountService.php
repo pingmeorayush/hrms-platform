@@ -9,10 +9,29 @@ use App\Modules\Platform\Audit\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @phpstan-type EmployeeBankAccountPayload array{
+ *   account_holder_name?: string,
+ *   bank_name?: string,
+ *   branch_name?: string|null,
+ *   account_number?: string,
+ *   ifsc_code?: string|null,
+ *   routing_number?: string|null,
+ *   iban?: string|null,
+ *   swift_code?: string|null,
+ *   status?: string,
+ *   is_primary?: bool,
+ *   verified_at?: string|null,
+ *   notes?: string|null
+ * }
+ */
 class EmployeeBankAccountService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @return Collection<int, EmployeeBankAccount>
+     */
     public function listForEmployee(Employee $employee, User $actor): Collection
     {
         $accounts = $employee->bankAccounts()
@@ -34,6 +53,9 @@ class EmployeeBankAccountService
         return $accounts;
     }
 
+    /**
+     * @param  EmployeeBankAccountPayload  $payload
+     */
     public function create(Employee $employee, User $actor, array $payload): EmployeeBankAccount
     {
         return DB::transaction(function () use ($employee, $actor, $payload): EmployeeBankAccount {
@@ -67,6 +89,9 @@ class EmployeeBankAccountService
         });
     }
 
+    /**
+     * @param  EmployeeBankAccountPayload  $payload
+     */
     public function update(Employee $employee, EmployeeBankAccount $bankAccount, User $actor, array $payload): EmployeeBankAccount
     {
         return DB::transaction(function () use ($employee, $bankAccount, $actor, $payload): EmployeeBankAccount {

@@ -11,10 +11,34 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type NotificationTemplateVariables array<string, mixed>
+ * @phpstan-type NotificationTemplateOverrides array{
+ *   type?: string,
+ *   channel?: string,
+ *   title?: string,
+ *   message?: string,
+ *   priority?: string,
+ *   deep_link?: string|null
+ * }
+ * @phpstan-type DirectNotificationPayload array{
+ *   type?: string,
+ *   channel?: string,
+ *   title: string,
+ *   message: string,
+ *   priority?: string,
+ *   deep_link?: string|null,
+ *   data?: array<string, mixed>
+ * }
+ */
 class NotificationService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  NotificationTemplateVariables  $variables
+     * @param  NotificationTemplateOverrides  $overrides
+     */
     public function sendTemplate(
         string $templateKey,
         User $recipient,
@@ -53,7 +77,7 @@ class NotificationService
         }
 
         $payload = [
-            'company_name' => $recipient->company?->name ?? 'PhoenixHRMS',
+            'company_name' => $recipient->company->name ?? 'PhoenixHRMS',
         ] + $variables;
 
         $title = $overrides['title'] ?? $this->render($template->subject ?? Str::headline($template->name), $payload);
@@ -94,6 +118,9 @@ class NotificationService
         return $notification;
     }
 
+    /**
+     * @param  DirectNotificationPayload  $payload
+     */
     public function sendDirect(User $recipient, array $payload, ?User $actor = null): NotificationRecord
     {
         $notification = NotificationRecord::withoutGlobalScopes()->create([
@@ -180,7 +207,7 @@ class NotificationService
             $variables = $data['template_variables'] ?? [];
             $recipient = $notification->user()->with('company')->firstOrFail();
             $payload = [
-                'company_name' => $recipient->company?->name ?? 'PhoenixHRMS',
+                'company_name' => $recipient->company->name ?? 'PhoenixHRMS',
             ] + $variables;
 
             $notification->forceFill([
@@ -205,6 +232,9 @@ class NotificationService
         });
     }
 
+    /**
+     * @param  NotificationTemplateVariables  $variables
+     */
     private function render(string $content, array $variables): string
     {
         $rendered = $content;

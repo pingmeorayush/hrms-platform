@@ -10,6 +10,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class LeaveRequestAccessScopeService
 {
+    /**
+     * @param  list<string>  $with
+     * @return Builder<LeaveRequest>
+     */
     public function requestsQuery(
         User $actor,
         array $with = [

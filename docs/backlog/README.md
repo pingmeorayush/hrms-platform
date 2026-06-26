@@ -2,11 +2,13 @@
 
 These backlog files turn the sprint plans into implementation-ready epics and tickets.
 
-For Sprints 01 to 03, the backlog files also make UI companion scope explicit so frontend delivery can be planned separately from the already-implemented backend slices.
+For Sprints 01 to 03, Sprint 07, and Sprint 08, the backlog set also includes dedicated frontend planning guidance so UI delivery can be sequenced separately from backend and contract work.
 
 ## Supporting Plans
 
 - [Frontend Delivery Order for Sprints 02 to 04](./frontend-delivery-order-sprints-02-to-04.md)
+- [Frontend Delivery Order for Sprint 07](./frontend-delivery-order-sprint-07.md)
+- [Frontend Delivery Order for Sprint 08](./frontend-delivery-order-sprint-08.md)
 
 ## Backlog Index
 

@@ -26,7 +26,7 @@ class AttendanceRecordController
         $payload = ApiResponse::success(
             'Attendance records loaded successfully.',
             [
-                'items' => AttendanceRecordResource::collection($records->getCollection()),
+                'items' => AttendanceRecordResource::collection($records->items()),
                 'meta' => [
                     'page' => $records->currentPage(),
                     'per_page' => $records->perPage(),

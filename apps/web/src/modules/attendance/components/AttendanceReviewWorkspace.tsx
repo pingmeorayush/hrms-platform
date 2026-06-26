@@ -59,23 +59,17 @@ const correctionTabs: Array<{ id: CorrectionStatusTab; label: string }> = [
 export function AttendanceReviewWorkspace() {
   const location = useLocation()
   const navigate = useNavigate()
-  const initialHash = location.hash
-  const initialExceptionRecordId = readHashRecordId(initialHash, '#exception-')
-  const initialCorrectionId = readHashRecordId(initialHash, '#correction-')
+  const selectedExceptionRecordId = readHashRecordId(location.hash, '#exception-')
+  const selectedCorrectionId = readHashRecordId(location.hash, '#correction-')
+  const activePanel =
+    location.hash === '#exceptions' || selectedExceptionRecordId !== null ? 'exceptions' : 'decisions'
+  const isExceptionModalOpen = selectedExceptionRecordId !== null
   const [windowDate, setWindowDate] = useState(todayDate())
-  const [activePanel, setActivePanel] = useState<'decisions' | 'exceptions'>(() => {
-    return initialHash === '#exceptions' || initialExceptionRecordId !== null ? 'exceptions' : 'decisions'
-  })
-  const [selectedStatusTab, setSelectedStatusTab] = useState<CorrectionStatusTab>(() =>
-    initialCorrectionId !== null ? 'all' : 'pending',
-  )
+  const [selectedStatusTab, setSelectedStatusTab] = useState<CorrectionStatusTab>('pending')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCorrectionIds, setSelectedCorrectionIds] = useState<number[]>([])
-  const [selectedExceptionIds, setSelectedExceptionIds] = useState<number[]>([])
-  const [selectedCorrectionId, setSelectedCorrectionId] = useState<number | null>(initialCorrectionId)
-  const [selectedExceptionRecordId, setSelectedExceptionRecordId] = useState<number | null>(initialExceptionRecordId)
-  const [isCorrectionModalOpen, setIsCorrectionModalOpen] = useState(initialCorrectionId !== null)
-  const [isExceptionModalOpen, setIsExceptionModalOpen] = useState(initialExceptionRecordId !== null)
+  const [rawSelectedCorrectionIds, setRawSelectedCorrectionIds] = useState<number[]>([])
+  const [rawSelectedExceptionIds, setRawSelectedExceptionIds] = useState<number[]>([])
+  const [dismissedCorrectionId, setDismissedCorrectionId] = useState<number | null>(null)
   const {
     data,
     canReview,
@@ -100,108 +94,73 @@ export function AttendanceReviewWorkspace() {
           description: 'Pinned attendance correction decision queue',
         }
 
-  useEffect(() => {
-    const hash = location.hash
-    const exceptionRecordId = readHashRecordId(hash, '#exception-')
-    const correctionId = readHashRecordId(hash, '#correction-')
-
-    if (exceptionRecordId !== null) {
-      setActivePanel('exceptions')
-      setSelectedExceptionRecordId(exceptionRecordId)
-      setSelectedCorrectionId(null)
-      setIsCorrectionModalOpen(false)
-      setIsExceptionModalOpen(true)
-      return
-    }
-
-    if (correctionId !== null) {
-      setActivePanel('decisions')
-      setSelectedCorrectionId(correctionId)
-      setSelectedExceptionRecordId(null)
-      setSelectedStatusTab('all')
-      setIsExceptionModalOpen(false)
-      setIsCorrectionModalOpen(true)
-      return
-    }
-
-    const nextPanel = hash === '#exceptions' ? 'exceptions' : 'decisions'
-    setActivePanel((current) => (current === nextPanel ? current : nextPanel))
-    setSelectedCorrectionId(null)
-    setSelectedExceptionRecordId(null)
-    setIsCorrectionModalOpen(false)
-    setIsExceptionModalOpen(false)
-  }, [location.hash])
+  const effectiveStatusTab: CorrectionStatusTab =
+    selectedCorrectionId !== null ? 'all' : selectedStatusTab
+  const isCorrectionModalOpen =
+    selectedCorrectionId !== null && dismissedCorrectionId !== selectedCorrectionId
 
   const setReviewPanel = (panel: 'decisions' | 'exceptions') => {
-    setActivePanel(panel)
-    setSelectedCorrectionId(null)
-    setSelectedExceptionRecordId(null)
-    setIsCorrectionModalOpen(false)
-    setIsExceptionModalOpen(false)
     navigate(
       {
         pathname: location.pathname,
         hash: panel === 'exceptions' ? '#exceptions' : '#decisions',
       },
-      { replace: true },
+      { replace: true, flushSync: true },
     )
   }
 
   const openExceptionRecord = (recordId: number) => {
-    setSelectedExceptionRecordId(recordId)
-    setIsExceptionModalOpen(true)
     navigate(
       {
         pathname: location.pathname,
         hash: `#exception-${recordId}`,
       },
-      { replace: true },
+      { replace: true, flushSync: true },
     )
   }
 
   const closeExceptionRecord = () => {
-    setIsExceptionModalOpen(false)
-    setSelectedExceptionRecordId(null)
     navigate(
       {
         pathname: location.pathname,
         hash: '#exceptions',
       },
-      { replace: true },
+      { replace: true, flushSync: true },
     )
   }
 
   const openCorrectionReview = (correctionId: number) => {
-    setSelectedCorrectionId(correctionId)
-    setIsCorrectionModalOpen(true)
+    setDismissedCorrectionId(null)
     navigate(
       {
         pathname: location.pathname,
         hash: `#correction-${correctionId}`,
       },
-      { replace: true },
+      { replace: true, flushSync: true },
     )
   }
 
   const closeCorrectionReview = () => {
-    setIsCorrectionModalOpen(false)
-    setSelectedCorrectionId(null)
+    if (selectedCorrectionId !== null) {
+      setDismissedCorrectionId(selectedCorrectionId)
+    }
+
     navigate(
       {
         pathname: location.pathname,
         hash: '#decisions',
       },
-      { replace: true },
+      { replace: true, flushSync: true },
     )
   }
 
   const baseCorrections = useMemo(() => {
-    if (selectedStatusTab === 'all') {
+    if (effectiveStatusTab === 'all') {
       return data.corrections.items
     }
 
-    return data.corrections.items.filter((item) => item.status === selectedStatusTab)
-  }, [data.corrections.items, selectedStatusTab])
+    return data.corrections.items.filter((item) => item.status === effectiveStatusTab)
+  }, [data.corrections.items, effectiveStatusTab])
 
   const filteredCorrections = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
@@ -277,6 +236,20 @@ export function AttendanceReviewWorkspace() {
       ) ?? null
     )
   }, [data.pendingExceptions.correction_items, selectedExceptionRecord])
+  const selectedCorrectionRecentLabel = useMemo(() => {
+    if (!selectedCorrection) {
+      return null
+    }
+
+    return `${selectedCorrection.employee.full_name} · Attendance correction · ${formatCorrectionStatus(selectedCorrection.status)}`
+  }, [selectedCorrection])
+  const selectedExceptionRecentLabel = useMemo(() => {
+    if (!selectedExceptionRecord) {
+      return null
+    }
+
+    return `${selectedExceptionRecord.employee.full_name} · Attendance exception · ${formatRecentExceptionSummary(selectedExceptionRecord)}`
+  }, [selectedExceptionRecord])
 
   useEffect(() => {
     if (!isCorrectionModalOpen || !selectedCorrection?.id) {
@@ -285,10 +258,10 @@ export function AttendanceReviewWorkspace() {
 
     touchShellRecent({
       path: `/attendance/operational-review#correction-${selectedCorrection.id}`,
-      label: `${selectedCorrection.employee.full_name} · Attendance correction · ${formatCorrectionStatus(selectedCorrection.status)}`,
+      label: selectedCorrectionRecentLabel ?? 'Attendance correction',
       icon: 'attendance',
     })
-  }, [isCorrectionModalOpen, selectedCorrection?.employee.full_name, selectedCorrection?.id])
+  }, [isCorrectionModalOpen, selectedCorrection?.id, selectedCorrectionRecentLabel])
 
   useEffect(() => {
     if (!isExceptionModalOpen || !selectedExceptionRecord?.id) {
@@ -297,15 +270,10 @@ export function AttendanceReviewWorkspace() {
 
     touchShellRecent({
       path: `/attendance/operational-review#exception-${selectedExceptionRecord.id}`,
-      label: `${selectedExceptionRecord.employee.full_name} · Attendance exception · ${formatRecentExceptionSummary(selectedExceptionRecord)}`,
+      label: selectedExceptionRecentLabel ?? 'Attendance exception',
       icon: 'attendance',
     })
-  }, [
-    isExceptionModalOpen,
-    selectedExceptionRecord?.employee.full_name,
-    selectedExceptionRecord?.exception_types.join(','),
-    selectedExceptionRecord?.id,
-  ])
+  }, [isExceptionModalOpen, selectedExceptionRecord?.id, selectedExceptionRecentLabel])
 
   const pendingQueueCount = data.corrections.items.filter((item) => item.status === 'pending').length
   const exceptionSummary = data.pendingExceptions.summary
@@ -314,6 +282,18 @@ export function AttendanceReviewWorkspace() {
     data.scope === 'tenant'
       ? 'HR and admins can review the full attendance window.'
       : 'Managers only see their direct-report exception queue.'
+  const selectedCorrectionIds = useMemo(
+    () =>
+      rawSelectedCorrectionIds.filter((id) => filteredCorrections.some((item) => item.id === id)),
+    [filteredCorrections, rawSelectedCorrectionIds],
+  )
+  const selectedExceptionIds = useMemo(
+    () =>
+      rawSelectedExceptionIds.filter((id) =>
+        filteredExceptionRecords.some((item) => item.id === id),
+      ),
+    [filteredExceptionRecords, rawSelectedExceptionIds],
+  )
   const selectedCorrections = useMemo(
     () => filteredCorrections.filter((item) => selectedCorrectionIds.includes(item.id)),
     [filteredCorrections, selectedCorrectionIds],
@@ -334,30 +314,16 @@ export function AttendanceReviewWorkspace() {
     selectedExceptionIds.length > 0 && selectedExceptionIds.length < filteredExceptionRecords.length
 
   function toggleCorrectionSelection(correctionId: number, checked: boolean) {
-    setSelectedCorrectionIds((current) =>
+    setRawSelectedCorrectionIds((current) =>
       checked ? (current.includes(correctionId) ? current : [...current, correctionId]) : current.filter((id) => id !== correctionId),
     )
   }
 
   function toggleExceptionSelection(recordId: number, checked: boolean) {
-    setSelectedExceptionIds((current) =>
+    setRawSelectedExceptionIds((current) =>
       checked ? (current.includes(recordId) ? current : [...current, recordId]) : current.filter((id) => id !== recordId),
     )
   }
-
-  useEffect(() => {
-    setSelectedCorrectionIds((current) => {
-      const next = current.filter((id) => filteredCorrections.some((item) => item.id === id))
-      return arraysEqual(current, next) ? current : next
-    })
-  }, [filteredCorrections])
-
-  useEffect(() => {
-    setSelectedExceptionIds((current) => {
-      const next = current.filter((id) => filteredExceptionRecords.some((item) => item.id === id))
-      return arraysEqual(current, next) ? current : next
-    })
-  }, [filteredExceptionRecords])
 
   return (
     <WorkspacePage className="gap-4">
@@ -460,8 +426,8 @@ export function AttendanceReviewWorkspace() {
                       key={tab.id}
                       type="button"
                       role="tab"
-                      active={selectedStatusTab === tab.id}
-                      aria-selected={selectedStatusTab === tab.id}
+                      active={effectiveStatusTab === tab.id}
+                      aria-selected={effectiveStatusTab === tab.id}
                       onClick={() => {
                         setSelectedStatusTab(tab.id)
                       }}
@@ -476,9 +442,9 @@ export function AttendanceReviewWorkspace() {
                     {filteredCorrections.length} requests in view
                   </strong>
                   <span className="ui-type-body block text-muted-foreground">
-                    {selectedStatusTab === 'all'
+                    {effectiveStatusTab === 'all'
                       ? `${pendingQueueCount} requests still need a decision.`
-                      : getCorrectionTabSummary(selectedStatusTab, filteredCorrections.length)}
+                      : getCorrectionTabSummary(effectiveStatusTab, filteredCorrections.length)}
                   </span>
                 </div>
               </ConsoleToolbarRow>
@@ -505,7 +471,7 @@ export function AttendanceReviewWorkspace() {
                           checked={allExceptionsSelected}
                           indeterminate={someExceptionsSelected}
                           onChange={(checked) =>
-                            setSelectedExceptionIds(checked ? filteredExceptionRecords.map((record) => record.id) : [])
+                            setRawSelectedExceptionIds(checked ? filteredExceptionRecords.map((record) => record.id) : [])
                           }
                           ariaLabel={allExceptionsSelected ? 'Clear visible exception selection' : 'Select all visible exception records'}
                         />
@@ -633,7 +599,7 @@ export function AttendanceReviewWorkspace() {
                           checked={allCorrectionsSelected}
                           indeterminate={someCorrectionsSelected}
                           onChange={(checked) =>
-                            setSelectedCorrectionIds(checked ? filteredCorrections.map((correction) => correction.id) : [])
+                            setRawSelectedCorrectionIds(checked ? filteredCorrections.map((correction) => correction.id) : [])
                           }
                           ariaLabel={allCorrectionsSelected ? 'Clear visible correction selection' : 'Select all visible corrections'}
                         />
@@ -780,7 +746,7 @@ export function AttendanceReviewWorkspace() {
                   >
                     {singleSelectedCorrection?.status === 'pending' ? 'Review selected' : 'Inspect selected'}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedCorrectionIds([])}>
+                  <Button size="sm" variant="ghost" onClick={() => setRawSelectedCorrectionIds([])}>
                     Clear selection
                   </Button>
                 </>
@@ -818,7 +784,7 @@ export function AttendanceReviewWorkspace() {
                   >
                     Inspect selected
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedExceptionIds([])}>
+                  <Button size="sm" variant="ghost" onClick={() => setRawSelectedExceptionIds([])}>
                     Clear selection
                   </Button>
                 </>
@@ -867,7 +833,6 @@ export function AttendanceReviewWorkspace() {
             }
 
             closeExceptionRecord()
-            setActivePanel('decisions')
             setSelectedStatusTab('pending')
             openCorrectionReview(linkedCorrectionForSelectedException.id)
           }}
@@ -948,9 +913,9 @@ function CorrectionDecisionPanel({
         errorTitle: 'Unable to complete correction review',
         action: async () => {
           await onDecide(correction.id, action, comment.trim() || null)
-          recordAttendanceReviewDecision(correction, action, pendingQueueCount)
-          setComment('')
           onComplete?.()
+          setComment('')
+          recordAttendanceReviewDecision(correction, action, pendingQueueCount)
         },
       })
     } catch (caughtError) {
@@ -1392,10 +1357,6 @@ function truncateCopy(copy: string, maxLength: number) {
   }
 
   return `${copy.slice(0, maxLength - 1).trimEnd()}…`
-}
-
-function arraysEqual(left: number[], right: number[]) {
-  return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
 function readHashRecordId(hash: string, prefix: string) {

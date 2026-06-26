@@ -72,6 +72,117 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('tab', { name: /directory/i })).toBeInTheDocument()
   }, 15000)
 
+  it('opens the recruitment module for a recruiter session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'recruiter' },
+      initialEntries: ['/recruitment'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^recruitment$/i })).toBeInTheDocument()
+    const recruitmentSections = screen.getByRole('navigation', { name: /recruitment sections/i })
+    expect(within(recruitmentSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(recruitmentSections).getByRole('link', { name: /requisitions/i })).toBeInTheDocument()
+    expect(within(recruitmentSections).getByRole('link', { name: /candidates/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /recruitment operations center/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('blocks an employee persona from the recruitment route', () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/recruitment'],
+    })
+
+    expect(screen.getByRole('heading', { name: /recruitment workspace unavailable/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /recruitment operations center/i })).not.toBeInTheDocument()
+  })
+
+  it('opens the performance module for a tenant admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/performance'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^performance$/i })).toBeInTheDocument()
+    const performanceSections = screen.getByRole('navigation', { name: /performance sections/i })
+    expect(within(performanceSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(performanceSections).getByRole('link', { name: /goals/i })).toBeInTheDocument()
+    expect(within(performanceSections).getByRole('link', { name: /cycles/i })).toBeInTheDocument()
+    expect(within(performanceSections).getByRole('link', { name: /reviews/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /performance operations center/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('opens the performance review workspace for an employee session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/performance/reviews'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^performance$/i })).toBeInTheDocument()
+    const performanceSections = screen.getByRole('navigation', { name: /performance sections/i })
+    expect(within(performanceSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(performanceSections).getByRole('link', { name: /goals/i })).toBeInTheDocument()
+    expect(within(performanceSections).getByRole('link', { name: /cycles/i })).toBeInTheDocument()
+    expect(within(performanceSections).getByRole('link', { name: /reviews/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /performance review cockpit/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('opens the reporting module for a tenant admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/reporting'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^reporting$/i })).toBeInTheDocument()
+    const reportingSections = screen.getByRole('navigation', { name: /reporting sections/i })
+    expect(within(reportingSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(reportingSections).getByRole('link', { name: /workforce/i })).toBeInTheDocument()
+    expect(within(reportingSections).getByRole('link', { name: /team/i })).toBeInTheDocument()
+    expect(within(reportingSections).getByRole('link', { name: /payroll/i })).toBeInTheDocument()
+    expect(within(reportingSections).getByRole('link', { name: /recruitment/i })).toBeInTheDocument()
+    expect(within(reportingSections).getByRole('link', { name: /executive/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /reporting command center/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('blocks an employee persona from the reporting route', () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/reporting'],
+    })
+
+    expect(screen.getByRole('heading', { name: /reporting workspace unavailable/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /reporting command center/i })).not.toBeInTheDocument()
+  })
+
+  it('opens the learning module for a tenant admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/learning'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^learning$/i })).toBeInTheDocument()
+    const learningSections = screen.getByRole('navigation', { name: /learning sections/i })
+    expect(within(learningSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(learningSections).getByRole('link', { name: /catalog/i })).toBeInTheDocument()
+    expect(within(learningSections).getByRole('link', { name: /assignments/i })).toBeInTheDocument()
+    expect(within(learningSections).getByRole('link', { name: /my learning/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /learning operations center/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('opens learner self-service for an employee session inside the learning module', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'employee' },
+      initialEntries: ['/learning'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /^learning$/i })).toBeInTheDocument()
+    const learningSections = screen.getByRole('navigation', { name: /learning sections/i })
+    expect(within(learningSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
+    expect(within(learningSections).queryByRole('link', { name: /catalog/i })).not.toBeInTheDocument()
+    expect(within(learningSections).queryByRole('link', { name: /assignments/i })).not.toBeInTheDocument()
+    expect(within(learningSections).getByRole('link', { name: /my learning/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /my learning dashboard/i })).toBeInTheDocument()
+  }, 15000)
+
   it('opens the attendance admin route for a tenant admin session', async () => {
     renderWithProviders(<AppRoutes />, {
       accessState: { demoPersona: 'tenantAdmin' },
@@ -247,6 +358,17 @@ describe('AppRoutes', () => {
     expect(within(selfServiceSections).getByRole('link', { name: /documents/i })).toBeInTheDocument()
     expect(within(selfServiceSections).getByRole('link', { name: /assigned assets/i })).toBeInTheDocument()
     expect(screen.getByText(/sensitive banking is hidden/i)).toBeInTheDocument()
+  })
+
+  it('opens the self-service module for a linked tenant-admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/self-service'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /my profile/i })).toBeInTheDocument()
+    expect(screen.getAllByText(/meera\.sethi@phoenixhrms\.test/i).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('heading', { name: /no linked employee profile/i })).not.toBeInTheDocument()
   })
 
   it('opens the operations module for a tenant admin session', async () => {

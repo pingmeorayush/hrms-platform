@@ -21,7 +21,7 @@ class LeaveRequestController
         $payload = ApiResponse::success(
             'Leave requests loaded successfully.',
             [
-                'items' => LeaveRequestResource::collection($requests->getCollection()),
+                'items' => LeaveRequestResource::collection($requests->items()),
                 'meta' => [
                     'page' => $requests->currentPage(),
                     'per_page' => $requests->perPage(),

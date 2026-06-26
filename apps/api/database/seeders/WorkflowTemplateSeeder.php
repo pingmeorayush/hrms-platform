@@ -125,6 +125,58 @@ class WorkflowTemplateSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'key' => 'recruitment-requisition-approval',
+                'name' => 'Recruitment Requisition Approval Workflow',
+                'module' => 'recruitment',
+                'description' => 'Sequential requisition approval through the assigned hiring manager and HR.',
+                'stages' => [
+                    [
+                        'key' => 'hiring_manager_review',
+                        'name' => 'Hiring Manager Review',
+                        'sequence' => 1,
+                        'approver_type' => 'payload_user',
+                        'approver_value' => 'hiring_manager_user_id',
+                        'available_actions' => ['approve', 'reject', 'request_changes'],
+                        'sla_hours' => 48,
+                    ],
+                    [
+                        'key' => 'hr_review',
+                        'name' => 'HR Review',
+                        'sequence' => 2,
+                        'approver_type' => 'role',
+                        'approver_value' => 'hr.admin',
+                        'available_actions' => ['approve', 'reject', 'request_changes'],
+                        'sla_hours' => 48,
+                    ],
+                ],
+            ],
+            [
+                'key' => 'recruitment-offer-approval',
+                'name' => 'Recruitment Offer Approval Workflow',
+                'module' => 'recruitment',
+                'description' => 'Sequential offer approval through the assigned hiring manager and HR.',
+                'stages' => [
+                    [
+                        'key' => 'hiring_manager_review',
+                        'name' => 'Hiring Manager Review',
+                        'sequence' => 1,
+                        'approver_type' => 'payload_user',
+                        'approver_value' => 'hiring_manager_user_id',
+                        'available_actions' => ['approve', 'reject', 'request_changes'],
+                        'sla_hours' => 48,
+                    ],
+                    [
+                        'key' => 'hr_review',
+                        'name' => 'HR Review',
+                        'sequence' => 2,
+                        'approver_type' => 'role',
+                        'approver_value' => 'hr.admin',
+                        'available_actions' => ['approve', 'reject', 'request_changes'],
+                        'sla_hours' => 48,
+                    ],
+                ],
+            ],
         ];
 
         foreach ($templates as $template) {

@@ -24,9 +24,20 @@ describe('SelfServiceDocumentsPage', () => {
     expect(screen.getByText(/all policy items acknowledged/i)).toBeInTheDocument()
   })
 
-  it('shows the empty state when the current session has no linked employee profile', async () => {
+  it('resolves self-service documents for a linked tenant-admin demo persona', async () => {
     renderWithProviders(<AppRoutes />, {
       accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/self-service/documents'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /my documents/i })).toBeInTheDocument()
+    expect(screen.getAllByText(/employee file/i).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('heading', { name: /no linked employee profile/i })).not.toBeInTheDocument()
+  })
+
+  it('shows the empty state when the current session has no linked employee profile', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'itOperator' },
       initialEntries: ['/self-service/documents'],
     })
 

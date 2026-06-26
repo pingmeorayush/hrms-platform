@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
+import { useBrowserStoreSnapshot } from './browserStore'
 
 export type CommandCenterModule = 'attendance' | 'leave' | 'employees' | 'organization' | 'access' | 'foundation'
 export type CommandCenterTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
@@ -28,6 +29,10 @@ export type CommandCenterAlertOverride = {
 type CommandCenterEventStore = {
   activities: CommandCenterActivityEvent[]
   alerts: CommandCenterAlertOverride[]
+}
+const EMPTY_COMMAND_CENTER_EVENT_STORE: CommandCenterEventStore = {
+  activities: [],
+  alerts: [],
 }
 
 export const COMMAND_CENTER_EVENTS_STORAGE_KEY = 'phoenixhrms.command-center.events'
@@ -96,24 +101,26 @@ function pruneStore(store: CommandCenterEventStore, now = Date.now()): CommandCe
   }
 }
 
-export function readCommandCenterEvents(): CommandCenterEventStore {
+function readCommandCenterEventsRaw() {
   if (typeof window === 'undefined') {
-    return { activities: [], alerts: [] }
+    return null
   }
 
-  const raw = window.localStorage.getItem(COMMAND_CENTER_EVENTS_STORAGE_KEY)
+  return window.localStorage.getItem(COMMAND_CENTER_EVENTS_STORAGE_KEY)
+}
+
+function parseCommandCenterEvents(raw: string | null): CommandCenterEventStore | null {
   if (!raw) {
-    return { activities: [], alerts: [] }
+    return null
   }
 
   try {
     const parsed = JSON.parse(raw)
     if (!isObjectLike(parsed)) {
-      window.localStorage.removeItem(COMMAND_CENTER_EVENTS_STORAGE_KEY)
-      return { activities: [], alerts: [] }
+      return null
     }
 
-    const store = pruneStore({
+    return pruneStore({
       activities: Array.isArray(parsed.activities)
         ? parsed.activities.filter(isCommandCenterActivityEvent)
         : [],
@@ -121,13 +128,27 @@ export function readCommandCenterEvents(): CommandCenterEventStore {
         ? parsed.alerts.filter(isCommandCenterAlertOverride)
         : [],
     })
-
-    window.localStorage.setItem(COMMAND_CENTER_EVENTS_STORAGE_KEY, JSON.stringify(store))
-    return store
   } catch {
-    window.localStorage.removeItem(COMMAND_CENTER_EVENTS_STORAGE_KEY)
-    return { activities: [], alerts: [] }
+    return null
   }
+}
+
+export function readCommandCenterEvents(): CommandCenterEventStore {
+  const raw = readCommandCenterEventsRaw()
+  const parsed = parseCommandCenterEvents(raw)
+
+  if (typeof window !== 'undefined') {
+    if (raw && parsed === null) {
+      window.localStorage.removeItem(COMMAND_CENTER_EVENTS_STORAGE_KEY)
+    } else if (raw && parsed) {
+      const normalized = JSON.stringify(parsed)
+      if (normalized !== raw) {
+        window.localStorage.setItem(COMMAND_CENTER_EVENTS_STORAGE_KEY, normalized)
+      }
+    }
+  }
+
+  return parsed ?? EMPTY_COMMAND_CENTER_EVENT_STORE
 }
 
 export function writeCommandCenterEvents(store: CommandCenterEventStore) {
@@ -225,29 +246,11 @@ export function applyCommandCenterAlertOverrides<
 }
 
 export function useCommandCenterEvents(module: CommandCenterModule) {
-  const [store, setStore] = useState<CommandCenterEventStore>({ activities: [], alerts: [] })
-
-  useEffect(() => {
-    setStore(readCommandCenterEvents())
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const sync = () => {
-      setStore(readCommandCenterEvents())
-    }
-
-    window.addEventListener(COMMAND_CENTER_EVENTS_EVENT, sync)
-    window.addEventListener('storage', sync)
-
-    return () => {
-      window.removeEventListener(COMMAND_CENTER_EVENTS_EVENT, sync)
-      window.removeEventListener('storage', sync)
-    }
-  }, [])
+  const storeRaw = useBrowserStoreSnapshot(COMMAND_CENTER_EVENTS_EVENT, readCommandCenterEventsRaw)
+  const store = useMemo(
+    () => parseCommandCenterEvents(storeRaw) ?? EMPTY_COMMAND_CENTER_EVENT_STORE,
+    [storeRaw],
+  )
 
   const activityEvents = useMemo(
     () => store.activities.filter((event) => event.module === module),

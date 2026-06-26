@@ -10,6 +10,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class LeaveBalanceAccessScopeService
 {
+    /**
+     * @param  list<string>  $with
+     * @return Builder<LeaveBalance>
+     */
     public function balancesQuery(User $actor, array $with = ['employee', 'leaveType']): Builder
     {
         $query = LeaveBalance::query()->with($with);

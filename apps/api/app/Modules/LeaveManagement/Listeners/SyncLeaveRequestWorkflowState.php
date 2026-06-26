@@ -196,12 +196,12 @@ class SyncLeaveRequestWorkflowState
                 $record = AttendanceRecord::query()->create([
                     'employee_id' => $leaveRequest->employee_id,
                     'attendance_date' => $attendanceDate->toDateString(),
-                    'created_by_user_id' => $actor?->id ?? $leaveRequest->requested_by_user_id,
-                    'updated_by_user_id' => $actor?->id ?? $leaveRequest->requested_by_user_id,
+                    'created_by_user_id' => $actor->id ?? $leaveRequest->requested_by_user_id,
+                    'updated_by_user_id' => $actor->id ?? $leaveRequest->requested_by_user_id,
                 ]);
             }
 
-            $record->updated_by_user_id = $actor?->id ?? $leaveRequest->requested_by_user_id;
+            $record->updated_by_user_id = $actor->id ?? $leaveRequest->requested_by_user_id;
             $record->save();
 
             $this->attendanceCalculationService->calculateRecord($record);

@@ -19,16 +19,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class CostCenter extends Model
 {
-    /** @use HasFactory<CostCenterFactory> */
     use BelongsToCompany;
 
+    /** @use HasFactory<CostCenterFactory> */
     use HasFactory;
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return HasMany<Employee, $this>
+     */
     public function employees(): HasMany
     {
         return $this->hasMany(Employee::class);

@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AttendanceAccessScopeService
 {
+    /**
+     * @param  array<int|string, string|\Closure>  $with
+     * @return Builder<AttendanceRecord>
+     */
     public function attendanceRecordsQuery(
         User $actor,
         array $with = ['employee', 'shift'],
@@ -49,6 +53,10 @@ class AttendanceAccessScopeService
         return $query->where('employee_id', $actorEmployee->id);
     }
 
+    /**
+     * @param  array<int|string, string|\Closure>  $with
+     * @return Builder<AttendanceCorrection>
+     */
     public function attendanceCorrectionsQuery(
         User $actor,
         array $with = [

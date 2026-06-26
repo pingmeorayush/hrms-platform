@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -19,7 +19,7 @@ import { useShellFavorites } from '../../../app/shell/favorites'
 import { getModuleRecentActivity, useShellRecent } from '../../../app/shell/recent'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
+import { CardTitle } from '../../../shared/ui/card'
 import {
   CommandCenterActivityItem,
   CommandCenterActivityList,
@@ -40,7 +40,7 @@ import {
   WorkspaceContent,
   WorkspaceEmptyState,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSummaryRow,
   WorkspaceSurface,
@@ -57,6 +57,7 @@ import { formatDate, formatRequestStatus, requestBadgeVariant } from '../compone
 
 type LeaveOverviewTab = 'requests' | 'approvals' | 'policies' | 'calendar'
 type MetricCardTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
+const emptyPolicies: LeavePolicyRecord[] = []
 
 export function LeaveOverviewPage() {
   const workspace = useLeaveRouteWorkspace()
@@ -75,15 +76,11 @@ export function LeaveOverviewPage() {
     isLoading,
     error,
   } = workspace
-  const [activeTab, setActiveTab] = useState<LeaveOverviewTab>('requests')
+  const [activeTabSelection, setActiveTab] = useState<LeaveOverviewTab>('requests')
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
 
   const canViewOverview = canApproveLeave || canManagePolicy
-
-  if (!canViewOverview) {
-    return <Navigate replace to="/leave/requests" />
-  }
 
   const availableTabs = useMemo(
     () =>
@@ -96,22 +93,32 @@ export function LeaveOverviewPage() {
     [canManagePolicy],
   )
 
-  useEffect(() => {
-    if (!availableTabs.some((tab) => tab.id === activeTab)) {
-      setActiveTab(availableTabs[0]?.id ?? 'requests')
-    }
-  }, [activeTab, availableTabs])
-
+  const activeTab = availableTabs.some((tab) => tab.id === activeTabSelection)
+    ? activeTabSelection
+    : (availableTabs[0]?.id ?? 'requests')
   const requests = scopedReviewRequests
-  const approvedUpcomingRequests = requests.filter(
-    (request) => request.status === 'approved' && daysUntil(request.start_date) >= 0,
+  const approvedUpcomingRequests = useMemo(
+    () => requests.filter((request) => request.status === 'approved' && daysUntil(request.start_date) >= 0),
+    [requests],
   )
-  const activePolicies = data?.policies.filter((record) => record.status === 'active') ?? []
-  const activeLeaveTypes = data?.leaveTypes.filter((record) => record.status === 'active') ?? []
-  const lowBalanceRecords =
-    data?.balances.filter(
-      (record) => record.leave_type.status === 'active' && record.available_days > 0 && record.available_days <= 2,
-    ) ?? []
+  const activePolicies = useMemo(
+    () => (data?.policies ?? emptyPolicies).filter((record) => record.status === 'active'),
+    [data?.policies],
+  )
+  const activeLeaveTypes = useMemo(
+    () => (data?.leaveTypes ?? []).filter((record) => record.status === 'active'),
+    [data?.leaveTypes],
+  )
+  const lowBalanceRecords = useMemo(
+    () =>
+      (data?.balances ?? []).filter(
+        (record) =>
+          record.leave_type.status === 'active' &&
+          record.available_days > 0 &&
+          record.available_days <= 2,
+      ),
+    [data?.balances],
+  )
   const distinctUpcomingEmployees = new Set(approvedUpcomingRequests.map((request) => request.employee.id)).size
   const calendarWindows = reviewCalendarEntries.length
   const pendingChangesRequested = requests.filter((request) => request.status === 'changes_requested').length
@@ -279,7 +286,7 @@ export function LeaveOverviewPage() {
       })
     })
 
-    data?.policies.forEach((policy) => {
+    ;(data?.policies ?? emptyPolicies).forEach((policy) => {
       items.push({
         id: `policy-${policy.id}`,
         title: `${policy.leave_type.name} policy updated`,
@@ -316,10 +323,10 @@ export function LeaveOverviewPage() {
   const filteredPolicies = useMemo(() => {
     const query = deferredSearch.trim().toLowerCase()
     if (!query) {
-      return data?.policies ?? []
+      return data?.policies ?? emptyPolicies
     }
 
-    return (data?.policies ?? []).filter((record) =>
+    return (data?.policies ?? emptyPolicies).filter((record) =>
       [
         record.leave_type.name,
         record.leave_type.code,
@@ -346,6 +353,10 @@ export function LeaveOverviewPage() {
           ? filteredPolicies.length
           : filteredCalendar.length
 
+  if (!canViewOverview) {
+    return <Navigate replace to="/leave/requests" />
+  }
+
   return (
     <WorkspacePage>
       {isLoading ? <p className="workspace-muted">Loading leave operations center...</p> : null}
@@ -356,25 +367,25 @@ export function LeaveOverviewPage() {
 
       {data ? (
         <WorkspaceSurface>
-          <WorkspaceHeader compact>
-            <div className="space-y-1">
-              <p className="ui-type-page-eyebrow text-text-subtle">Live module · Operations center</p>
-              <CardTitle>Leave Operations Center</CardTitle>
-              <CardDescription>
-                Monitor approval load, upcoming leave coverage, policy posture, and move directly into leave workflows.
-              </CardDescription>
-            </div>
-            <WorkspaceHeaderActions>
-              <Button asChild size="xs" variant="secondary">
-                <Link to="/leave/approvals">Open approvals</Link>
-              </Button>
-              <Button asChild size="xs" variant="primary">
-                <Link to={canManagePolicy ? '/leave/policy-admin' : '/leave/requests'}>
-                  {canManagePolicy ? 'Open policy admin' : 'Open requests'}
-                </Link>
-              </Button>
-            </WorkspaceHeaderActions>
-          </WorkspaceHeader>
+          <WorkspaceHeroHeader
+            moduleLabel="Leave"
+            title="Leave Operations Center"
+            description="Monitor approval load, upcoming leave coverage, policy posture, and move directly into leave workflows."
+            badge={<Badge variant={source === 'live' ? 'info' : 'warning'}>{source === 'live' ? 'Live contract' : 'Demo contract'}</Badge>}
+            context={[canApproveLeave ? `Review scope: ${reviewScope}` : 'Monitoring workspace', canManagePolicy ? 'Policy controls live' : 'Requests workspace']}
+            actions={
+              <>
+                <Button asChild size="xs" variant="secondary">
+                  <Link to="/leave/approvals">Open approvals</Link>
+                </Button>
+                <Button asChild size="xs" variant="primary">
+                  <Link to={canManagePolicy ? '/leave/policy-admin' : '/leave/requests'}>
+                    {canManagePolicy ? 'Open policy admin' : 'Open requests'}
+                  </Link>
+                </Button>
+              </>
+            }
+          />
           <WorkspaceContent className="space-y-4">
             <CommandCenterMetricGrid>
               {metricCards.map((card) => (

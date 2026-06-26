@@ -16,17 +16,49 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type AttendanceCorrectionFilters array{
+ *   employee_id?: int|string,
+ *   attendance_record_id?: int|string,
+ *   status?: string,
+ *   per_page?: int|string
+ * }
+ * @phpstan-type AttendanceCorrectionPayload array{
+ *   attendance_record_id: int|string,
+ *   reason: string,
+ *   corrected?: array<string, mixed>
+ * }
+ * @phpstan-type AttendanceCorrectionDecisionPayload array<string, mixed>
+ * @phpstan-type CorrectedAttendanceValues array{
+ *   check_in_at?: string,
+ *   check_out_at?: string
+ * }
+ * @phpstan-type AttendanceRecordSnapshot array{
+ *   attendance_date: string|null,
+ *   check_in_at: string|null,
+ *   check_out_at: string|null,
+ *   check_in_channel: string|null,
+ *   check_out_channel: string|null,
+ *   worked_minutes: int|null,
+ *   primary_status: string|null,
+ *   shift_id: int|null,
+ *   shift_roster_id: int|null
+ * }
+ */
 class AttendanceCorrectionService
 {
     private const WORKFLOW_KEY = 'attendance-correction-approval';
 
     public function __construct(
         private readonly AttendanceAccessScopeService $attendanceAccessScopeService,
-        private readonly AttendanceCalculationService $attendanceCalculationService,
         private readonly AuditLogger $auditLogger,
         private readonly WorkflowService $workflowService,
     ) {}
 
+    /**
+     * @param  AttendanceCorrectionFilters  $filters
+     * @return LengthAwarePaginator<int, AttendanceCorrection>
+     */
     public function search(User $actor, array $filters): LengthAwarePaginator
     {
         $query = $this->attendanceAccessScopeService
@@ -50,6 +82,9 @@ class AttendanceCorrectionService
         return $query->paginate($filters['per_page'] ?? 15);
     }
 
+    /**
+     * @param  AttendanceCorrectionPayload  $payload
+     */
     public function create(User $actor, array $payload): AttendanceCorrection
     {
         return DB::transaction(function () use ($actor, $payload): AttendanceCorrection {
@@ -112,6 +147,9 @@ class AttendanceCorrectionService
         });
     }
 
+    /**
+     * @param  AttendanceCorrectionDecisionPayload  $payload
+     */
     public function decide(AttendanceCorrection $correction, User $actor, array $payload): AttendanceCorrection
     {
         if (! in_array($correction->status, ['pending'], true)) {
@@ -151,15 +189,13 @@ class AttendanceCorrectionService
             ->whereKey($attendanceRecordId)
             ->firstOrFail();
 
-        if (! $record->employee) {
-            throw ValidationException::withMessages([
-                'attendance_record_id' => ['The attendance record is not linked to a valid employee.'],
-            ]);
-        }
-
         return $record;
     }
 
+    /**
+     * @param  array<string, mixed>  $corrected
+     * @return CorrectedAttendanceValues
+     */
     private function normalizeCorrectedValues(AttendanceRecord $record, array $corrected): array
     {
         $company = $record->employee->company;
@@ -287,6 +323,9 @@ class AttendanceCorrectionService
         return Carbon::parse($value, $company->timezone)->setTimezone($company->timezone);
     }
 
+    /**
+     * @return AttendanceRecordSnapshot
+     */
     private function buildRecordSnapshot(AttendanceRecord $record): array
     {
         return [

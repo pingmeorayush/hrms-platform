@@ -14,6 +14,13 @@ use App\Modules\Platform\Audit\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @phpstan-type LeaveBalanceFilters array{
+ *   employee_id?: int|string|null,
+ *   leave_type_id?: int|string|null
+ * }
+ * @phpstan-type LeaveBalanceEntryMetadata array<string, bool|int|float|string|null>
+ */
 class LeaveBalanceService
 {
     public function __construct(
@@ -116,6 +123,9 @@ class LeaveBalanceService
         });
     }
 
+    /**
+     * @param  LeaveBalanceEntryMetadata  $metadata
+     */
     public function releaseLeaveRequestReservation(
         User $actor,
         LeaveBalance $balance,
@@ -158,6 +168,7 @@ class LeaveBalanceService
     }
 
     /**
+     * @param  LeaveBalanceFilters  $filters
      * @return Collection<int, LeaveBalance>
      */
     public function listBalances(User $actor, array $filters): Collection
@@ -178,6 +189,7 @@ class LeaveBalanceService
     }
 
     /**
+     * @param  LeaveBalanceFilters  $filters
      * @return array{employee: array<string, mixed>, balances: Collection<int, LeaveBalance>, history: Collection<int, LeaveBalanceEntry>}
      */
     public function showEmployeeBalances(User $actor, int $employeeId, array $filters): array
@@ -358,17 +370,17 @@ class LeaveBalanceService
         }
 
         $balance->forceFill([
-            'leave_policy_id' => $accrual?->leave_policy_id ?? $balance->leave_policy_id,
-            'policy_version' => $accrual?->policy_version ?? $balance->policy_version,
+            'leave_policy_id' => $accrual->leave_policy_id ?? $balance->leave_policy_id,
+            'policy_version' => $accrual->policy_version ?? $balance->policy_version,
             'available_days' => max($runningBalance, 0),
             'booked_days' => $bookedDays,
             'used_days' => $usedDays,
             'accrued_days' => $accruedDays,
             'carry_forward_days' => $carryForwardDays,
-            'projected_encashable_days' => $accrual?->encashable_days ?? $balance->projected_encashable_days,
-            'current_period_start' => $accrual?->period_start ?? $balance->current_period_start,
-            'current_period_end' => $accrual?->period_end ?? $balance->current_period_end,
-            'last_calculation_hash' => $accrual?->calculation_hash ?? $balance->last_calculation_hash,
+            'projected_encashable_days' => $accrual->encashable_days ?? $balance->projected_encashable_days,
+            'current_period_start' => $accrual->period_start ?? $balance->current_period_start,
+            'current_period_end' => $accrual->period_end ?? $balance->current_period_end,
+            'last_calculation_hash' => $accrual->calculation_hash ?? $balance->last_calculation_hash,
             'status' => 'active',
         ])->save();
     }

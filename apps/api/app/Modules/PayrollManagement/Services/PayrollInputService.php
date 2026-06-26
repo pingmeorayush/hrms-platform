@@ -16,10 +16,59 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type PayrollInputFilters array{
+ *   employee_id?: int|string,
+ *   source_type?: string
+ * }
+ * @phpstan-type PayrollAdjustmentFilters array{
+ *   employee_id?: int|string,
+ *   status?: string
+ * }
+ * @phpstan-type PayrollAdjustmentPayload array{
+ *   employee_id: int|string,
+ *   adjustment_code: string,
+ *   name: string,
+ *   category: string,
+ *   amount: int|float|string,
+ *   effective_date: string,
+ *   status?: string,
+ *   notes?: string|null
+ * }
+ * @phpstan-type PayrollInputRowMetadata array<string, bool|int|float|string|null>
+ * @phpstan-type PayrollInputRowAttributes array{
+ *   payroll_adjustment_id?: int|null,
+ *   source_type: string,
+ *   input_code: string,
+ *   unit?: string|null,
+ *   quantity?: int|float|string|null,
+ *   amount?: int|float|string|null,
+ *   effective_date?: string|null,
+ *   source_record_id?: int|null,
+ *   metadata?: PayrollInputRowMetadata
+ * }
+ * @phpstan-type PayrollInputSummary array{
+ *   employee_count: int,
+ *   input_count: int,
+ *   manual_adjustment_count: int,
+ *   attendance_record_count: int,
+ *   approved_leave_request_count: int,
+ *   total_worked_minutes: int,
+ *   total_overtime_minutes: int,
+ *   total_lop_days: float,
+ *   total_paid_leave_days: float,
+ *   total_unpaid_leave_days: float,
+ *   total_manual_adjustment_amount: float
+ * }
+ */
 class PayrollInputService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  PayrollInputFilters  $filters
+     * @return Collection<int, PayrollInput>
+     */
     public function listInputs(PayrollRun $run, array $filters): Collection
     {
         return PayrollInput::query()
@@ -40,6 +89,10 @@ class PayrollInputService
             ->get();
     }
 
+    /**
+     * @param  PayrollAdjustmentFilters  $filters
+     * @return Collection<int, PayrollAdjustment>
+     */
     public function listAdjustments(PayrollRun $run, array $filters): Collection
     {
         return PayrollAdjustment::query()
@@ -59,6 +112,9 @@ class PayrollInputService
             ->get();
     }
 
+    /**
+     * @param  PayrollAdjustmentPayload  $payload
+     */
     public function createAdjustment(User $actor, PayrollRun $run, array $payload): PayrollAdjustment
     {
         return DB::transaction(function () use ($actor, $run, $payload): PayrollAdjustment {
@@ -104,6 +160,9 @@ class PayrollInputService
         });
     }
 
+    /**
+     * @param  PayrollAdjustmentPayload  $payload
+     */
     public function updateAdjustment(User $actor, PayrollRun $run, PayrollAdjustment $adjustment, array $payload): PayrollAdjustment
     {
         return DB::transaction(function () use ($actor, $run, $adjustment, $payload): PayrollAdjustment {
@@ -163,6 +222,9 @@ class PayrollInputService
         });
     }
 
+    /**
+     * @return PayrollInputSummary
+     */
     public function syncRunInputs(User $actor, PayrollRun $run): array
     {
         return DB::transaction(function () use ($actor, $run): array {
@@ -183,16 +245,7 @@ class PayrollInputService
                 ->orderBy('id')
                 ->get();
 
-            $compensations = EmployeeCompensation::query()
-                ->whereIn('employee_id', $employees->pluck('id'))
-                ->whereDate('effective_from', '<=', $periodEnd)
-                ->orderBy('employee_id')
-                ->orderByDesc('effective_from')
-                ->orderByDesc('revision_date')
-                ->orderByDesc('id')
-                ->get()
-                ->groupBy('employee_id')
-                ->map(fn (Collection $items) => $items->first());
+            $compensations = $this->resolveCurrentCompensations($employees, $periodEnd);
 
             $scopedEmployees = $employees
                 ->filter(fn (Employee $employee): bool => $compensations->has($employee->id))
@@ -239,8 +292,10 @@ class PayrollInputService
             ];
 
             foreach ($scopedEmployees as $employee) {
-                /** @var EmployeeCompensation $compensation */
                 $compensation = $compensations->get($employee->id);
+                if (! $compensation) {
+                    continue;
+                }
                 $employeeAttendance = $attendanceRecords->get($employee->id, collect());
                 $employeeLeaves = $approvedLeaveRequests->get($employee->id, collect());
                 $employeeAdjustments = $adjustments->get($employee->id, collect());
@@ -263,7 +318,7 @@ class PayrollInputService
                 foreach ($employeeLeaves as $leaveRequest) {
                     $days = $this->overlapDays($leaveRequest->start_date, $leaveRequest->end_date, $period->start_date, $period->end_date);
 
-                    if (($leaveRequest->leaveType?->is_paid ?? true) === true) {
+                    if (($leaveRequest->leaveType->is_paid ?? true) === true) {
                         $paidLeaveDays += $days;
                     } else {
                         $unpaidLeaveDays += $days;
@@ -411,6 +466,9 @@ class PayrollInputService
         });
     }
 
+    /**
+     * @param  PayrollInputRowAttributes  $attributes
+     */
     private function createInputRow(User $actor, PayrollRun $run, Employee $employee, EmployeeCompensation $compensation, array $attributes): void
     {
         PayrollInput::query()->create([
@@ -423,7 +481,7 @@ class PayrollInputService
             'input_code' => $attributes['input_code'],
             'unit' => $attributes['unit'] ?? null,
             'quantity' => isset($attributes['quantity']) ? round((float) $attributes['quantity'], 2) : null,
-            'amount' => isset($attributes['amount']) && $attributes['amount'] !== null
+            'amount' => isset($attributes['amount'])
                 ? round((float) $attributes['amount'], 2)
                 : null,
             'effective_date' => $attributes['effective_date'] ?? null,
@@ -432,6 +490,25 @@ class PayrollInputService
             'created_by_user_id' => $actor->id,
             'updated_by_user_id' => $actor->id,
         ]);
+    }
+
+    /**
+     * @param  Collection<int, Employee>  $employees
+     * @return Collection<int, EmployeeCompensation>
+     */
+    private function resolveCurrentCompensations(Collection $employees, string $periodEnd): Collection
+    {
+        return EmployeeCompensation::query()
+            ->whereIn('employee_id', $employees->pluck('id'))
+            ->whereDate('effective_from', '<=', $periodEnd)
+            ->orderBy('employee_id')
+            ->orderByDesc('effective_from')
+            ->orderByDesc('revision_date')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('employee_id')
+            ->map(fn (Collection $items): ?EmployeeCompensation => $items->first())
+            ->filter(fn (?EmployeeCompensation $compensation): bool => $compensation !== null);
     }
 
     private function overlapDays(Carbon $startDate, Carbon $endDate, Carbon $periodStart, Carbon $periodEnd): float

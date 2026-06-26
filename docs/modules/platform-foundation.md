@@ -55,9 +55,17 @@ The Platform Foundation defines the shared security, tenancy, workflow, audit, n
 ## Engineering Conventions
 
 - Use constructor DI by default for controllers, services, and listeners.
+- Do not leave protected `FormRequest` classes on `authorize(): true`; use route-permission authorization for straightforward cases and explicit actor or ownership checks for workflow or self-service actions.
 - Use domain events and listeners when one module change triggers another module's side effect, such as workflow transitions triggering notifications.
 - Use Laravel facades at framework boundaries like transactions, hashing, password broker flows, and rate limiting, not to hide domain dependencies.
 - Apply SOLID pragmatically by keeping platform services focused and avoiding abstractions that do not reduce coupling or improve testability.
+
+## Current Delivery Baseline
+
+- Protected request authorization is standardized across the internal modules instead of relying on permissive `FormRequest` defaults.
+- Performance and recruitment request flows keep action-aware authorization where route access alone is too broad.
+- Workflow and self-service flows still rely on service-level scope resolution where preserving `404` semantics is part of the current contract behavior.
+- Backend quality gates now include Pint, PHPUnit, Larastan, and PHPStan level `6`.
 
 ## Core Entities
 

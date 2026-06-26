@@ -77,8 +77,10 @@ export function ConsoleMetricChip({
   const toneClassName = {
     neutral: 'border-line bg-panel-soft text-muted-foreground',
     info: 'border-primary/20 bg-primary/[0.08] text-primary',
-    success: 'border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-700 dark:text-emerald-300',
-    warning: 'border-amber-500/20 bg-amber-500/[0.09] text-amber-700 dark:text-amber-300',
+    success:
+      'border-[color-mix(in_srgb,var(--success)_24%,white)] bg-[color-mix(in_srgb,var(--success)_10%,white)] text-[color:var(--success)]',
+    warning:
+      'border-[color-mix(in_srgb,var(--warning)_24%,white)] bg-[color-mix(in_srgb,var(--warning)_10%,white)] text-[color:var(--warning)]',
   }[tone]
 
   return (

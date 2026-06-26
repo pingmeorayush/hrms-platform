@@ -4,6 +4,7 @@ namespace App\Modules\PayrollManagement\Services;
 
 use App\Models\Employee;
 use App\Models\EmployeeCompensation;
+use App\Models\PayrollInput;
 use App\Models\PayrollItem;
 use App\Models\PayrollRun;
 use App\Models\User;
@@ -13,6 +14,16 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-import-type PayrollComponentSnapshotLine from EmployeeCompensationService
+ * @phpstan-import-type PayrollResolvedFormulaInputs from EmployeeCompensationService
+ *
+ * @phpstan-type PayrollRunActionPayload array{
+ *   reason?: string|null,
+ *   comment?: string|null
+ * }
+ * @phpstan-type PayrollComponentContext array<string, float>
+ */
 class PayrollCalculationService
 {
     public function __construct(
@@ -122,6 +133,9 @@ class PayrollCalculationService
         });
     }
 
+    /**
+     * @param  PayrollRunActionPayload  $payload
+     */
     public function approveRun(User $actor, PayrollRun $run, array $payload): PayrollRun
     {
         return DB::transaction(function () use ($actor, $run, $payload): PayrollRun {
@@ -184,6 +198,9 @@ class PayrollCalculationService
         });
     }
 
+    /**
+     * @param  PayrollRunActionPayload  $payload
+     */
     public function reopenRun(User $actor, PayrollRun $run, array $payload): PayrollRun
     {
         return DB::transaction(function () use ($actor, $run, $payload): PayrollRun {
@@ -227,6 +244,9 @@ class PayrollCalculationService
         });
     }
 
+    /**
+     * @param  Collection<int, PayrollInput>  $inputs
+     */
     private function calculateEmployeeItem(
         User $actor,
         PayrollRun $run,
@@ -241,10 +261,10 @@ class PayrollCalculationService
         $payableDays = max($employmentDays, 1.0);
 
         $inputMap = $inputs->keyBy('input_code');
-        $lopDays = (float) ($inputMap->get('attendance_lop_days')?->quantity ?? 0);
-        $unpaidLeaveDays = (float) ($inputMap->get('approved_unpaid_leave_days')?->quantity ?? 0);
-        $paidLeaveDays = (float) ($inputMap->get('approved_paid_leave_days')?->quantity ?? 0);
-        $overtimeMinutes = (int) ($inputMap->get('attendance_overtime_minutes')?->quantity ?? 0);
+        $lopDays = (float) ($inputMap->get('attendance_lop_days')->quantity ?? 0);
+        $unpaidLeaveDays = (float) ($inputMap->get('approved_unpaid_leave_days')->quantity ?? 0);
+        $paidLeaveDays = (float) ($inputMap->get('approved_paid_leave_days')->quantity ?? 0);
+        $overtimeMinutes = (int) ($inputMap->get('attendance_overtime_minutes')->quantity ?? 0);
         $manualAdjustmentAmount = (float) $inputs
             ->where('source_type', 'manual_adjustment')
             ->sum(fn ($input): float => (float) ($input->amount ?? 0));
@@ -257,14 +277,18 @@ class PayrollCalculationService
         $deductionsBreakdown = [];
         $employerContributionBreakdown = [];
 
-        foreach ($compensation->component_snapshot ?? [] as $line) {
-            $resolvedInputs = $line['resolved_formula_inputs'] ?? [];
+        $componentSnapshot = $this->resolveComponentSnapshot($compensation);
+
+        foreach ($componentSnapshot as $line) {
+            $resolvedInputs = $line['resolved_formula_inputs'];
             $amount = $this->evaluateResolvedComponent(
                 $resolvedInputs,
                 $componentValues,
             );
 
-            $isProratable = (bool) ($line['is_proratable'] ?? true);
+            $isProratable = array_key_exists('is_proratable', $line)
+                ? (bool) $line['is_proratable']
+                : true;
             $proratedAmount = $isProratable
                 ? $amount * $dailyProrationFactor
                 : $amount;
@@ -380,6 +404,10 @@ class PayrollCalculationService
         ]);
     }
 
+    /**
+     * @param  PayrollResolvedFormulaInputs  $resolvedInputs
+     * @param  PayrollComponentContext  $context
+     */
     private function evaluateResolvedComponent(array $resolvedInputs, array $context): float
     {
         $calculationType = $resolvedInputs['calculation_type'] ?? 'fixed';
@@ -392,19 +420,30 @@ class PayrollCalculationService
         };
     }
 
+    /**
+     * @param  PayrollResolvedFormulaInputs  $resolvedInputs
+     * @param  PayrollComponentContext  $context
+     */
     private function evaluatePercentageComponent(array $resolvedInputs, array $context): float
     {
         $percentage = (float) ($resolvedInputs['percentage_value'] ?? 0);
-        $basisCodes = collect($resolvedInputs['percentage_basis_component_codes'] ?? [])
-            ->map(fn (mixed $code): string => strtoupper((string) $code))
-            ->all();
+        $basisCodes = array_values(array_filter(array_map(
+            static fn (string $code): string => strtoupper($code),
+            $resolvedInputs['percentage_basis_component_codes'],
+        ), static fn (string $code): bool => $code !== ''));
 
-        $basisAmount = collect($basisCodes)
-            ->sum(fn (string $code): float => (float) ($context[$code] ?? 0));
+        $basisAmount = array_sum(array_map(
+            static fn (string $code): float => (float) ($context[$code] ?? 0),
+            $basisCodes,
+        ));
 
         return round($basisAmount * ($percentage / 100), 2);
     }
 
+    /**
+     * @param  PayrollResolvedFormulaInputs  $resolvedInputs
+     * @param  PayrollComponentContext  $context
+     */
     private function evaluateExpressionComponent(array $resolvedInputs, array $context): float
     {
         $expression = (string) ($resolvedInputs['expression_formula'] ?? '0');
@@ -427,6 +466,16 @@ class PayrollCalculationService
         }
 
         return round($this->evaluateNumericExpression($expression), 2);
+    }
+
+    /**
+     * @return list<PayrollComponentSnapshotLine>
+     */
+    private function resolveComponentSnapshot(EmployeeCompensation $compensation): array
+    {
+        return is_array($compensation->component_snapshot)
+            ? $compensation->component_snapshot
+            : [];
     }
 
     private function evaluateNumericExpression(string $expression): float

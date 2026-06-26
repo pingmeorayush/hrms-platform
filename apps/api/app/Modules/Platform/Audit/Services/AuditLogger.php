@@ -8,6 +8,9 @@ use App\Modules\Platform\Tenancy\TenantContext;
 
 class AuditLogger
 {
+    /**
+     * @param  array<string|int, mixed>  $metadata
+     */
     public function record(
         string $eventType,
         ?User $actor = null,
@@ -20,7 +23,7 @@ class AuditLogger
         $tenantContext = app(TenantContext::class);
 
         return AuditLog::withoutGlobalScopes()->create([
-            'company_id' => $actor?->company_id ?? $tenantContext->companyId,
+            'company_id' => $actor->company_id ?? $tenantContext->companyId,
             'user_id' => $actor?->id,
             'event_type' => $eventType,
             'entity_type' => $entityType,

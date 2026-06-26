@@ -10,10 +10,58 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type AssetCategoryFilters array{status?: string}
+ * @phpstan-type AssetCategoryPayload array{
+ *   code: string,
+ *   name: string,
+ *   status: string,
+ *   notes?: string|null
+ * }
+ * @phpstan-type AssetFilters array{
+ *   status?: string,
+ *   asset_category_id?: int|string,
+ *   employee_id?: int|string
+ * }
+ * @phpstan-type AssetPayload array{
+ *   asset_category_id: int|string,
+ *   asset_tag: string,
+ *   name: string,
+ *   asset_type: string,
+ *   serial_number?: string|null,
+ *   manufacturer?: string|null,
+ *   model_name?: string|null,
+ *   purchase_date?: string|null,
+ *   status?: string,
+ *   notes?: string|null
+ * }
+ * @phpstan-type AssetCategorySnapshot array{
+ *   code: string,
+ *   name: string,
+ *   status: string,
+ *   notes: string|null
+ * }
+ * @phpstan-type AssetSnapshot array{
+ *   asset_category_id: int,
+ *   asset_category_code: string,
+ *   asset_tag: string,
+ *   name: string,
+ *   asset_type: string,
+ *   serial_number: string|null,
+ *   manufacturer: string|null,
+ *   model_name: string|null,
+ *   purchase_date: string|null,
+ *   status: string
+ * }
+ */
 class AssetCatalogService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  AssetCategoryFilters  $filters
+     * @return Collection<int, AssetCategory>
+     */
     public function listCategories(array $filters, User $actor): Collection
     {
         $categories = AssetCategory::query()
@@ -39,6 +87,9 @@ class AssetCatalogService
         return $categories;
     }
 
+    /**
+     * @param  AssetCategoryPayload  $payload
+     */
     public function createCategory(User $actor, array $payload): AssetCategory
     {
         return DB::transaction(function () use ($actor, $payload): AssetCategory {
@@ -62,6 +113,9 @@ class AssetCatalogService
         });
     }
 
+    /**
+     * @param  AssetCategoryPayload  $payload
+     */
     public function updateCategory(User $actor, AssetCategory $category, array $payload): AssetCategory
     {
         return DB::transaction(function () use ($actor, $category, $payload): AssetCategory {
@@ -90,6 +144,10 @@ class AssetCatalogService
         });
     }
 
+    /**
+     * @param  AssetFilters  $filters
+     * @return Collection<int, Asset>
+     */
     public function listAssets(array $filters, User $actor): Collection
     {
         $assets = Asset::query()
@@ -126,6 +184,9 @@ class AssetCatalogService
         return $assets;
     }
 
+    /**
+     * @param  AssetPayload  $payload
+     */
     public function createAsset(User $actor, array $payload): Asset
     {
         return DB::transaction(function () use ($actor, $payload): Asset {
@@ -178,6 +239,9 @@ class AssetCatalogService
             ->findOrFail($assetId);
     }
 
+    /**
+     * @return AssetCategorySnapshot
+     */
     private function categorySnapshot(AssetCategory $category): array
     {
         return [
@@ -188,6 +252,9 @@ class AssetCatalogService
         ];
     }
 
+    /**
+     * @return AssetSnapshot
+     */
     private function assetSnapshot(Asset $asset, AssetCategory $category): array
     {
         return [

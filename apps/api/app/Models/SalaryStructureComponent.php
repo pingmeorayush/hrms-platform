@@ -7,6 +7,20 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property int $salary_structure_id
+ * @property int $salary_component_id
+ * @property int $display_order
+ * @property float|string|null $configured_amount
+ * @property float|string|null $configured_percentage
+ * @property array<int, string>|null $configured_basis_component_codes
+ * @property string|null $configured_expression_formula
+ * @property-read Company|null $company
+ * @property-read SalaryStructure|null $salaryStructure
+ * @property-read SalaryComponent|null $salaryComponent
+ */
 #[Fillable([
     'company_id',
     'salary_structure_id',
@@ -21,16 +35,25 @@ class SalaryStructureComponent extends Model
 {
     use BelongsToCompany;
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<SalaryStructure, $this>
+     */
     public function salaryStructure(): BelongsTo
     {
         return $this->belongsTo(SalaryStructure::class);
     }
 
+    /**
+     * @return BelongsTo<SalaryComponent, $this>
+     */
     public function salaryComponent(): BelongsTo
     {
         return $this->belongsTo(SalaryComponent::class);

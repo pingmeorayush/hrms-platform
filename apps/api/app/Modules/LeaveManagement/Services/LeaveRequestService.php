@@ -19,6 +19,26 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type LeaveRequestFilters array{
+ *   employee_id?: int|string,
+ *   leave_type_id?: int|string,
+ *   status?: string,
+ *   date_from?: string,
+ *   date_to?: string,
+ *   per_page?: int|string
+ * }
+ * @phpstan-type LeaveRequestSubmitPayload array{
+ *   leave_type_id: int|string,
+ *   start_date: string,
+ *   end_date: string,
+ *   reason: string
+ * }
+ * @phpstan-type LeaveRequestActionPayload array{
+ *   action: string,
+ *   comment?: string|null
+ * }
+ */
 class LeaveRequestService
 {
     public function __construct(
@@ -29,6 +49,10 @@ class LeaveRequestService
         private readonly WorkflowService $workflowService,
     ) {}
 
+    /**
+     * @param  LeaveRequestFilters  $filters
+     * @return LengthAwarePaginator<int, LeaveRequest>
+     */
     public function search(User $actor, array $filters): LengthAwarePaginator
     {
         $query = $this->accessScopeService
@@ -56,7 +80,7 @@ class LeaveRequestService
             ->orderByDesc('start_date')
             ->orderByDesc('id');
 
-        return $query->paginate($filters['per_page'] ?? 15);
+        return $query->paginate((int) ($filters['per_page'] ?? 15));
     }
 
     public function findForView(User $actor, int $leaveRequestId): LeaveRequest
@@ -64,6 +88,9 @@ class LeaveRequestService
         return $this->accessScopeService->resolveAccessibleRequest($actor, $leaveRequestId);
     }
 
+    /**
+     * @param  LeaveRequestSubmitPayload  $payload
+     */
     public function submit(User $actor, array $payload): LeaveRequest
     {
         return DB::transaction(function () use ($actor, $payload): LeaveRequest {
@@ -184,10 +211,13 @@ class LeaveRequestService
         });
     }
 
+    /**
+     * @param  LeaveRequestActionPayload  $payload
+     */
     public function update(User $actor, int $leaveRequestId, array $payload): LeaveRequest
     {
         $leaveRequest = $this->accessScopeService->resolveAccessibleRequest($actor, $leaveRequestId);
-        $action = $payload['action'] ?? null;
+        $action = $payload['action'];
 
         if ($action === 'cancel') {
             return $this->cancel($actor, $leaveRequest, $payload);
@@ -234,6 +264,9 @@ class LeaveRequestService
             ]);
     }
 
+    /**
+     * @param  LeaveRequestActionPayload  $payload
+     */
     private function cancel(User $actor, LeaveRequest $leaveRequest, array $payload): LeaveRequest
     {
         return DB::transaction(function () use ($actor, $leaveRequest, $payload): LeaveRequest {
@@ -325,6 +358,9 @@ class LeaveRequestService
         }
     }
 
+    /**
+     * @param  LeaveRequestSubmitPayload  $payload
+     */
     private function ensureDatesArePolicyCompliant(User $actor, LeavePolicy $policy, array $payload): void
     {
         $startDate = Carbon::parse((string) $payload['start_date'], $actor->company->timezone)->startOfDay();

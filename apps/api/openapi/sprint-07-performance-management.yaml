@@ -1,0 +1,1278 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 07 Performance Management API
+  version: 1.0.0
+  description: Goal, competency, review-cycle, and performance-review execution APIs implemented during Sprint 07.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /performance/goals:
+    get:
+      operationId: listPerformanceGoals
+      summary: List goal library records visible to the caller
+      parameters:
+        - in: query
+          name: review_cycle_id
+          schema:
+            type: integer
+        - in: query
+          name: owner_employee_id
+          schema:
+            type: integer
+        - in: query
+          name: department_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, active, archived]
+      responses:
+        '200':
+          description: Goals loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceGoalCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createPerformanceGoal
+      summary: Create a goal library record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceGoalRequest'
+      responses:
+        '201':
+          description: Goal created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceGoal'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/goals/{performanceGoalId}:
+    get:
+      operationId: getPerformanceGoal
+      summary: Load one goal configuration record
+      parameters:
+        - $ref: '#/components/parameters/PerformanceGoalId'
+      responses:
+        '200':
+          description: Goal loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceGoal'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updatePerformanceGoal
+      summary: Update a goal configuration record
+      parameters:
+        - $ref: '#/components/parameters/PerformanceGoalId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceGoalRequest'
+      responses:
+        '200':
+          description: Goal updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceGoal'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/competencies:
+    get:
+      operationId: listPerformanceCompetencies
+      summary: List competencies and scale definitions
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, inactive]
+      responses:
+        '200':
+          description: Competencies loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceCompetencyCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createPerformanceCompetency
+      summary: Create a competency definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceCompetencyRequest'
+      responses:
+        '201':
+          description: Competency created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceCompetency'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/competencies/{performanceCompetencyId}:
+    get:
+      operationId: getPerformanceCompetency
+      summary: Load one competency definition
+      parameters:
+        - $ref: '#/components/parameters/PerformanceCompetencyId'
+      responses:
+        '200':
+          description: Competency loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceCompetency'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updatePerformanceCompetency
+      summary: Update a competency definition
+      parameters:
+        - $ref: '#/components/parameters/PerformanceCompetencyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceCompetencyRequest'
+      responses:
+        '200':
+          description: Competency updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceCompetency'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/review-cycles:
+    get:
+      operationId: listPerformanceReviewCycles
+      summary: List performance review cycles
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, scheduled, active, archived]
+        - in: query
+          name: cycle_type
+          schema:
+            type: string
+            enum: [quarterly, half_yearly, annual, custom]
+      responses:
+        '200':
+          description: Review cycles loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReviewCycleCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createPerformanceReviewCycle
+      summary: Create a review cycle configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewCycleRequest'
+      responses:
+        '201':
+          description: Review cycle created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReviewCycle'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/review-cycles/{performanceReviewCycleId}:
+    get:
+      operationId: getPerformanceReviewCycle
+      summary: Load one performance review cycle
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewCycleId'
+      responses:
+        '200':
+          description: Review cycle loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReviewCycle'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updatePerformanceReviewCycle
+      summary: Update a performance review cycle
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewCycleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewCycleRequest'
+      responses:
+        '200':
+          description: Review cycle updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReviewCycle'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/reviews:
+    get:
+      operationId: listPerformanceReviews
+      summary: List performance reviews visible to the caller
+      parameters:
+        - in: query
+          name: performance_review_cycle_id
+          schema:
+            type: integer
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, self_assessment, manager_review, calibration, finalized, published, reopened]
+      responses:
+        '200':
+          description: Reviews loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReviewCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createPerformanceReview
+      summary: Create and optionally launch a performance review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewCreateRequest'
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/reviews/{performanceReviewId}:
+    get:
+      operationId: getPerformanceReview
+      summary: Load one performance review with visible submissions
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewId'
+      responses:
+        '200':
+          description: Review loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updatePerformanceReview
+      summary: Update review metadata under HR control
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewUpdateRequest'
+      responses:
+        '200':
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/reviews/{performanceReviewId}/submit:
+    post:
+      operationId: submitPerformanceReviewInput
+      summary: Submit self, manager, or reviewer input for a review
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewSubmissionRequest'
+      responses:
+        '200':
+          description: Review input submitted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/reviews/{performanceReviewId}/calibrate:
+    post:
+      operationId: calibratePerformanceReview
+      summary: Record calibration outcomes for a review
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewCalibrationRequest'
+      responses:
+        '200':
+          description: Review calibrated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/reviews/{performanceReviewId}/finalize:
+    post:
+      operationId: finalizePerformanceReview
+      summary: Lock final review outcomes
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewFinalizeRequest'
+      responses:
+        '200':
+          description: Review finalized
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/reviews/{performanceReviewId}/publish:
+    post:
+      operationId: publishPerformanceReview
+      summary: Publish a finalized review to the employee
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewId'
+      responses:
+        '200':
+          description: Review published
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /performance/reviews/{performanceReviewId}/reopen:
+    post:
+      operationId: reopenPerformanceReview
+      summary: Reopen a finalized or published review with an audited reason
+      parameters:
+        - $ref: '#/components/parameters/PerformanceReviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReviewReopenRequest'
+      responses:
+        '200':
+          description: Review reopened
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PerformanceReview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    PerformanceGoalId:
+      in: path
+      name: performanceGoalId
+      required: true
+      schema:
+        type: integer
+    PerformanceCompetencyId:
+      in: path
+      name: performanceCompetencyId
+      required: true
+      schema:
+        type: integer
+    PerformanceReviewCycleId:
+      in: path
+      name: performanceReviewCycleId
+      required: true
+      schema:
+        type: integer
+    PerformanceReviewId:
+      in: path
+      name: performanceReviewId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, employee_code, full_name]
+    DepartmentReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+      required: [id, code, name]
+    PerformanceGoal:
+      type: object
+      properties:
+        id:
+          type: integer
+        goal_code:
+          type: string
+        goal_type:
+          type: string
+          enum: [library]
+        title:
+          type: string
+        description:
+          type: string
+        review_cycle:
+          type: object
+          properties:
+            id:
+              type: integer
+            code:
+              type: string
+            name:
+              type: string
+            status:
+              type: string
+          required: [id, code, name, status]
+        owner_employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        department:
+          $ref: '#/components/schemas/DepartmentReference'
+        due_on:
+          type: string
+          format: date
+        weight_percent:
+          type: number
+        success_metric:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [draft, active, archived]
+        can_edit_configuration:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, goal_code, goal_type, title, weight_percent, status]
+    PerformanceCompetency:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        scale_definition:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, code, name, category, scale_definition, status]
+    PerformanceReviewCycle:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        cycle_type:
+          type: string
+          enum: [quarterly, half_yearly, annual, custom]
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+        self_review_due_on:
+          type: string
+          format: date
+        manager_review_due_on:
+          type: string
+          format: date
+        calibration_starts_on:
+          type: string
+          format: date
+        calibration_ends_on:
+          type: string
+          format: date
+        publish_on:
+          type: string
+          format: date
+        participant_rules:
+          type: object
+          additionalProperties: true
+        review_template:
+          type: object
+          additionalProperties: true
+        competency_visibility:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [draft, scheduled, active, archived]
+        goal_count:
+          type: integer
+        can_edit_configuration:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, code, name, cycle_type, starts_on, ends_on, participant_rules, review_template, competency_visibility, status]
+    PerformanceReviewSubmission:
+      type: object
+      properties:
+        id:
+          type: integer
+        role_type:
+          type: string
+          enum: [self, manager, reviewer, hr]
+        submitted_by:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            employee_id:
+              type: integer
+        is_anonymous_to_current_user:
+          type: boolean
+        overall_rating:
+          type: number
+        summary:
+          type: string
+        confidential_notes:
+          type: string
+        section_payload:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        competency_payload:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        submitted_at:
+          type: string
+          format: date-time
+      required: [id, role_type]
+    PerformanceReview:
+      type: object
+      properties:
+        id:
+          type: integer
+        review_cycle:
+          type: object
+          properties:
+            id:
+              type: integer
+            code:
+              type: string
+            name:
+              type: string
+            status:
+              type: string
+            self_review_due_on:
+              type: string
+              format: date
+            manager_review_due_on:
+              type: string
+              format: date
+          required: [id, code, name, status]
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        manager_employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        reviewer_user_ids:
+          type: array
+          items:
+            type: integer
+        goal_snapshot:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        competency_snapshot:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        visibility_rules:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [draft, self_assessment, manager_review, calibration, finalized, published, reopened]
+        actor_role:
+          type: string
+          enum: [self, manager, reviewer, hr]
+        submissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceReviewSubmission'
+        calibration_payload:
+          type: object
+          additionalProperties: true
+        final_payload:
+          type: object
+          additionalProperties: true
+        launched_at:
+          type: string
+          format: date-time
+        self_submitted_at:
+          type: string
+          format: date-time
+        manager_submitted_at:
+          type: string
+          format: date-time
+        calibration_completed_at:
+          type: string
+          format: date-time
+        finalized_at:
+          type: string
+          format: date-time
+        published_at:
+          type: string
+          format: date-time
+        reopened_at:
+          type: string
+          format: date-time
+        reopen_count:
+          type: integer
+        reopened_reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, review_cycle, employee, status]
+    PerformanceGoalCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceGoal'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    PerformanceCompetencyCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceCompetency'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    PerformanceReviewCycleCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceReviewCycle'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    PerformanceReviewCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceReview'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    PerformanceGoalRequest:
+      type: object
+      properties:
+        goal_code:
+          type: string
+        goal_type:
+          type: string
+          enum: [library]
+        title:
+          type: string
+        description:
+          type: string
+        performance_review_cycle_id:
+          type: integer
+        owner_employee_id:
+          type: integer
+        department_id:
+          type: integer
+        due_on:
+          type: string
+          format: date
+        weight_percent:
+          type: number
+        success_metric:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [draft, active, archived]
+      required:
+        - goal_code
+        - goal_type
+        - title
+        - performance_review_cycle_id
+        - owner_employee_id
+        - department_id
+        - due_on
+        - weight_percent
+        - status
+    PerformanceCompetencyRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        scale_definition:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [code, name, category, scale_definition, status]
+    PerformanceReviewCycleRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        cycle_type:
+          type: string
+          enum: [quarterly, half_yearly, annual, custom]
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+        self_review_due_on:
+          type: string
+          format: date
+        manager_review_due_on:
+          type: string
+          format: date
+        calibration_starts_on:
+          type: string
+          format: date
+        calibration_ends_on:
+          type: string
+          format: date
+        publish_on:
+          type: string
+          format: date
+        participant_rules:
+          type: object
+          additionalProperties: true
+        review_template:
+          type: object
+          additionalProperties: true
+        competency_visibility:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [draft, scheduled, active, archived]
+      required:
+        - code
+        - name
+        - cycle_type
+        - starts_on
+        - ends_on
+        - participant_rules
+        - review_template
+        - competency_visibility
+        - status
+    PerformanceReviewCreateRequest:
+      type: object
+      properties:
+        performance_review_cycle_id:
+          type: integer
+        employee_id:
+          type: integer
+        reviewer_user_ids:
+          type: array
+          items:
+            type: integer
+        visibility_rules:
+          type: object
+          additionalProperties: true
+        launch_immediately:
+          type: boolean
+      required: [performance_review_cycle_id, employee_id]
+    PerformanceReviewUpdateRequest:
+      type: object
+      properties:
+        reviewer_user_ids:
+          type: array
+          items:
+            type: integer
+        visibility_rules:
+          type: object
+          additionalProperties: true
+    PerformanceReviewSubmissionRequest:
+      type: object
+      properties:
+        overall_rating:
+          type: number
+        summary:
+          type: string
+        confidential_notes:
+          type: string
+        section_payload:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        competency_payload:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [overall_rating, summary, section_payload, competency_payload]
+    PerformanceReviewCalibrationRequest:
+      type: object
+      properties:
+        overall_rating:
+          type: number
+        summary:
+          type: string
+        section_adjustments:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        competency_adjustments:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [overall_rating, summary]
+    PerformanceReviewFinalizeRequest:
+      type: object
+      properties:
+        final_rating:
+          type: number
+        summary:
+          type: string
+        employee_visible_summary:
+          type: string
+        recommendation:
+          type: string
+      required: [final_rating, summary]
+    PerformanceReviewReopenRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+      required: [reason]

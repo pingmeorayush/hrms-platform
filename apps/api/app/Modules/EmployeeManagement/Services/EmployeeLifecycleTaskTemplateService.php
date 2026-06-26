@@ -4,12 +4,36 @@ namespace App\Modules\EmployeeManagement\Services;
 
 use App\Models\Employee;
 use App\Models\EmployeeLifecycleTaskTemplate;
+use App\Models\EmployeeOnboardingTask;
 use App\Models\User;
 use App\Modules\Platform\Audit\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type EmployeeLifecycleTaskTemplateFilters array{
+ *   lifecycle_type?: string,
+ *   is_active?: bool|int|string
+ * }
+ * @phpstan-type EmployeeLifecycleTaskTemplatePayload array{
+ *   name?: string,
+ *   lifecycle_type?: string,
+ *   title?: string,
+ *   category?: string,
+ *   task_type?: string|null,
+ *   assignee_type?: string,
+ *   requires_approval?: bool,
+ *   approval_workflow_key?: string|null,
+ *   due_offset_days?: int|null,
+ *   sort_order?: int,
+ *   notes?: string|null,
+ *   is_active?: bool
+ * }
+ * @phpstan-type EmployeeLifecycleTaskTemplateApplyPayload array{
+ *   template_ids: list<int>
+ * }
+ */
 class EmployeeLifecycleTaskTemplateService
 {
     public function __construct(
@@ -17,6 +41,10 @@ class EmployeeLifecycleTaskTemplateService
         private readonly AuditLogger $auditLogger,
     ) {}
 
+    /**
+     * @param  EmployeeLifecycleTaskTemplateFilters  $filters
+     * @return Collection<int, EmployeeLifecycleTaskTemplate>
+     */
     public function list(array $filters = []): Collection
     {
         return EmployeeLifecycleTaskTemplate::query()
@@ -34,6 +62,9 @@ class EmployeeLifecycleTaskTemplateService
             ->get();
     }
 
+    /**
+     * @param  EmployeeLifecycleTaskTemplatePayload  $payload
+     */
     public function create(User $actor, array $payload): EmployeeLifecycleTaskTemplate
     {
         return DB::transaction(function () use ($actor, $payload): EmployeeLifecycleTaskTemplate {
@@ -61,6 +92,9 @@ class EmployeeLifecycleTaskTemplateService
         });
     }
 
+    /**
+     * @param  EmployeeLifecycleTaskTemplatePayload  $payload
+     */
     public function update(EmployeeLifecycleTaskTemplate $template, User $actor, array $payload): EmployeeLifecycleTaskTemplate
     {
         return DB::transaction(function () use ($template, $actor, $payload): EmployeeLifecycleTaskTemplate {
@@ -101,6 +135,10 @@ class EmployeeLifecycleTaskTemplateService
         });
     }
 
+    /**
+     * @param  EmployeeLifecycleTaskTemplateApplyPayload  $payload
+     * @return Collection<int, EmployeeOnboardingTask>
+     */
     public function apply(Employee $employee, User $actor, array $payload): Collection
     {
         return DB::transaction(function () use ($employee, $actor, $payload): Collection {

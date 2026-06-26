@@ -9,6 +9,11 @@ use App\Models\User;
 use App\Modules\Platform\Audit\Services\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @phpstan-type AttendancePolicyPayload array<string, mixed>
+ * @phpstan-type HolidayCalendarPayload array<string, mixed>
+ * @phpstan-type HolidayPayload array<string, mixed>
+ */
 class AttendanceConfigurationService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
@@ -34,6 +39,9 @@ class AttendanceConfigurationService
         );
     }
 
+    /**
+     * @param  AttendancePolicyPayload  $payload
+     */
     public function updatePolicy(User $actor, AttendancePolicy $policy, array $payload): AttendancePolicy
     {
         return DB::transaction(function () use ($actor, $policy, $payload): AttendancePolicy {
@@ -83,6 +91,9 @@ class AttendanceConfigurationService
         });
     }
 
+    /**
+     * @param  HolidayCalendarPayload  $payload
+     */
     public function createHolidayCalendar(User $actor, array $payload): HolidayCalendar
     {
         return DB::transaction(function () use ($actor, $payload): HolidayCalendar {
@@ -113,6 +124,9 @@ class AttendanceConfigurationService
         });
     }
 
+    /**
+     * @param  HolidayCalendarPayload  $payload
+     */
     public function updateHolidayCalendar(User $actor, HolidayCalendar $holidayCalendar, array $payload): HolidayCalendar
     {
         return DB::transaction(function () use ($actor, $holidayCalendar, $payload): HolidayCalendar {
@@ -159,6 +173,9 @@ class AttendanceConfigurationService
         });
     }
 
+    /**
+     * @param  HolidayPayload  $payload
+     */
     public function createHoliday(User $actor, HolidayCalendar $holidayCalendar, array $payload): Holiday
     {
         return DB::transaction(function () use ($actor, $holidayCalendar, $payload): Holiday {
@@ -179,6 +196,9 @@ class AttendanceConfigurationService
         });
     }
 
+    /**
+     * @param  HolidayPayload  $payload
+     */
     public function updateHoliday(User $actor, HolidayCalendar $holidayCalendar, Holiday $holiday, array $payload): Holiday
     {
         return DB::transaction(function () use ($actor, $holidayCalendar, $holiday, $payload): Holiday {
@@ -211,31 +231,48 @@ class AttendanceConfigurationService
         });
     }
 
+    /**
+     * @param  AttendancePolicyPayload  $payload
+     * @return AttendancePolicyPayload
+     */
     private function normalizePolicyPayload(array $payload): array
     {
+        $nonWorkingDays = [];
+
+        if (isset($payload['weekend_rule']) && is_array($payload['weekend_rule'])) {
+            $candidateDays = $payload['weekend_rule']['non_working_days'] ?? [];
+
+            if (is_array($candidateDays)) {
+                $nonWorkingDays = array_values(array_unique(array_map(
+                    static fn (mixed $day): int => (int) $day,
+                    $candidateDays,
+                )));
+                sort($nonWorkingDays);
+            }
+        }
+
         $payload['weekend_rule'] = [
-            'non_working_days' => collect($payload['weekend_rule']['non_working_days'] ?? [])
-                ->map(fn (mixed $day): int => (int) $day)
-                ->unique()
-                ->sort()
-                ->values()
-                ->all(),
+            'non_working_days' => $nonWorkingDays,
         ];
 
-        if (! $payload['overtime_eligible']) {
+        if (! ($payload['overtime_eligible'] ?? false)) {
             $payload['overtime_after_minutes'] = null;
         }
 
-        if (! $payload['enforce_geofence']) {
+        if (! ($payload['enforce_geofence'] ?? false)) {
             $payload['allowed_radius_meters'] = null;
         }
 
         return $payload;
     }
 
+    /**
+     * @param  HolidayCalendarPayload  $payload
+     * @return HolidayCalendarPayload
+     */
     private function normalizeHolidayCalendarPayload(array $payload): array
     {
-        if ($payload['is_default']) {
+        if ($payload['is_default'] ?? false) {
             $payload['location_id'] = null;
             $payload['department_id'] = null;
         }

@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -38,13 +38,13 @@ import {
   ConsoleToolbar,
   ConsoleToolbarRow,
 } from '../../../shared/ui/console-table'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
+import { CardTitle } from '../../../shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
 import {
   WorkspaceContent,
   WorkspaceEmptyState,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSummaryRow,
   WorkspaceSurface,
@@ -55,33 +55,38 @@ import {
 import { useAttendanceAdminWorkspace } from '../hooks/useAttendanceAdminWorkspace'
 import { useAttendanceReviewWorkspace } from '../hooks/useAttendanceReviewWorkspace'
 import type {
+  AttendancePolicy,
   AttendanceCorrection,
+  HolidayCalendar,
   AttendanceOperationalRecord,
+  Shift,
   ShiftAssignment,
+  ShiftRoster,
 } from '../types'
 
 type AttendanceOverviewTab = 'assignments' | 'shifts' | 'rosters' | 'review'
+const emptyPermissions: string[] = []
+const emptyAssignments: ShiftAssignment[] = []
+const emptyShifts: Shift[] = []
+const emptyRosters: ShiftRoster[] = []
+const emptyCalendars: HolidayCalendar[] = []
 
 export function AttendanceOverviewPage() {
   const { snapshot } = useAccessSnapshot()
   const { isFavorite, toggleFavorite } = useShellFavorites()
-  const permissions = snapshot?.user.permissions ?? []
+  const permissions = snapshot?.user.permissions ?? emptyPermissions
   const canManageAny =
     permissions.includes('attendance.edit') ||
     permissions.includes('attendance.manage_shift') ||
     permissions.includes('attendance.manage_roster')
   const canReview = permissions.includes('attendance.approve')
 
-  if (!canManageAny && !canReview) {
-    return <Navigate replace to="/attendance/my-attendance/history" />
-  }
-
   const adminWorkspace = useAttendanceAdminWorkspace({ enabled: canManageAny })
   const reviewWorkspace = useAttendanceReviewWorkspace(todayDate())
   const { recentItems } = useShellRecent()
   const { activityEvents, alertOverrides } = useCommandCenterEvents('attendance')
 
-  const [activeTab, setActiveTab] = useState<AttendanceOverviewTab>(canManageAny ? 'assignments' : 'review')
+  const [activeTabSelection, setActiveTab] = useState<AttendanceOverviewTab>('assignments')
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
 
@@ -102,32 +107,61 @@ export function AttendanceOverviewPage() {
 
     return tabs
   }, [canManageAny, canReview])
-
-  useEffect(() => {
-    if (!overviewTabs.some((tab) => tab.id === activeTab)) {
-      setActiveTab(overviewTabs[0]?.id ?? 'review')
-    }
-  }, [activeTab, overviewTabs])
+  const activeTab = overviewTabs.some((tab) => tab.id === activeTabSelection)
+    ? activeTabSelection
+    : (overviewTabs[0]?.id ?? 'review')
 
   const isLoading =
     adminWorkspace.isLoading || (canReview ? reviewWorkspace.isLoading : false)
   const error = adminWorkspace.error ?? (canReview ? reviewWorkspace.error : null)
 
-  const assignments = adminWorkspace.data?.assignments ?? []
-  const shifts = adminWorkspace.data?.shifts ?? []
-  const rosters = adminWorkspace.data?.rosters ?? []
-  const calendars = adminWorkspace.data?.holidayCalendars ?? []
+  const policy: AttendancePolicy | null = adminWorkspace.data?.policy ?? null
+  const assignments = adminWorkspace.data?.assignments ?? emptyAssignments
+  const shifts = adminWorkspace.data?.shifts ?? emptyShifts
+  const rosters = adminWorkspace.data?.rosters ?? emptyRosters
+  const calendars = adminWorkspace.data?.holidayCalendars ?? emptyCalendars
   const todaySummary = reviewWorkspace.data.operationalReview.summary
   const exceptionSummary = reviewWorkspace.data.pendingExceptions.summary
-  const pendingCorrections = reviewWorkspace.data.corrections.items.filter((item) => item.status === 'pending')
-  const expiringAssignments = assignments.filter((record) => {
-    if (!record.effective_to) {
-      return false
-    }
+  const pendingCorrections = useMemo(
+    () => reviewWorkspace.data.corrections.items.filter((item) => item.status === 'pending'),
+    [reviewWorkspace.data.corrections.items],
+  )
+  const expiringAssignments = useMemo(
+    () =>
+      assignments.filter((record) => {
+        if (!record.effective_to) {
+          return false
+        }
 
-    const days = daysUntil(record.effective_to)
-    return days >= 0 && days <= 30
-  })
+        const days = daysUntil(record.effective_to)
+        return days >= 0 && days <= 30
+      }),
+    [assignments],
+  )
+  const activeShiftCount = useMemo(
+    () => shifts.filter((record) => record.status === 'active').length,
+    [shifts],
+  )
+  const overnightShiftCount = useMemo(
+    () => shifts.filter((record) => record.is_overnight).length,
+    [shifts],
+  )
+  const activeAssignmentCount = useMemo(
+    () => assignments.filter((record) => record.status === 'active').length,
+    [assignments],
+  )
+  const scheduledRosterCount = useMemo(
+    () => rosters.filter((record) => record.status === 'scheduled').length,
+    [rosters],
+  )
+  const overnightRosterCount = useMemo(
+    () => rosters.filter((record) => record.shift.is_overnight).length,
+    [rosters],
+  )
+  const holidayCount = useMemo(
+    () => calendars.reduce((total, calendar) => total + calendar.holidays.length, 0),
+    [calendars],
+  )
 
   const metricCards = useMemo(() => {
     const cards: Array<{
@@ -142,28 +176,28 @@ export function AttendanceOverviewPage() {
       cards.push(
         {
           label: 'Active policies',
-          value: adminWorkspace.data?.policy.status === 'active' ? '1' : '0',
-          delta: `${adminWorkspace.data?.policy.name ?? 'Policy not loaded'}`,
+          value: policy?.status === 'active' ? '1' : '0',
+          delta: `${policy?.name ?? 'Policy not loaded'}`,
           icon: <ShieldCheck className="h-4 w-4" />,
           tone: 'info' as const,
         },
         {
           label: 'Active shifts',
-          value: String(shifts.filter((record) => record.status === 'active').length),
-          delta: `${shifts.filter((record) => record.is_overnight).length} overnight coverage pattern(s)`,
+          value: String(activeShiftCount),
+          delta: `${overnightShiftCount} overnight coverage pattern(s)`,
           icon: <Clock3 className="h-4 w-4" />,
           tone: 'info' as const,
         },
         {
           label: 'Live assignments',
-          value: String(assignments.filter((record) => record.status === 'active').length),
+          value: String(activeAssignmentCount),
           delta: `${expiringAssignments.length} expiring in the next 30 days`,
           icon: <Users className="h-4 w-4" />,
           tone: expiringAssignments.length ? 'warning' : 'success',
         },
         {
           label: 'Scheduled rosters',
-          value: String(rosters.filter((record) => record.status === 'scheduled').length),
+          value: String(scheduledRosterCount),
           delta: `${rosters.length} roster entries in this workspace`,
           icon: <CalendarDays className="h-4 w-4" />,
           tone: 'success' as const,
@@ -206,7 +240,7 @@ export function AttendanceOverviewPage() {
       cards.push({
         label: 'Holiday calendars',
         value: String(calendars.length),
-        delta: `${calendars.reduce((total, calendar) => total + calendar.holidays.length, 0)} holidays configured`,
+        delta: `${holidayCount} holidays configured`,
         icon: <CalendarDays className="h-4 w-4" />,
         tone: 'neutral' as const,
       })
@@ -214,18 +248,22 @@ export function AttendanceOverviewPage() {
 
     return cards.slice(0, 6)
   }, [
-    adminWorkspace.data?.policy.name,
-    adminWorkspace.data?.policy.status,
-    assignments,
-    calendars,
+    activeAssignmentCount,
+    activeShiftCount,
     canManageAny,
     canReview,
+    calendars.length,
     exceptionSummary.exception_record_count,
     exceptionSummary.pending_correction_request_count,
     expiringAssignments.length,
+    holidayCount,
     pendingCorrections.length,
-    rosters,
-    shifts,
+    overnightShiftCount,
+    policy?.name,
+    policy?.status,
+    rosters.length,
+    scheduledRosterCount,
+    todaySummary.total_records,
     todaySummary.absent_count,
     todaySummary.checked_out_count,
     todaySummary.half_day_count,
@@ -286,13 +324,13 @@ export function AttendanceOverviewPage() {
       })
     }
 
-    if (canManageAny && shifts.some((record) => record.is_overnight)) {
+    if (canManageAny && overnightShiftCount > 0) {
       items.push({
         id: 'overnight-coverage',
         path: '/attendance/admin-setup/rosters',
-        title: `${shifts.filter((record) => record.is_overnight).length} overnight shift pattern(s) are active`,
+        title: `${overnightShiftCount} overnight shift pattern(s) are active`,
         detail: 'Check rostering and assignment overlap before the next publish cycle.',
-        meta: `${rosters.filter((record) => record.shift.is_overnight).length} upcoming overnight roster(s) scheduled`,
+        meta: `${overnightRosterCount} upcoming overnight roster(s) scheduled`,
         tone: 'info',
         icon: <MoonStar className="h-4 w-4" />,
       })
@@ -316,11 +354,11 @@ export function AttendanceOverviewPage() {
     exceptionSummary.incomplete_record_count,
     exceptionSummary.pending_correction_request_count,
     expiringAssignments,
+    overnightRosterCount,
+    overnightShiftCount,
     pendingCorrections.length,
     reviewWorkspace.data.scope,
     reviewWorkspace.data.windowDate,
-    rosters,
-    shifts,
     todaySummary.checked_in_count,
   ])
 
@@ -340,13 +378,13 @@ export function AttendanceOverviewPage() {
       tone: 'neutral' | 'info' | 'success' | 'warning'
     }> = []
 
-    if (adminWorkspace.data?.policy.updated_at) {
+    if (policy?.updated_at) {
       items.push({
         id: 'policy',
         title: 'Attendance policy updated',
-        detail: adminWorkspace.data.policy.name,
-        meta: relativeTime(adminWorkspace.data.policy.updated_at),
-        timestamp: adminWorkspace.data.policy.updated_at,
+        detail: policy.name,
+        meta: relativeTime(policy.updated_at),
+        timestamp: policy.updated_at,
         tone: 'info',
       })
     }
@@ -388,7 +426,7 @@ export function AttendanceOverviewPage() {
       .filter((item) => item.timestamp)
       .sort((left, right) => (right.timestamp ?? '').localeCompare(left.timestamp ?? ''))
       .slice(0, 6)
-  }, [adminWorkspace.data?.policy.name, adminWorkspace.data?.policy.updated_at, assignments, pendingCorrections, rosters])
+  }, [assignments, pendingCorrections, policy, rosters])
 
   const activityItems = useMemo(() => {
     if (activityEvents.length) {
@@ -468,33 +506,36 @@ export function AttendanceOverviewPage() {
           ? filteredRosters.length
           : filteredReviewRows.length
 
+  if (!canManageAny && !canReview) {
+    return <Navigate replace to="/attendance/my-attendance/history" />
+  }
+
   return (
     <WorkspacePage>
       {isLoading ? <p className="workspace-muted">Loading attendance operations center...</p> : null}
       {error ? <p className="workspace-error">{error.message}</p> : null}
 
       <WorkspaceSurface>
-        <WorkspaceHeader compact>
-          <div className="space-y-1">
-            <p className="ui-type-page-eyebrow text-text-subtle">Live module · Operations center</p>
-            <CardTitle>Attendance Operations Center</CardTitle>
-            <CardDescription>
-              Monitor assignment coverage, review live exceptions, and move directly into scheduling or decision work.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            {canReview ? (
-              <Button asChild size="xs" variant="secondary">
-                <Link to="/attendance/operational-review">Open review queue</Link>
-              </Button>
-            ) : null}
-            {canManageAny ? (
-              <Button asChild size="xs" variant="primary">
-                <Link to="/attendance/admin-setup/assignments">New assignment</Link>
-              </Button>
-            ) : null}
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+        <WorkspaceHeroHeader
+          moduleLabel="Attendance"
+          title="Attendance Operations Center"
+          description="Monitor assignment coverage, review live exceptions, and move directly into scheduling or decision work."
+          context={[canManageAny ? 'Scheduling controls live' : 'Operational visibility', canReview ? 'Review queue active' : 'Monitoring only']}
+          actions={
+            <>
+              {canReview ? (
+                <Button asChild size="xs" variant="secondary">
+                  <Link to="/attendance/operational-review">Open review queue</Link>
+                </Button>
+              ) : null}
+              {canManageAny ? (
+                <Button asChild size="xs" variant="primary">
+                  <Link to="/attendance/admin-setup/assignments">New assignment</Link>
+                </Button>
+              ) : null}
+            </>
+          }
+        />
         <WorkspaceContent className="space-y-4">
           <CommandCenterMetricGrid>
             {metricCards.map((card) => (

@@ -26,16 +26,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Location extends Model
 {
-    /** @use HasFactory<LocationFactory> */
     use BelongsToCompany;
 
+    /** @use HasFactory<LocationFactory> */
     use HasFactory;
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return HasMany<Employee, $this>
+     */
     public function employees(): HasMany
     {
         return $this->hasMany(Employee::class);

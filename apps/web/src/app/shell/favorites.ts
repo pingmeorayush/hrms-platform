@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import type { AppNavItem } from './navigation'
+import { useBrowserStoreSnapshot } from './browserStore'
 
 export const SHELL_FAVORITES_STORAGE_KEY = 'phoenixhrms.shell.favorites'
 const SHELL_FAVORITES_EVENT = 'phoenixhrms.shell.favorites.changed'
 const MAX_FAVORITES = 12
-const EMPTY_SHELL_FAVORITES: ShellFavoriteDraft[] = []
+const EMPTY_SHELL_FAVORITES: ShellFavorite[] = []
 
 export type ShellFavoriteIcon = AppNavItem['icon']
 
@@ -18,6 +19,14 @@ export type ShellFavorite = {
 }
 
 export type ShellFavoriteDraft = Omit<ShellFavorite, 'pinnedAt'>
+
+function readShellFavoritesRaw() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  return window.localStorage.getItem(SHELL_FAVORITES_STORAGE_KEY)
+}
 
 function isShellFavorite(value: unknown): value is ShellFavorite {
   if (!value || typeof value !== 'object') {
@@ -46,12 +55,7 @@ function dispatchFavoritesChanged() {
   window.dispatchEvent(new CustomEvent(SHELL_FAVORITES_EVENT))
 }
 
-export function readShellFavorites(): ShellFavorite[] | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  const raw = window.localStorage.getItem(SHELL_FAVORITES_STORAGE_KEY)
+function parseShellFavorites(raw: string | null): ShellFavorite[] | null {
   if (!raw) {
     return null
   }
@@ -59,15 +63,24 @@ export function readShellFavorites(): ShellFavorite[] | null {
   try {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) {
-      window.localStorage.removeItem(SHELL_FAVORITES_STORAGE_KEY)
       return null
     }
 
     return sortFavorites(parsed.filter(isShellFavorite))
   } catch {
-    window.localStorage.removeItem(SHELL_FAVORITES_STORAGE_KEY)
     return null
   }
+}
+
+export function readShellFavorites(): ShellFavorite[] | null {
+  const raw = readShellFavoritesRaw()
+  const parsed = parseShellFavorites(raw)
+
+  if (raw && parsed === null && typeof window !== 'undefined') {
+    window.localStorage.removeItem(SHELL_FAVORITES_STORAGE_KEY)
+  }
+
+  return parsed
 }
 
 export function writeShellFavorites(items: ShellFavorite[]) {
@@ -93,7 +106,14 @@ export function toggleShellFavorite(favorite: ShellFavoriteDraft) {
 }
 
 export function useShellFavorites(defaultFavorites: ShellFavoriteDraft[] = EMPTY_SHELL_FAVORITES) {
-  const [favorites, setFavorites] = useState<ShellFavorite[]>([])
+  const favoritesRaw = useBrowserStoreSnapshot(
+    SHELL_FAVORITES_EVENT,
+    readShellFavoritesRaw,
+  )
+  const favorites = useMemo(
+    () => parseShellFavorites(favoritesRaw) ?? EMPTY_SHELL_FAVORITES,
+    [favoritesRaw],
+  )
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -101,41 +121,17 @@ export function useShellFavorites(defaultFavorites: ShellFavoriteDraft[] = EMPTY
     }
 
     const stored = readShellFavorites()
-    if (stored === null) {
-      if (defaultFavorites.length) {
-        writeShellFavorites(
-          defaultFavorites.map((favorite, index) => ({
-            ...favorite,
-            pinnedAt: Date.now() - index,
-          })),
-        )
-        return
-      }
-
-      setFavorites([])
+    if (stored !== null || defaultFavorites.length === 0) {
       return
     }
 
-    setFavorites(stored)
+    writeShellFavorites(
+      defaultFavorites.map((favorite, index) => ({
+        ...favorite,
+        pinnedAt: Date.now() - index,
+      })),
+    )
   }, [defaultFavorites])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const syncFavorites = () => {
-      setFavorites(readShellFavorites() ?? [])
-    }
-
-    window.addEventListener(SHELL_FAVORITES_EVENT, syncFavorites)
-    window.addEventListener('storage', syncFavorites)
-
-    return () => {
-      window.removeEventListener(SHELL_FAVORITES_EVENT, syncFavorites)
-      window.removeEventListener('storage', syncFavorites)
-    }
-  }, [])
 
   const favoritePaths = useMemo(() => new Set(favorites.map((item) => item.path)), [favorites])
 

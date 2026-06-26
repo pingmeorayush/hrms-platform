@@ -62,9 +62,25 @@ The Document Management module provides centralized storage, versioning, access 
 
 - `GET /api/v1/documents`
 - `POST /api/v1/documents`
-- `GET /api/v1/documents/{id}`
-- `DELETE /api/v1/documents/{id}`
-- `GET /documents/search`
+- `GET /api/v1/documents/categories`
+- `POST /api/v1/documents/categories`
+- `PATCH /api/v1/documents/categories/{documentCategoryId}`
+- `GET /api/v1/documents/{documentId}`
+- `GET /api/v1/documents/{documentId}/download`
+- `GET /api/v1/self-service/workspace`
+- `GET /api/v1/self-service/repository-documents/{documentId}/download`
+
+## Implementation Notes
+
+- Sprint 06 backend delivery has started with a tenant-scoped general document repository baseline under `apps/api`.
+- The current `S06-001` slice supports controlled upload, list, detail, and secure download flows for tenant documents beyond employee-master attachments.
+- Repository records now preserve scope, linked-entity metadata, visibility scope, checksum, and retention metadata so later category and retention governance can build on a stable storage baseline.
+- Document access remains private-storage based, permission-aware, tenant-aware, and auditable for list, view, upload, and download actions.
+- Sprint 06 now also includes `S06-002`, adding configurable document categories with repository-scope defaults, category-level role access rules, retention-day governance, filtered retention queries, and auditable category-management events.
+- Sprint 06 now also includes `S06-005`, allowing policy-scope repository documents to be assigned for employee acknowledgement and securely downloaded through self-service acknowledgement flows without opening the broader repository to all employees.
+- Sprint 06 now also includes `S06-006`, where linked employees can open the new `/self-service/documents` workspace in `apps/web`, review approved employee and repository files, acknowledge assigned policy items, and download only the allowed document subset while sensitive repository files remain hidden by self-service access rules.
+- Sprint 06 now also includes `S06-007`, exposing `/operations/documents` in `apps/web` so HR and IT operators can manage category defaults, review repository visibility posture, and keep retention-sensitive document groups visible without opening employee self-service routes.
+- Sprint 06 now also includes `S06-008`, publishing the reviewed contract in `apps/api/openapi/sprint-06-documents-assets-ess-onoffboarding.yaml` so frontend, QA, and integration work can treat the document repository, policy acknowledgement, and self-service document APIs as one version-controlled source of truth.
 
 ## Dependencies
 

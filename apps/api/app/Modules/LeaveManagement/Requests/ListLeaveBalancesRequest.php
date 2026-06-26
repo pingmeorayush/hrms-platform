@@ -4,16 +4,23 @@ namespace App\Modules\LeaveManagement\Requests;
 
 use App\Models\Employee;
 use App\Models\LeaveType;
+use App\Modules\Platform\Shared\Requests\Concerns\AuthorizesRoutePermissions;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ListLeaveBalancesRequest extends FormRequest
 {
+    use AuthorizesRoutePermissions;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeFromRoutePermissions();
     }
 
+    /**
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, \Closure|\Illuminate\Contracts\Validation\Rule|ValidationRule|string>|string>
+     */
     public function rules(): array
     {
         $companyId = $this->user()?->company_id;

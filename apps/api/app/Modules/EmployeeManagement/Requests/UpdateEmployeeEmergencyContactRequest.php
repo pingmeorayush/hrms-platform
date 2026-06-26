@@ -2,16 +2,24 @@
 
 namespace App\Modules\EmployeeManagement\Requests;
 
+use App\Modules\EmployeeManagement\Requests\Concerns\AuthorizesEmployeeRequests;
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
 class UpdateEmployeeEmergencyContactRequest extends FormRequest
 {
+    use AuthorizesEmployeeRequests;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeFromRoutePermissions();
     }
 
+    /**
+     * @return array<string, ValidationRule|Rule|array<int, \Closure|Rule|ValidationRule|string>|string>
+     */
     public function rules(): array
     {
         return [
@@ -25,6 +33,9 @@ class UpdateEmployeeEmergencyContactRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<int, \Closure(Validator): void>
+     */
     public function after(): array
     {
         return [

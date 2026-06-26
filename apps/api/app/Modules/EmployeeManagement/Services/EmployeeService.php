@@ -11,6 +11,43 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type EmployeeCreatePayload array{
+ *   employee_code?: string|null,
+ *   first_name: string,
+ *   middle_name?: string|null,
+ *   last_name: string,
+ *   email: string,
+ *   phone?: string|null,
+ *   date_of_birth?: string|null,
+ *   gender?: string|null,
+ *   marital_status?: string|null,
+ *   date_of_joining: string,
+ *   employment_type: string,
+ *   employment_status?: string|null,
+ *   department_id: int|string,
+ *   designation_id: int|string,
+ *   manager_id?: int|string|null,
+ *   location_id?: int|string|null,
+ *   cost_center_id?: int|string|null,
+ *   user_id?: int|string|null
+ * }
+ * @phpstan-type EmployeeUpdatePayload array<string, mixed>
+ * @phpstan-type EmployeeStructuralPayload array{
+ *   effective_date: string,
+ *   department_id?: int|string|null,
+ *   designation_id?: int|string|null,
+ *   manager_id?: int|string|null,
+ *   location_id?: int|string|null,
+ *   cost_center_id?: int|string|null,
+ *   notes?: string|null
+ * }
+ * @phpstan-type EmployeeTerminationPayload array{
+ *   termination_date: string,
+ *   reason: string,
+ *   notes?: string|null
+ * }
+ */
 class EmployeeService
 {
     public function __construct(
@@ -18,6 +55,9 @@ class EmployeeService
         private readonly EmployeeCodeService $employeeCodeService,
     ) {}
 
+    /**
+     * @param  EmployeeCreatePayload  $payload
+     */
     public function create(User $actor, array $payload): Employee
     {
         return DB::transaction(function () use ($actor, $payload): Employee {
@@ -82,6 +122,9 @@ class EmployeeService
         });
     }
 
+    /**
+     * @param  EmployeeUpdatePayload  $payload
+     */
     public function update(Employee $employee, User $actor, array $payload): Employee
     {
         return DB::transaction(function () use ($employee, $actor, $payload): Employee {
@@ -139,6 +182,9 @@ class EmployeeService
         });
     }
 
+    /**
+     * @param  EmployeeStructuralPayload  $payload
+     */
     public function transfer(Employee $employee, User $actor, array $payload): Employee
     {
         return DB::transaction(function () use ($employee, $actor, $payload): Employee {
@@ -185,6 +231,9 @@ class EmployeeService
         });
     }
 
+    /**
+     * @param  EmployeeStructuralPayload  $payload
+     */
     public function promote(Employee $employee, User $actor, array $payload): Employee
     {
         return DB::transaction(function () use ($employee, $actor, $payload): Employee {
@@ -231,6 +280,9 @@ class EmployeeService
         });
     }
 
+    /**
+     * @param  EmployeeTerminationPayload  $payload
+     */
     public function terminate(Employee $employee, User $actor, array $payload): Employee
     {
         return DB::transaction(function () use ($employee, $actor, $payload): Employee {
@@ -325,6 +377,11 @@ class EmployeeService
         return $effectiveDate;
     }
 
+    /**
+     * @param  EmployeeUpdatePayload|EmployeeStructuralPayload  $payload
+     * @param  list<string>  $trackedFields
+     * @return array<string, mixed>
+     */
     private function resolveStructuralChanges(Employee $employee, array $payload, array $trackedFields): array
     {
         $changes = [];
@@ -342,6 +399,10 @@ class EmployeeService
         return $changes;
     }
 
+    /**
+     * @param  array<string, mixed>  $before
+     * @param  array<string, mixed>  $metadata
+     */
     private function recordEmploymentHistory(
         Employee $employee,
         User $actor,

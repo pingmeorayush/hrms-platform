@@ -29,7 +29,7 @@ class OrganizationAuditHistoryController
         $payload = ApiResponse::success(
             'Organization audit history loaded successfully.',
             [
-                'items' => AuditLogResource::collection($logs->getCollection()),
+                'items' => AuditLogResource::collection($logs->items()),
                 'meta' => [
                     'page' => $logs->currentPage(),
                     'per_page' => $logs->perPage(),

@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-import-type PayslipSearchFilters from PayslipAccessScopeService
+ */
 class PayslipService
 {
     public function __construct(
@@ -21,6 +24,10 @@ class PayslipService
         private readonly AuditLogger $auditLogger,
     ) {}
 
+    /**
+     * @param  PayslipSearchFilters  $filters
+     * @return LengthAwarePaginator<int, Payslip>
+     */
     public function searchPayslips(User $actor, array $filters): LengthAwarePaginator
     {
         $payslips = $this->accessScopeService->searchPayslips($actor, $filters);
@@ -30,7 +37,7 @@ class PayslipService
             actor: $actor,
             metadata: [
                 'filters' => $filters,
-                'result_count' => $payslips->count(),
+                'result_count' => count($payslips->items()),
             ],
             entityType: 'payslip',
             entityId: null,
@@ -39,6 +46,9 @@ class PayslipService
         return $payslips;
     }
 
+    /**
+     * @return Collection<int, Payslip>
+     */
     public function generateForRun(User $actor, PayrollRun $run): Collection
     {
         return DB::transaction(function () use ($actor, $run): Collection {
@@ -91,9 +101,9 @@ class PayslipService
                     'date_of_joining' => $item->employee?->date_of_joining?->toDateString(),
                     'employment_type' => $item->employee?->employment_type,
                     'pay_frequency' => $compensation?->pay_frequency,
-                    'salary_structure_code' => $compensation?->salary_structure_code ?? $salaryStructure?->code,
+                    'salary_structure_code' => $compensation->salary_structure_code ?? $salaryStructure?->code,
                     'salary_structure_name' => $salaryStructure?->name,
-                    'salary_structure_version' => $compensation?->salary_structure_version ?? $salaryStructure?->version,
+                    'salary_structure_version' => $compensation->salary_structure_version ?? $salaryStructure?->version,
                 ];
 
                 $fileName = sprintf(
@@ -111,7 +121,7 @@ class PayslipService
                     'startDate' => $run->start_date?->toDateString(),
                     'endDate' => $run->end_date?->toDateString(),
                     'payrollDate' => $run->payrollPeriod?->payroll_date?->toDateString(),
-                    'currency' => $run->company?->currency ?? $item->employeeCompensation?->currency ?? 'INR',
+                    'currency' => $run->company->currency ?? $item->employeeCompensation->currency ?? 'INR',
                     'grossSalary' => (float) $item->gross_salary,
                     'totalEarnings' => (float) $item->total_earnings,
                     'totalDeductions' => (float) $item->total_deductions,
@@ -124,11 +134,11 @@ class PayslipService
                     'unpaidDays' => (float) $item->unpaid_days,
                     'lopDays' => (float) $item->lop_days,
                     'overtimeMinutes' => (int) $item->overtime_minutes,
-                    'annualCtcAmount' => (float) ($compensation?->annual_ctc_amount ?? 0),
-                    'basicSalaryAmount' => (float) ($compensation?->basic_salary_amount ?? 0),
-                    'salaryStructureCode' => $compensation?->salary_structure_code ?? $salaryStructure?->code,
+                    'annualCtcAmount' => (float) ($compensation->annual_ctc_amount ?? 0),
+                    'basicSalaryAmount' => (float) ($compensation->basic_salary_amount ?? 0),
+                    'salaryStructureCode' => $compensation->salary_structure_code ?? $salaryStructure?->code,
                     'salaryStructureName' => $salaryStructure?->name,
-                    'salaryStructureVersion' => $compensation?->salary_structure_version ?? $salaryStructure?->version,
+                    'salaryStructureVersion' => $compensation->salary_structure_version ?? $salaryStructure?->version,
                     'payFrequency' => $compensation?->pay_frequency,
                     'generatedAt' => $generatedAt->toIso8601String(),
                 ])->render();
@@ -142,7 +152,7 @@ class PayslipService
                     'employee_compensation_id' => $item->employee_compensation_id,
                     'slip_number' => $this->makeSlipNumber($run, $item),
                     'status' => 'generated',
-                    'currency' => $run->company?->currency ?? $item->employeeCompensation?->currency ?? 'INR',
+                    'currency' => $run->company->currency ?? $item->employeeCompensation->currency ?? 'INR',
                     'start_date' => $run->start_date?->toDateString(),
                     'end_date' => $run->end_date?->toDateString(),
                     'payroll_date' => $run->payrollPeriod?->payroll_date?->toDateString(),

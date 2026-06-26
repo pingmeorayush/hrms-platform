@@ -25,31 +25,49 @@ class LeaveEncashment extends Model
 {
     use BelongsToCompany;
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<LeaveAccrual, $this>
+     */
     public function leaveAccrual(): BelongsTo
     {
         return $this->belongsTo(LeaveAccrual::class);
     }
 
+    /**
+     * @return BelongsTo<Employee, $this>
+     */
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
     }
 
+    /**
+     * @return BelongsTo<LeavePolicy, $this>
+     */
     public function leavePolicy(): BelongsTo
     {
         return $this->belongsTo(LeavePolicy::class);
     }
 
+    /**
+     * @return BelongsTo<LeaveType, $this>
+     */
     public function leaveType(): BelongsTo
     {
         return $this->belongsTo(LeaveType::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function generatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'generated_by_user_id');

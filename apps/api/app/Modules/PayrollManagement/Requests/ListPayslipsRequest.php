@@ -5,16 +5,23 @@ namespace App\Modules\PayrollManagement\Requests;
 use App\Models\Employee;
 use App\Models\PayrollPeriod;
 use App\Models\PayrollRun;
+use App\Modules\Platform\Shared\Requests\Concerns\AuthorizesRoutePermissions;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ListPayslipsRequest extends FormRequest
 {
+    use AuthorizesRoutePermissions;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeFromRoutePermissions();
     }
 
+    /**
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, \Closure|\Illuminate\Contracts\Validation\Rule|ValidationRule|string>|string>
+     */
     public function rules(): array
     {
         $companyId = $this->user()?->company_id;

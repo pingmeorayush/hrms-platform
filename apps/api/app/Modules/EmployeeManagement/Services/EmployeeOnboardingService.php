@@ -15,6 +15,44 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type EmployeeOnboardingTaskPayload array<string, mixed>
+ * @phpstan-type EmployeeLifecycleTaskSummary array{
+ *   total_count: int,
+ *   completed_count: int,
+ *   skipped_count: int,
+ *   pending_count: int,
+ *   in_progress_count: int,
+ *   awaiting_approval_count: int,
+ *   changes_requested_count: int,
+ *   rejected_count: int,
+ *   incomplete_count: int,
+ *   progress_percentage: int,
+ *   is_complete: bool
+ * }
+ * @phpstan-type EmployeeLifecycleTaskStatusEmployee array{
+ *   id: int,
+ *   employee_code: string,
+ *   full_name: string,
+ *   email: string|null,
+ *   date_of_joining: string|null,
+ *   department: string|null,
+ *   designation: string|null
+ * }
+ * @phpstan-type EmployeeLifecycleTaskStatusSummary array{
+ *   total_count: int,
+ *   closed_count: int,
+ *   incomplete_count: int,
+ *   progress_percentage: int,
+ *   is_complete: bool
+ * }
+ * @phpstan-type EmployeeLifecycleTaskStatus array{
+ *   employee: EmployeeLifecycleTaskStatusEmployee,
+ *   lifecycle_type: string,
+ *   summary: EmployeeLifecycleTaskStatusSummary
+ * }
+ * @phpstan-type EmployeeLifecycleTaskList array{0: Collection<int, EmployeeOnboardingTask>, 1: EmployeeLifecycleTaskSummary}
+ */
 class EmployeeOnboardingService
 {
     public const DEFAULT_LIFECYCLE_TYPE = 'onboarding';
@@ -28,6 +66,9 @@ class EmployeeOnboardingService
         private readonly WorkflowService $workflowService,
     ) {}
 
+    /**
+     * @return EmployeeLifecycleTaskList
+     */
     public function listForEmployee(Employee $employee, User $actor, string $lifecycleType = self::DEFAULT_LIFECYCLE_TYPE): array
     {
         $tasks = $employee->lifecycleTasks()
@@ -69,6 +110,9 @@ class EmployeeOnboardingService
         return [$tasks, $summary];
     }
 
+    /**
+     * @param  EmployeeOnboardingTaskPayload  $payload
+     */
     public function create(
         Employee $employee,
         User $actor,
@@ -124,6 +168,9 @@ class EmployeeOnboardingService
         });
     }
 
+    /**
+     * @param  EmployeeOnboardingTaskPayload  $payload
+     */
     public function update(
         Employee $employee,
         EmployeeOnboardingTask $task,
@@ -202,6 +249,9 @@ class EmployeeOnboardingService
         });
     }
 
+    /**
+     * @return Collection<int, Employee>
+     */
     public function listIncompleteStatuses(User $actor, string $lifecycleType = self::DEFAULT_LIFECYCLE_TYPE): Collection
     {
         $employees = Employee::query()
@@ -253,6 +303,10 @@ class EmployeeOnboardingService
         return $employees;
     }
 
+    /**
+     * @param  Collection<int, EmployeeOnboardingTask>  $tasks
+     * @return EmployeeLifecycleTaskSummary
+     */
     public function summarize(Collection $tasks): array
     {
         $totalCount = $tasks->count();
@@ -280,6 +334,9 @@ class EmployeeOnboardingService
         ];
     }
 
+    /**
+     * @return EmployeeLifecycleTaskStatus
+     */
     public function summarizeEmployee(Employee $employee, string $lifecycleType): array
     {
         $totalCount = (int) $employee->lifecycle_task_count;
@@ -307,6 +364,10 @@ class EmployeeOnboardingService
         ];
     }
 
+    /**
+     * @param  EmployeeOnboardingTaskPayload  $overrides
+     * @return EmployeeOnboardingTaskPayload
+     */
     public function buildTaskPayloadFromTemplate(
         Employee $employee,
         EmployeeLifecycleTaskTemplate $template,
@@ -335,6 +396,10 @@ class EmployeeOnboardingService
         ];
     }
 
+    /**
+     * @param  EmployeeOnboardingTaskPayload  $payload
+     * @return EmployeeOnboardingTaskPayload
+     */
     private function normalizePayload(
         Employee $employee,
         User $actor,
@@ -358,7 +423,7 @@ class EmployeeOnboardingService
 
         $lifecycleType = $forcedLifecycleType
             ?? $payload['lifecycle_type']
-            ?? $existingTask?->lifecycle_type
+            ?? $existingTask->lifecycle_type
             ?? self::DEFAULT_LIFECYCLE_TYPE;
 
         if ($template && $template->lifecycle_type !== $lifecycleType) {
@@ -376,14 +441,14 @@ class EmployeeOnboardingService
             $assignedToUserId = $this->resolveAssignedToUserId($employee, (string) $assigneeType);
         }
 
-        $requiresApproval = (bool) ($payload['requires_approval'] ?? $existingTask?->requires_approval ?? false);
-        $approvalWorkflowKey = $payload['approval_workflow_key'] ?? $existingTask?->approval_workflow_key ?? null;
+        $requiresApproval = (bool) ($payload['requires_approval'] ?? $existingTask->requires_approval ?? false);
+        $approvalWorkflowKey = $payload['approval_workflow_key'] ?? $existingTask->approval_workflow_key ?? null;
 
         if ($requiresApproval && blank($approvalWorkflowKey)) {
             $approvalWorkflowKey = self::DEFAULT_OFFBOARDING_WORKFLOW_KEY;
         }
 
-        $status = $payload['status'] ?? $existingTask?->status ?? 'pending';
+        $status = $payload['status'] ?? $existingTask->status ?? 'pending';
         $normalized = [
             'lifecycle_type' => $lifecycleType,
             'template_id' => $payload['template_id'] ?? $existingTask?->template_id,
@@ -395,22 +460,18 @@ class EmployeeOnboardingService
             'requires_approval' => $requiresApproval,
             'approval_workflow_key' => $approvalWorkflowKey,
             'status' => $status,
-            'sort_order' => $payload['sort_order'] ?? $existingTask?->sort_order ?? 0,
+            'sort_order' => $payload['sort_order'] ?? $existingTask->sort_order ?? 0,
             'due_date' => $payload['due_date'] ?? $existingTask?->due_date,
             'notes' => array_key_exists('notes', $payload) ? $payload['notes'] : $existingTask?->notes,
         ];
 
         if (in_array($status, self::CLOSED_STATUSES, true)) {
-            $normalized['completed_at'] = $existingTask?->completed_at ?? Carbon::now();
-            $normalized['completed_by_user_id'] = $existingTask?->completed_by_user_id ?? $actor->id;
+            $normalized['completed_at'] = $existingTask->completed_at ?? Carbon::now();
+            $normalized['completed_by_user_id'] = $existingTask->completed_by_user_id ?? $actor->id;
         } elseif (array_key_exists('status', $payload)) {
             $normalized['completed_at'] = null;
             $normalized['completed_by_user_id'] = null;
             $normalized['approved_at'] = null;
-        }
-
-        if (! array_key_exists('status', $normalized) && $existingTask === null) {
-            $normalized['status'] = 'pending';
         }
 
         return $normalized;

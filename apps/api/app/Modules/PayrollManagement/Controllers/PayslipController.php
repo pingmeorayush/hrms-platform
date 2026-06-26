@@ -38,7 +38,7 @@ class PayslipController
         $payload = ApiResponse::success(
             'Payslips loaded successfully.',
             [
-                'items' => PayslipResource::collection($payslips->getCollection()),
+                'items' => PayslipResource::collection($payslips->items()),
                 'meta' => [
                     'page' => $payslips->currentPage(),
                     'per_page' => $payslips->perPage(),

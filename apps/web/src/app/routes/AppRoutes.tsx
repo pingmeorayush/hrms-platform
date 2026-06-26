@@ -41,12 +41,40 @@ import { PayrollSetupPage } from '../../modules/payroll/pages/PayrollSetupPage'
 import { PayrollReviewPage } from '../../modules/payroll/pages/PayrollReviewPage'
 import { PayrollRunConsolePage } from '../../modules/payroll/pages/PayrollRunConsolePage'
 import { PayrollSelfServicePage } from '../../modules/payroll/pages/PayrollSelfServicePage'
+import { RecruitmentAdminPage } from '../../modules/recruitment/pages/RecruitmentAdminPage'
+import { RecruitmentCandidateDetailPage } from '../../modules/recruitment/pages/RecruitmentCandidateDetailPage'
+import { RecruitmentCandidatesPage } from '../../modules/recruitment/pages/RecruitmentCandidatesPage'
+import { RecruitmentIndexRedirect } from '../../modules/recruitment/pages/RecruitmentPage'
+import { RecruitmentOverviewPage } from '../../modules/recruitment/pages/RecruitmentOverviewPage'
+import { RecruitmentRequisitionsPage } from '../../modules/recruitment/pages/RecruitmentRequisitionsPage'
+import { PerformanceAdminPage } from '../../modules/performance/pages/PerformanceAdminPage'
+import { PerformanceCyclesPage } from '../../modules/performance/pages/PerformanceCyclesPage'
+import { PerformanceGoalsPage } from '../../modules/performance/pages/PerformanceGoalsPage'
+import { PerformanceIndexRedirect } from '../../modules/performance/pages/PerformancePage'
+import { PerformanceOverviewPage } from '../../modules/performance/pages/PerformanceOverviewPage'
+import { PerformanceReviewsPage } from '../../modules/performance/pages/PerformanceReviewsPage'
+import { LearningAdminPage } from '../../modules/learning/pages/LearningAdminPage'
+import { LearningAssignmentsPage } from '../../modules/learning/pages/LearningAssignmentsPage'
+import { LearningCatalogPage } from '../../modules/learning/pages/LearningCatalogPage'
+import { LearningIndexRedirect } from '../../modules/learning/pages/LearningPage'
+import { LearningMyLearningPage } from '../../modules/learning/pages/LearningMyLearningPage'
+import { LearningOverviewPage } from '../../modules/learning/pages/LearningOverviewPage'
 import { OperationsAdminPage } from '../../modules/operations/pages/OperationsAdminPage'
 import { OperationsAssetsPage } from '../../modules/operations/pages/OperationsAssetsPage'
 import { OperationsDocumentsPage } from '../../modules/operations/pages/OperationsDocumentsPage'
 import { OperationsIndexRedirect } from '../../modules/operations/pages/OperationsPage'
 import { OperationsLifecyclePage } from '../../modules/operations/pages/OperationsLifecyclePage'
 import { OperationsOverviewPage } from '../../modules/operations/pages/OperationsOverviewPage'
+import { ReportingAdminPage } from '../../modules/reporting/pages/ReportingAdminPage'
+import {
+  ReportingExecutivePage,
+  ReportingOverviewPage,
+  ReportingPayrollPage,
+  ReportingRecruitmentPage,
+  ReportingTeamPage,
+  ReportingWorkforcePage,
+} from '../../modules/reporting/pages/ReportingOverviewPage'
+import { ReportingIndexRedirect } from '../../modules/reporting/pages/ReportingPage'
 import { SelfServiceAssetsPage } from '../../modules/self-service/pages/SelfServiceAssetsPage'
 import { SelfServiceDocumentsPage } from '../../modules/self-service/pages/SelfServiceDocumentsPage'
 import { SelfServiceIndexRedirect, SelfServicePage } from '../../modules/self-service/pages/SelfServicePage'
@@ -257,6 +285,99 @@ export function AppRoutes() {
           <Route path="my-pay" element={<PayrollSelfServicePage />} />
         </Route>
         <Route
+          path="/recruitment"
+          element={
+            <RouteGuard
+              permissions={['recruitment.view', 'recruitment.manage', 'recruitment.approve']}
+              match="any"
+              title="Recruitment workspace unavailable"
+              description="This route requires recruiter, hiring-manager, or recruitment approval visibility in the current session."
+            >
+              <RecruitmentAdminPage />
+            </RouteGuard>
+          }
+        >
+          <Route index element={<RecruitmentIndexRedirect />} />
+          <Route path="overview" element={<RecruitmentOverviewPage />} />
+          <Route path="requisitions" element={<RecruitmentRequisitionsPage />} />
+          <Route path="candidates" element={<RecruitmentCandidatesPage />} />
+          <Route path="candidates/:candidateId" element={<RecruitmentCandidateDetailPage />} />
+        </Route>
+        <Route
+          path="/performance"
+          element={
+            <RouteGuard
+              permissions={['performance.view', 'performance.manage', 'performance.review', 'performance.calibrate']}
+              match="any"
+              title="Performance workspace unavailable"
+              description="This route requires performance visibility, review, or calibration access in the current session."
+            >
+              <PerformanceAdminPage />
+            </RouteGuard>
+          }
+        >
+          <Route index element={<PerformanceIndexRedirect />} />
+          <Route path="overview" element={<PerformanceOverviewPage />} />
+          <Route path="goals" element={<PerformanceGoalsPage />} />
+          <Route path="cycles" element={<PerformanceCyclesPage />} />
+          <Route path="reviews" element={<PerformanceReviewsPage />} />
+        </Route>
+        <Route
+          path="/learning"
+          element={
+            <RouteGuard
+              permissions={['learning.view', 'learning.manage', 'learning.assign', 'learning.complete']}
+              match="any"
+              title="Learning workspace unavailable"
+              description="This route requires learning visibility, assignment operations, or learner completion access in the current session."
+            >
+              <LearningAdminPage />
+            </RouteGuard>
+          }
+        >
+          <Route index element={<LearningIndexRedirect />} />
+          <Route
+            path="overview"
+            element={
+              <RouteGuard
+                permissions={['learning.view', 'learning.manage', 'learning.assign']}
+                match="any"
+                title="Learning overview unavailable"
+                description="This route is limited to sessions that can review learning posture or administer the learning workspace."
+              >
+                <LearningOverviewPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="catalog"
+            element={
+              <RouteGuard
+                permissions={['learning.manage', 'learning.assign']}
+                match="any"
+                title="Learning catalog unavailable"
+                description="This route is limited to learning administrators and assignment operators."
+              >
+                <LearningCatalogPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="assignments"
+            element={
+              <RouteGuard
+                permissions={['learning.manage', 'learning.assign']}
+                match="any"
+                title="Learning assignments unavailable"
+                description="This route is limited to sessions that can assign or administer learning work."
+              >
+                <LearningAssignmentsPage />
+              </RouteGuard>
+            }
+          />
+          <Route path="my-learning" element={<LearningMyLearningPage />} />
+        </Route>
+        <Route
           path="/operations"
           element={
             <RouteGuard
@@ -322,6 +443,27 @@ export function AppRoutes() {
               </RouteGuard>
             }
           />
+        </Route>
+        <Route
+          path="/reporting"
+          element={
+            <RouteGuard
+              permissions={['reporting.view', 'reporting.manage', 'reporting.certify', 'reporting.export']}
+              match="any"
+              title="Reporting workspace unavailable"
+              description="This route requires governed reporting visibility, certification, or reporting administration access in the current session."
+            >
+              <ReportingAdminPage />
+            </RouteGuard>
+          }
+        >
+          <Route index element={<ReportingIndexRedirect />} />
+          <Route path="overview" element={<ReportingOverviewPage />} />
+          <Route path="workforce" element={<ReportingWorkforcePage />} />
+          <Route path="team" element={<ReportingTeamPage />} />
+          <Route path="payroll" element={<ReportingPayrollPage />} />
+          <Route path="recruitment" element={<ReportingRecruitmentPage />} />
+          <Route path="executive" element={<ReportingExecutivePage />} />
         </Route>
         <Route
           path="/self-service"

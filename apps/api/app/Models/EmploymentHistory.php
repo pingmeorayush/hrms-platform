@@ -6,7 +6,30 @@ use App\Modules\Platform\Tenancy\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property int $employee_id
+ * @property string $action
+ * @property Carbon|null $effective_date
+ * @property int|null $previous_department_id
+ * @property int|null $department_id
+ * @property int|null $previous_designation_id
+ * @property int|null $designation_id
+ * @property int|null $previous_manager_id
+ * @property int|null $manager_id
+ * @property int|null $previous_location_id
+ * @property int|null $location_id
+ * @property string|null $previous_employment_status
+ * @property string $employment_status
+ * @property int|null $changed_by_user_id
+ * @property string|null $notes
+ * @property array<string, mixed>|null $metadata
+ * @property-read Employee|null $employee
+ * @property-read User|null $actor
+ */
 #[Fillable([
     'company_id',
     'employee_id',
@@ -30,11 +53,17 @@ class EmploymentHistory extends Model
 {
     use BelongsToCompany;
 
+    /**
+     * @return BelongsTo<Employee, $this>
+     */
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'changed_by_user_id');

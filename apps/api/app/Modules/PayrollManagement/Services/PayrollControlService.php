@@ -13,6 +13,57 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type PayrollPeriodFilters array{
+ *   payroll_calendar_id?: int|string,
+ *   status?: string,
+ *   date_from?: string,
+ *   date_to?: string,
+ *   per_page?: int|string
+ * }
+ * @phpstan-type PayrollRunFilters array{
+ *   payroll_period_id?: int|string,
+ *   status?: string,
+ *   date_from?: string,
+ *   date_to?: string,
+ *   per_page?: int|string
+ * }
+ * @phpstan-type PayrollCalendarPayload array{
+ *   name: string,
+ *   frequency: string,
+ *   timezone: string,
+ *   payroll_day?: int|string|null,
+ *   payroll_weekday?: int|string|null,
+ *   is_default?: bool|int|string,
+ *   status: string
+ * }
+ * @phpstan-type PayrollCalendarNormalizedPayload array{
+ *   company_id: int|null,
+ *   name: string,
+ *   frequency: string,
+ *   timezone: string,
+ *   payroll_day: int|null,
+ *   payroll_weekday: int|null,
+ *   is_default: bool,
+ *   status: string
+ * }
+ * @phpstan-type PayrollPeriodPayload array{
+ *   payroll_calendar_id: int|string,
+ *   name: string,
+ *   start_date: string,
+ *   end_date: string,
+ *   payroll_date: string
+ * }
+ * @phpstan-type PayrollRunActionPayload array{
+ *   reason?: string|null,
+ *   comment?: string|null
+ * }
+ * @phpstan-type PayrollPreparationResult array{
+ *   period: PayrollPeriod,
+ *   prerequisites: array<string, mixed>,
+ *   run: PayrollRun
+ * }
+ */
 class PayrollControlService
 {
     public function __construct(
@@ -22,6 +73,10 @@ class PayrollControlService
         private readonly AuditLogger $auditLogger,
     ) {}
 
+    /**
+     * @param  PayrollPeriodFilters  $filters
+     * @return LengthAwarePaginator<int, PayrollPeriod>
+     */
     public function searchPeriods(array $filters): LengthAwarePaginator
     {
         return PayrollPeriod::query()
@@ -44,9 +99,13 @@ class PayrollControlService
             )
             ->orderByDesc('start_date')
             ->orderByDesc('id')
-            ->paginate($filters['per_page'] ?? 15);
+            ->paginate((int) ($filters['per_page'] ?? 15));
     }
 
+    /**
+     * @param  PayrollRunFilters  $filters
+     * @return LengthAwarePaginator<int, PayrollRun>
+     */
     public function searchRuns(array $filters): LengthAwarePaginator
     {
         return PayrollRun::query()
@@ -69,9 +128,12 @@ class PayrollControlService
             )
             ->orderByDesc('start_date')
             ->orderByDesc('id')
-            ->paginate($filters['per_page'] ?? 15);
+            ->paginate((int) ($filters['per_page'] ?? 15));
     }
 
+    /**
+     * @param  PayrollCalendarPayload  $payload
+     */
     public function createCalendar(User $actor, array $payload): PayrollCalendar
     {
         return DB::transaction(function () use ($actor, $payload): PayrollCalendar {
@@ -107,6 +169,9 @@ class PayrollControlService
         });
     }
 
+    /**
+     * @param  PayrollCalendarPayload  $payload
+     */
     public function updateCalendar(User $actor, PayrollCalendar $calendar, array $payload): PayrollCalendar
     {
         return DB::transaction(function () use ($actor, $calendar, $payload): PayrollCalendar {
@@ -153,6 +218,9 @@ class PayrollControlService
         });
     }
 
+    /**
+     * @param  PayrollPeriodPayload  $payload
+     */
     public function createPeriod(User $actor, array $payload): PayrollPeriod
     {
         return DB::transaction(function () use ($actor, $payload): PayrollPeriod {
@@ -239,6 +307,9 @@ class PayrollControlService
         });
     }
 
+    /**
+     * @return PayrollPreparationResult
+     */
     public function preparePeriod(User $actor, PayrollPeriod $period): array
     {
         return DB::transaction(function () use ($actor, $period): array {
@@ -387,6 +458,9 @@ class PayrollControlService
         });
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function previewPrerequisites(PayrollPeriod $period): array
     {
         return $this->prerequisiteService->buildSnapshot($period);
@@ -397,6 +471,9 @@ class PayrollControlService
         return $this->payrollCalculationService->calculateRun($actor, $run);
     }
 
+    /**
+     * @param  PayrollRunActionPayload  $payload
+     */
     public function approveRun(User $actor, PayrollRun $run, array $payload): PayrollRun
     {
         return $this->payrollCalculationService->approveRun($actor, $run, $payload);
@@ -407,11 +484,18 @@ class PayrollControlService
         return $this->payrollCalculationService->lockRun($actor, $run);
     }
 
+    /**
+     * @param  PayrollRunActionPayload  $payload
+     */
     public function reopenRun(User $actor, PayrollRun $run, array $payload): PayrollRun
     {
         return $this->payrollCalculationService->reopenRun($actor, $run, $payload);
     }
 
+    /**
+     * @param  PayrollCalendarPayload  $payload
+     * @return PayrollCalendarNormalizedPayload
+     */
     private function normalizeCalendarPayload(array $payload, User $actor): array
     {
         return [
@@ -419,8 +503,12 @@ class PayrollControlService
             'name' => trim((string) $payload['name']),
             'frequency' => $payload['frequency'],
             'timezone' => trim((string) $payload['timezone']),
-            'payroll_day' => $payload['payroll_day'] ?? null,
-            'payroll_weekday' => $payload['payroll_weekday'] ?? null,
+            'payroll_day' => array_key_exists('payroll_day', $payload) && $payload['payroll_day'] !== null
+                ? (int) $payload['payroll_day']
+                : null,
+            'payroll_weekday' => array_key_exists('payroll_weekday', $payload) && $payload['payroll_weekday'] !== null
+                ? (int) $payload['payroll_weekday']
+                : null,
             'is_default' => (bool) ($payload['is_default'] ?? false),
             'status' => $payload['status'],
         ];

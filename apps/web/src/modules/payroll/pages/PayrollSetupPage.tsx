@@ -12,6 +12,7 @@ import {
   WorkspaceField,
   WorkspaceHeader,
   WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSplit,
   WorkspaceSummaryRow,
@@ -219,23 +220,24 @@ export function PayrollSetupPage() {
   return (
     <WorkspacePage>
       <WorkspaceSurface>
-        <WorkspaceHeader compact>
-          <div className="min-w-0 space-y-1">
-            <CardTitle>Payroll setup studio</CardTitle>
-            <CardDescription className="max-w-3xl">
-              Configure payroll calendars, create future periods, manage salary definitions, and assign compensation
-              before runs move into the console.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            <Badge variant={workspace.source === 'demo' ? 'info' : 'neutral'}>
-              {workspace.source === 'demo' ? 'Demo setup surface' : 'Live setup surface'}
-            </Badge>
-            {workspace.pendingActionLabel ? <Badge variant="info">{workspace.pendingActionLabel}</Badge> : null}
-            {workspace.lastActionMessage ? <Badge variant="success">{workspace.lastActionMessage}</Badge> : null}
-            {workspace.actionError ? <Badge variant="danger">{workspace.actionError}</Badge> : null}
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+        <WorkspaceHeroHeader
+          moduleLabel="Payroll Setup"
+          title="Payroll Setup Studio"
+          description="Configure payroll calendars, create future periods, manage salary definitions, and assign compensation before runs move into the console."
+          badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo setup surface' : 'Live setup surface'}</Badge>}
+          context={[
+            `${activeCalendarCount} active calendar(s)`,
+            `${activeStructureCount} active structure(s)`,
+            `${assignedEmployeeCount} compensation assignment(s)`,
+          ]}
+          actions={
+            <>
+              {workspace.pendingActionLabel ? <Badge variant="info">{workspace.pendingActionLabel}</Badge> : null}
+              {workspace.lastActionMessage ? <Badge variant="success">{workspace.lastActionMessage}</Badge> : null}
+              {workspace.actionError ? <Badge variant="danger">{workspace.actionError}</Badge> : null}
+            </>
+          }
+        />
 
         <WorkspaceContent className="space-y-3.5">
           <div className="organization-metric-grid">

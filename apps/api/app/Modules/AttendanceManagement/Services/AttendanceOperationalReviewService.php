@@ -10,6 +10,12 @@ use App\Modules\Platform\Audit\Services\AuditLogger;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
+/**
+ * @phpstan-type AttendanceOperationalReviewFilters array{
+ *   date?: string|null,
+ *   employee_id?: int|string
+ * }
+ */
 class AttendanceOperationalReviewService
 {
     public function __construct(
@@ -18,6 +24,7 @@ class AttendanceOperationalReviewService
     ) {}
 
     /**
+     * @param  AttendanceOperationalReviewFilters  $filters
      * @return array{window_date:string, summary:array<string,int>, items:Collection<int, AttendanceRecord>}
      */
     public function overview(User $actor, array $filters): array
@@ -65,6 +72,7 @@ class AttendanceOperationalReviewService
     }
 
     /**
+     * @param  AttendanceOperationalReviewFilters  $filters
      * @return array{window_date:string, summary:array<string,int>, attendance_items:Collection<int, AttendanceRecord>, correction_items:Collection<int, AttendanceCorrection>}
      */
     public function pendingExceptions(User $actor, array $filters): array
@@ -132,6 +140,7 @@ class AttendanceOperationalReviewService
     }
 
     /**
+     * @param  AttendanceOperationalReviewFilters  $filters
      * @return Collection<int, AttendanceRecord>
      */
     private function recordsForWindow(User $actor, Carbon $windowDate, array $filters): Collection

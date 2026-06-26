@@ -1,5 +1,5 @@
 import { MoreHorizontal, Star } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { AccessSnapshot } from '../../access/types'
 import { useShellFavorites } from '../../../app/shell/favorites'
@@ -51,6 +51,7 @@ const baseInitialFilters: EmployeeDirectoryFilters = {
   page: 1,
   perPage: 50,
 }
+const emptyEmployeeRecords: EmployeeRecord[] = []
 
 export type EmployeeDirectoryWorkspaceView =
   | 'directory'
@@ -119,10 +120,18 @@ export function EmployeeDirectoryWorkspace({
 }: {
   view?: EmployeeDirectoryWorkspaceView
 }) {
+  return <EmployeeDirectoryWorkspaceContent key={view} view={view} />
+}
+
+function EmployeeDirectoryWorkspaceContent({
+  view,
+}: {
+  view: EmployeeDirectoryWorkspaceView
+}) {
   const navigate = useNavigate()
   const { isFavorite, toggleFavorite } = useShellFavorites()
   const [filters, setFilters] = useState<EmployeeDirectoryFilters>(baseInitialFilters)
-  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<number[]>([])
+  const [selectedEmployeeIdsState, setSelectedEmployeeIds] = useState<number[]>([])
   const [quickViewEmployeeId, setQuickViewEmployeeId] = useState<number | null>(null)
   const { directory, departments, designations, managers, isLoading, error, canManage, source, snapshot } =
     useEmployeeDirectory(filters)
@@ -172,19 +181,20 @@ export function EmployeeDirectoryWorkspace({
     }
   }, [view])
 
-  useEffect(() => {
-    setFilters(baseInitialFilters)
-    setSelectedEmployeeIds([])
-    setQuickViewEmployeeId(null)
-  }, [view])
-
   const scopedEmployees = useMemo(() => {
-    const employees = directory?.items ?? []
+    const employees = directory?.items ?? emptyEmployeeRecords
     return employees.filter((employee) => matchesEmployeeWorkspaceView(employee, view))
   }, [directory?.items, view])
 
   const recordCount = view === 'directory' ? directory?.meta.total ?? 0 : scopedEmployees.length
   const filtersDirty = JSON.stringify(filters) !== JSON.stringify(baseInitialFilters)
+  const selectedEmployeeIds = useMemo(
+    () =>
+      selectedEmployeeIdsState.filter((employeeId) =>
+        scopedEmployees.some((employee) => employee.id === employeeId),
+      ),
+    [scopedEmployees, selectedEmployeeIdsState],
+  )
   const selectedEmployees = useMemo(
     () => scopedEmployees.filter((employee) => selectedEmployeeIds.includes(employee.id)),
     [scopedEmployees, selectedEmployeeIds],
@@ -210,12 +220,6 @@ export function EmployeeDirectoryWorkspace({
     ]
   }, [scopedEmployees, view])
   const singleSelectedEmployee = selectedEmployees.length === 1 ? selectedEmployees[0] : null
-
-  useEffect(() => {
-    setSelectedEmployeeIds((current) =>
-      current.filter((employeeId) => scopedEmployees.some((employee) => employee.id === employeeId)),
-    )
-  }, [scopedEmployees])
 
   const allVisibleSelected = scopedEmployees.length > 0 && selectedEmployeeIds.length === scopedEmployees.length
   const someVisibleSelected =

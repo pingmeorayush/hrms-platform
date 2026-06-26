@@ -22,7 +22,6 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { hasPermissions } from '../../shared/auth/permissions'
 import { Badge } from '../../shared/ui/badge'
 import { Button } from '../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../shared/ui/card'
 import {
   CommandCenterActivityItem,
   CommandCenterActivityList,
@@ -44,8 +43,7 @@ import { Textarea } from '../../shared/ui/textarea'
 import {
   WorkspaceContent,
   WorkspaceField,
-  WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSummaryRow,
   WorkspaceSurface,
@@ -56,6 +54,7 @@ import {
 import { appNavigation } from '../shell/navigation'
 
 type WorkspaceCatalogTab = 'visible' | 'all' | 'restricted'
+const emptyPermissions: string[] = []
 
 type CatalogRow = {
   id: string
@@ -84,7 +83,10 @@ export function FoundationOverviewPage() {
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
 
-  const grantedPermissions = snapshot?.user.permissions ?? []
+  const grantedPermissions = useMemo(
+    () => snapshot?.user.permissions ?? emptyPermissions,
+    [snapshot?.user.permissions],
+  )
   const catalogRows = useMemo<CatalogRow[]>(
     () =>
       appNavigation.map((item) => {
@@ -262,49 +264,65 @@ export function FoundationOverviewPage() {
     return items.slice(0, 4)
   }, [access.mode, catalogRows, currentPersonaLabel, missingToken, restrictedModuleCount, source])
 
-  const fallbackActivityItems = [
-    {
-      id: 'source',
-      path: undefined,
-      title: access.mode === 'demo' ? 'Demo source active' : 'Live source active',
-      detail:
-        access.mode === 'demo'
-          ? `${currentPersonaLabel} visibility contract is seeded locally`
-          : missingToken
-            ? 'Token pending for live workspace access'
-            : 'Live token is available for API-backed access resolution',
-      meta: source === 'demo' ? 'Demo contract' : 'Live contract',
-      tone: access.mode === 'demo' ? 'info' : missingToken ? 'warning' : 'success',
-      icon: <SlidersHorizontal className="h-4 w-4" />,
-    },
-    {
-      id: 'role',
-      path: undefined,
-      title: resolvedRole,
-      detail: snapshot?.user.email ?? 'Resolve an identity to load role and tenant context',
-      meta: `${permissionGrantCount} permission grant(s) active`,
-      tone: permissionGrantCount ? 'neutral' : 'warning',
-      icon: <KeyRound className="h-4 w-4" />,
-    },
-    {
-      id: 'tenant',
-      path: undefined,
-      title: tenant?.company_name ?? 'Tenant pending',
-      detail: tenant ? `${tenant.subscription_plan ?? 'plan pending'} · ${tenant.currency ?? 'currency pending'}` : 'Tenant defaults load after the session resolves',
-      meta: tenant?.timezone ?? 'Timezone pending',
-      tone: tenant ? 'neutral' : 'warning',
-      icon: <Building2 className="h-4 w-4" />,
-    },
-    {
-      id: 'catalog',
-      path: undefined,
-      title: `${visibleModuleCount} modules visible`,
-      detail: `${restrictedModuleCount} restricted · ${visibleSectionCount} routed sections exposed`,
-      meta: 'Foundation tracks top-level workspace reach for this session',
-      tone: restrictedModuleCount ? 'warning' : 'success',
-      icon: <Layers3 className="h-4 w-4" />,
-    },
-  ] as const
+  const fallbackActivityItems = useMemo(
+    () =>
+      [
+        {
+          id: 'source',
+          path: undefined,
+          title: access.mode === 'demo' ? 'Demo source active' : 'Live source active',
+          detail:
+            access.mode === 'demo'
+              ? `${currentPersonaLabel} visibility contract is seeded locally`
+              : missingToken
+                ? 'Token pending for live workspace access'
+                : 'Live token is available for API-backed access resolution',
+          meta: source === 'demo' ? 'Demo contract' : 'Live contract',
+          tone: access.mode === 'demo' ? 'info' : missingToken ? 'warning' : 'success',
+          icon: <SlidersHorizontal className="h-4 w-4" />,
+        },
+        {
+          id: 'role',
+          path: undefined,
+          title: resolvedRole,
+          detail: snapshot?.user.email ?? 'Resolve an identity to load role and tenant context',
+          meta: `${permissionGrantCount} permission grant(s) active`,
+          tone: permissionGrantCount ? 'neutral' : 'warning',
+          icon: <KeyRound className="h-4 w-4" />,
+        },
+        {
+          id: 'tenant',
+          path: undefined,
+          title: tenant?.company_name ?? 'Tenant pending',
+          detail: tenant ? `${tenant.subscription_plan ?? 'plan pending'} · ${tenant.currency ?? 'currency pending'}` : 'Tenant defaults load after the session resolves',
+          meta: tenant?.timezone ?? 'Timezone pending',
+          tone: tenant ? 'neutral' : 'warning',
+          icon: <Building2 className="h-4 w-4" />,
+        },
+        {
+          id: 'catalog',
+          path: undefined,
+          title: `${visibleModuleCount} modules visible`,
+          detail: `${restrictedModuleCount} restricted · ${visibleSectionCount} routed sections exposed`,
+          meta: 'Foundation tracks top-level workspace reach for this session',
+          tone: restrictedModuleCount ? 'warning' : 'success',
+          icon: <Layers3 className="h-4 w-4" />,
+        },
+      ] as const,
+    [
+      access.mode,
+      currentPersonaLabel,
+      missingToken,
+      permissionGrantCount,
+      resolvedRole,
+      restrictedModuleCount,
+      snapshot?.user.email,
+      source,
+      tenant,
+      visibleModuleCount,
+      visibleSectionCount,
+    ],
+  )
 
   const activityItems = useMemo(() => {
     const recentActivity = getModuleRecentActivity('foundation', recentItems)
@@ -317,24 +335,13 @@ export function FoundationOverviewPage() {
       {error ? <p className="workspace-error">{error.message}</p> : null}
 
       <WorkspaceSurface>
-        <WorkspaceHeader>
-          <div className="space-y-1.5">
-            <Badge variant={source === 'demo' ? 'warning' : 'info'}>
-              {source === 'demo' ? 'Demo contract' : 'Live contract'}
-            </Badge>
-            <div className="space-y-1">
-              <CardTitle>Foundation Operations Center</CardTitle>
-              <CardDescription>
-                Control the current session, inspect workspace reach, and verify tenant posture before moving into
-                deeper modules.
-              </CardDescription>
-            </div>
-          </div>
-          <WorkspaceHeaderActions className="md:items-start">
-            <Badge variant="subtle">{resolvedRole}</Badge>
-            <Badge variant="subtle">{tenant?.company_name ?? 'Tenant pending'}</Badge>
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+        <WorkspaceHeroHeader
+          moduleLabel="Foundation"
+          title="Foundation Operations Center"
+          description="Control the current session, inspect workspace reach, and verify tenant posture before moving into deeper modules."
+          badge={<Badge variant={source === 'demo' ? 'warning' : 'info'}>{source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
+          context={[resolvedRole, tenant?.company_name ?? 'Tenant pending']}
+        />
 
         <WorkspaceContent>
           <CommandCenterMetricGrid>

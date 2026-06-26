@@ -1,0 +1,724 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 07 Learning Management API
+  version: 1.0.0
+  description: Learning catalog, assignment, learner completion, and compliance posture APIs implemented during Sprint 07.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /learning/items:
+    get:
+      operationId: listLearningItems
+      summary: List learning catalog items
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, archived]
+      responses:
+        '200':
+          description: Learning items loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningItemCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createLearningItem
+      summary: Create a learning catalog item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningItemRequest'
+      responses:
+        '201':
+          description: Learning item created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningItem'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /learning/items/{learningItemId}:
+    get:
+      operationId: getLearningItem
+      summary: Load one learning catalog item
+      parameters:
+        - $ref: '#/components/parameters/LearningItemId'
+      responses:
+        '200':
+          description: Learning item loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningItem'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateLearningItem
+      summary: Update a learning catalog item
+      parameters:
+        - $ref: '#/components/parameters/LearningItemId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningItemRequest'
+      responses:
+        '200':
+          description: Learning item updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningItem'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /learning/assignments:
+    get:
+      operationId: listLearningAssignments
+      summary: List learning assignments visible to the caller
+      parameters:
+        - in: query
+          name: learning_item_id
+          schema:
+            type: integer
+        - in: query
+          name: audience_type
+          schema:
+            type: string
+            enum: [employee, department, designation, all_active]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, archived]
+      responses:
+        '200':
+          description: Learning assignments loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningAssignmentCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createLearningAssignment
+      summary: Create a learning assignment and resolve employee targets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningAssignmentRequest'
+      responses:
+        '201':
+          description: Learning assignment created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningAssignment'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /learning/assignments/{learningAssignmentId}:
+    get:
+      operationId: getLearningAssignment
+      summary: Load one learning assignment with visible target posture
+      parameters:
+        - $ref: '#/components/parameters/LearningAssignmentId'
+      responses:
+        '200':
+          description: Learning assignment loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningAssignment'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /learning/targets:
+    get:
+      operationId: listLearningAssignmentTargets
+      summary: List resolved employee learning targets
+      parameters:
+        - in: query
+          name: learning_assignment_id
+          schema:
+            type: integer
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [assigned, completed]
+      responses:
+        '200':
+          description: Learning targets loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningAssignmentTargetCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /learning/targets/{learningAssignmentTargetId}:
+    get:
+      operationId: getLearningAssignmentTarget
+      summary: Load one employee learning target
+      parameters:
+        - $ref: '#/components/parameters/LearningAssignmentTargetId'
+      responses:
+        '200':
+          description: Learning target loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningAssignmentTarget'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /learning/targets/{learningAssignmentTargetId}/complete:
+    patch:
+      operationId: completeLearningAssignmentTarget
+      summary: Mark a learning target complete with optional evidence
+      parameters:
+        - $ref: '#/components/parameters/LearningAssignmentTargetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningTargetCompletionRequest'
+      responses:
+        '200':
+          description: Learning target completed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningAssignmentTarget'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /learning/my-assignments:
+    get:
+      operationId: listMyLearningAssignments
+      summary: List the authenticated employee's own learning targets
+      responses:
+        '200':
+          description: My learning targets loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LearningAssignmentTargetCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    LearningItemId:
+      in: path
+      name: learningItemId
+      required: true
+      schema:
+        type: integer
+    LearningAssignmentId:
+      in: path
+      name: learningAssignmentId
+      required: true
+      schema:
+        type: integer
+    LearningAssignmentTargetId:
+      in: path
+      name: learningAssignmentTargetId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, employee_code, full_name]
+    LearningItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        delivery_mode:
+          type: string
+          enum: [self_paced, instructor_led, document_acknowledgement]
+        duration_minutes:
+          type: integer
+        requires_completion_evidence:
+          type: boolean
+        renewal_frequency_months:
+          type: integer
+        default_due_days:
+          type: integer
+        metadata:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [active, archived]
+        created_by:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        updated_by:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - code
+        - title
+        - category
+        - delivery_mode
+        - requires_completion_evidence
+        - status
+    LearningAssignmentTarget:
+      type: object
+      properties:
+        id:
+          type: integer
+        assignment:
+          type: object
+          properties:
+            id:
+              type: integer
+            assignment_code:
+              type: string
+            status:
+              type: string
+            audience_type:
+              type: string
+          required: [id, assignment_code, status, audience_type]
+        item:
+          $ref: '#/components/schemas/LearningItem'
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        status:
+          type: string
+          enum: [assigned, completed]
+        completion_progress_percent:
+          type: integer
+        due_on:
+          type: string
+          format: date
+        due_state:
+          type: string
+          enum: [upcoming, due_today, overdue, completed]
+        renewal_due_on:
+          type: string
+          format: date
+        renewal_posture:
+          type: string
+          enum: [pending_initial_completion, current, upcoming, overdue]
+        requires_completion_evidence:
+          type: boolean
+        evidence_present:
+          type: boolean
+        completion_notes:
+          type: string
+        completion_evidence:
+          type: object
+          additionalProperties: true
+        completed_at:
+          type: string
+          format: date-time
+        completed_by:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        assigned_on:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, assignment, item, employee, status, due_state, renewal_posture, requires_completion_evidence, evidence_present]
+    LearningAssignment:
+      type: object
+      properties:
+        id:
+          type: integer
+        assignment_code:
+          type: string
+        item:
+          $ref: '#/components/schemas/LearningItem'
+        audience_type:
+          type: string
+          enum: [employee, department, designation, all_active]
+        audience_rules:
+          type: object
+          additionalProperties: true
+        assigned_on:
+          type: string
+          format: date
+        due_on:
+          type: string
+          format: date
+        completion_rules:
+          type: object
+          additionalProperties: true
+        notes:
+          type: string
+        status:
+          type: string
+          enum: [active, archived]
+        target_count:
+          type: integer
+        completion_count:
+          type: integer
+        assigned_by:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        target_summary:
+          type: object
+          properties:
+            total_count:
+              type: integer
+            completed_count:
+              type: integer
+            overdue_count:
+              type: integer
+            renewal_overdue_count:
+              type: integer
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearningAssignmentTarget'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, assignment_code, item, audience_type, status, target_count, completion_count]
+    LearningItemCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearningItem'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    LearningAssignmentCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearningAssignment'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    LearningAssignmentTargetCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearningAssignmentTarget'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    LearningItemRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        delivery_mode:
+          type: string
+          enum: [self_paced, instructor_led, document_acknowledgement]
+        duration_minutes:
+          type: integer
+        requires_completion_evidence:
+          type: boolean
+        renewal_frequency_months:
+          type: integer
+        default_due_days:
+          type: integer
+        metadata:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [active, archived]
+      required:
+        - code
+        - title
+        - category
+        - delivery_mode
+        - requires_completion_evidence
+        - status
+    LearningAssignmentRequest:
+      type: object
+      properties:
+        learning_item_id:
+          type: integer
+        audience_type:
+          type: string
+          enum: [employee, department, designation, all_active]
+        audience_rules:
+          type: object
+          additionalProperties: true
+        due_on:
+          type: string
+          format: date
+        notes:
+          type: string
+      required: [learning_item_id, audience_type]
+    LearningTargetCompletionRequest:
+      type: object
+      properties:
+        completion_notes:
+          type: string
+        completion_evidence:
+          type: object
+          additionalProperties: true

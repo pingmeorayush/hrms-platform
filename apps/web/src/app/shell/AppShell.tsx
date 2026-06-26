@@ -136,6 +136,32 @@ function ShellIcon({ name }: { name: NavIconName }) {
           <path d="M4.5 16a5.5 5.5 0 0 1 11 0" />
         </svg>
       )
+    case 'recruitment':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 15V6h12v9" />
+          <path d="M7 4v4M13 4v4M7 10h6M7 13h3" />
+          <path d="m13.5 13.5 1.2 1.2 2.3-2.5" />
+        </svg>
+      )
+    case 'performance':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 15h12" />
+          <path d="M6.5 13V9.5" />
+          <path d="M10 13V6.5" />
+          <path d="M13.5 13V8" />
+          <path d="M5 5.5 8 4l2 1.5 2-1 3 1.5" />
+        </svg>
+      )
+    case 'learning':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 5.5 10 3l6 2.5v8L10 16l-6-2.5z" />
+          <path d="M10 7v9" />
+          <path d="M6.5 7.5 10 9l3.5-1.5" />
+        </svg>
+      )
     case 'operations':
       return (
         <svg {...iconProps}>
@@ -164,6 +190,16 @@ function ShellIcon({ name }: { name: NavIconName }) {
           <path d="M4 5h12v10H4z" />
           <path d="M7 8h6M7 11h3M12 11h1.5M12 8h1.5" />
           <path d="M6 3v4M14 3v4" />
+        </svg>
+      )
+    case 'reporting':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 15h12" />
+          <path d="M6.5 13V9.5" />
+          <path d="M10 13V6" />
+          <path d="M13.5 13V8.5" />
+          <path d="M5 5h10" />
         </svg>
       )
     case 'selfService':
@@ -209,6 +245,7 @@ export function AppShell() {
     return window.localStorage.getItem(SHELL_COLLAPSE_STORAGE_KEY) === 'true'
   })
   const [isCommandCenterOpen, setIsCommandCenterOpen] = useState(false)
+  const [isMobileRailOpen, setIsMobileRailOpen] = useState(false)
   const [commandQuery, setCommandQuery] = useState('')
   const { recentItems, touchRecent, removeRecent, clearRecent } = useShellRecent()
 
@@ -221,6 +258,18 @@ export function AppShell() {
 
     window.localStorage.setItem(SHELL_COLLAPSE_STORAGE_KEY, String(isRailCollapsed))
   }, [isRailCollapsed])
+
+  useEffect(() => {
+    if (!isMobileRailOpen || typeof window === 'undefined') {
+      return
+    }
+
+    const closeId = window.setTimeout(() => {
+      setIsMobileRailOpen(false)
+    }, 0)
+
+    return () => window.clearTimeout(closeId)
+  }, [isMobileRailOpen, location.hash, location.pathname])
 
   const visibleNavigation = useMemo(() => {
     return appNavigation.filter((item) =>
@@ -432,6 +481,7 @@ export function AppShell() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
+        setIsMobileRailOpen(false)
         setIsCommandCenterOpen(true)
       }
     }
@@ -441,486 +491,535 @@ export function AppShell() {
   }, [])
 
   const openCommandCenter = () => {
+    setIsMobileRailOpen(false)
     setCommandQuery('')
     setIsCommandCenterOpen(true)
   }
 
   const handleCommandNavigation = (path: string) => {
+    setIsMobileRailOpen(false)
     setIsCommandCenterOpen(false)
     setCommandQuery('')
     navigate(path)
   }
 
-  return (
-    <div
-      className={cn(
-        'min-h-svh bg-page lg:grid',
-        isRailCollapsed ? 'lg:grid-cols-[4.5rem_minmax(0,1fr)]' : 'lg:grid-cols-[17.5rem_minmax(0,1fr)]',
-      )}
-    >
-      <aside className="border-b border-[#0c1220] bg-[linear-gradient(180deg,#0f1624_0%,#0b1220_100%)] lg:sticky lg:top-0 lg:h-svh lg:border-b-0 lg:border-r lg:border-r-white/[0.06]">
-        <div
-          className={cn(
-            'relative flex h-full min-h-svh flex-col overflow-hidden py-3',
-            isRailCollapsed ? 'px-2.5' : 'px-3',
-          )}
-        >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,rgba(245,144,59,0.18),transparent_55%),radial-gradient(circle_at_top_right,rgba(60,116,255,0.14),transparent_48%)]" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent_18%,transparent_82%,rgba(255,255,255,0.03))]" />
+  const renderShellRail = ({ collapsed, mobile = false }: { collapsed: boolean; mobile?: boolean }) => {
+    const handleRailNavigate = () => {
+      if (mobile) {
+        setIsMobileRailOpen(false)
+      }
+    }
 
-          <div className="relative flex h-full min-h-0 flex-col">
-            <div className={cn('flex items-center gap-3 px-2 py-1', isRailCollapsed && 'justify-center px-0')}>
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[#f8c27f]/20 bg-[linear-gradient(135deg,#ffb458_0%,#ea8a34_58%,#c96718_100%)] text-sm font-bold text-white shadow-[0_14px_28px_rgba(233,137,52,0.34)]">
-                P
-              </div>
-              {!isRailCollapsed ? (
-                <div className="min-w-0">
-                  <p className="ui-type-page-eyebrow text-[#9daaba]">PhoenixHRMS</p>
-                  <strong className="ui-type-card-title block text-white">{currentPage.label}</strong>
-                </div>
-              ) : null}
+    return (
+      <div
+        className={cn(
+          'relative flex h-full min-h-0 flex-col overflow-hidden bg-[linear-gradient(180deg,#0f1624_0%,#0b1220_100%)] py-3',
+          collapsed ? 'px-2.5' : 'px-3',
+        )}
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,rgba(245,144,59,0.18),transparent_55%),radial-gradient(circle_at_top_right,rgba(60,116,255,0.14),transparent_48%)]" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent_18%,transparent_82%,rgba(255,255,255,0.03))]" />
+
+        <div className="relative flex h-full min-h-0 flex-col">
+          <div className={cn('flex items-center gap-3 px-2 py-1', collapsed && 'justify-center px-0')}>
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[#f8c27f]/20 bg-[linear-gradient(135deg,#ffb458_0%,#ea8a34_58%,#c96718_100%)] text-sm font-bold text-white shadow-[0_14px_28px_rgba(233,137,52,0.34)]">
+              P
             </div>
-
-            <div className="mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
-              <div className={cn('space-y-3', isRailCollapsed && 'space-y-2')}>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className={cn(
-                        'w-full rounded-2xl border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0.025)_100%)] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.07]',
-                        isRailCollapsed ? 'mx-auto flex h-11 w-11 items-center justify-center rounded-2xl px-0' : 'flex items-center gap-3 px-3 py-2.5',
-                      )}
-                      aria-label="Workspace switcher"
-                    >
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[#ffb663]/20 bg-[linear-gradient(180deg,#ff9c3f_0%,#f0872f_100%)] text-white shadow-[0_12px_22px_rgba(240,135,47,0.28)]">
-                        <Building2 className="h-5 w-5" />
-                      </span>
-                      {!isRailCollapsed ? (
-                        <>
-                          <span className="min-w-0 flex-1">
-                            <strong className="ui-type-body-strong block truncate text-white">{tenantLabel}</strong>
-                            <span className="ui-type-caption block truncate text-[#8fa0b3]">{planLabel}</span>
-                          </span>
-                          <ChevronDown className="h-4 w-4 text-[#91a0b5]" />
-                        </>
-                      ) : null}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-72">
-                    <DropdownMenuLabel>Workspace switcher</DropdownMenuLabel>
-                    <DropdownMenuItem className="flex-col items-start gap-0.5">
-                      <span className="ui-type-body-strong">{tenantLabel}</span>
-                      <span className="ui-type-caption text-muted-foreground">{planLabel}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Session mode</DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onSelect={() =>
-                        startTransition(() => {
-                          dispatch(setMode('demo'))
-                        })
-                      }
-                    >
-                      Demo workspace
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() =>
-                        startTransition(() => {
-                          dispatch(setMode('live'))
-                        })
-                      }
-                    >
-                      Live API session
-                    </DropdownMenuItem>
-                    {snapshot ? (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Demo personas</DropdownMenuLabel>
-                        {(Object.keys(demoPersonaLabels) as Array<keyof typeof demoPersonaLabels>).map((persona) => (
-                          <DropdownMenuItem
-                            key={persona}
-                            onSelect={() =>
-                              startTransition(() => {
-                                dispatch(setMode('demo'))
-                                dispatch(setDemoPersona(persona))
-                              })
-                            }
-                          >
-                            {demoPersonaLabels[persona]}
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    ) : null}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {!isRailCollapsed ? (
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8091a7]" />
-                    <button
-                      type="button"
-                      onClick={openCommandCenter}
-                      className="flex h-10 w-full items-center rounded-2xl border border-white/[0.08] bg-[#121b2b] pl-10 pr-14 text-left text-[0.95rem] text-[#8ea0b3] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-[#172233] hover:text-[#dfe7f1]"
-                    >
-                      Search employee, shift, department...
-                    </button>
-                    <span className="pointer-events-none absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[#9eacc0]">
-                      <Command className="h-3 w-3" />
-                      K
-                    </span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    aria-label="Expand sidebar search"
-                    className="mx-auto grid h-11 w-11 place-items-center rounded-2xl border border-white/[0.08] bg-white/[0.035] text-[#dce4ee] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-white/[0.07]"
-                    onClick={openCommandCenter}
-                    title="Search"
-                  >
-                    <Search className="h-5 w-5" />
-                  </button>
-                )}
-
-                {!isRailCollapsed ? (
-                  <div className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.025] px-3 py-2">
-                    <span className="ui-type-page-eyebrow text-[#8ea0b3]">Role</span>
-                    <span className="ui-type-caption font-semibold text-[#e4ebf4]">{currentRoleLabel}</span>
-                  </div>
-                ) : null}
-
-                <div className="space-y-2">
-                  {!isRailCollapsed ? (
-                    <div className="flex items-center gap-3 px-1">
-                      <span className="ui-type-page-eyebrow text-[#8ea0b3]">Main navigation</span>
-                      <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.12),transparent)]" />
-                    </div>
-                  ) : (
-                    <div className="mx-auto h-px w-8 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.16),transparent)]" />
-                  )}
-
-                  <nav className={cn('space-y-0.5', isRailCollapsed && 'space-y-1')} aria-label="Primary">
-                    {visibleNavigation.map((item) => {
-                      const visibleChildren =
-                        item.children?.filter((child) =>
-                          hasPermissions(grantedPermissions, child.requiredPermissions, child.match ?? 'all'),
-                        ) ?? []
-                      const isCurrentModule = currentPage.id === item.id
-                      const activeChildren = visibleChildren
-
-                      return (
-                        <div key={item.id} className="space-y-1">
-                          <NavLink
-                            to={item.to}
-                            title={isRailCollapsed ? item.label : undefined}
-                            className={({ isActive }) =>
-                              cn(
-                                'group flex items-center rounded-xl px-2.5 py-2 text-[#dfe6ef] transition-all duration-200',
-                                isRailCollapsed ? 'mx-auto h-12 w-12 justify-center rounded-2xl px-0 py-0' : 'gap-3',
-                                isActive || isCurrentModule
-                                  ? 'border border-[#4978f6]/70 bg-[linear-gradient(180deg,#2f66f2_0%,#2358dc_100%)] text-white shadow-[0_16px_28px_rgba(35,88,220,0.28)]'
-                                  : 'border border-transparent text-[#e0e8f1] hover:bg-white/[0.045] hover:text-white',
-                              )
-                            }
-                          >
-                            <span
-                              className={cn(
-                                'grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-colors',
-                                isCurrentModule
-                                  ? 'border-white/15 bg-white/[0.1] text-white'
-                                  : 'border-white/[0.05] bg-white/[0.02] text-[#d9e2ec] group-hover:border-white/[0.08] group-hover:bg-white/[0.04]',
-                                isRailCollapsed && 'h-10 w-10 rounded-2xl',
-                              )}
-                            >
-                              <ShellIcon name={item.icon} />
-                            </span>
-                            {!isRailCollapsed ? (
-                              <>
-                                <span className="min-w-0 flex-1">
-                                  <strong className="ui-type-body-strong block truncate text-[#edf2f8] group-hover:text-white">{item.label}</strong>
-                                </span>
-                                {activeChildren.length ? (
-                                  <ChevronRight
-                                    className={cn(
-                                      'h-4 w-4 shrink-0 text-[#8fa0b3] transition-transform',
-                                      isCurrentModule && 'rotate-90',
-                                    )}
-                                  />
-                                ) : null}
-                              </>
-                            ) : null}
-                          </NavLink>
-
-                          {!isRailCollapsed && isCurrentModule && activeChildren.length ? (
-                            <nav
-                              className="ml-4 border-l border-white/[0.07] pl-4"
-                              aria-label={`${item.label} sections`}
-                            >
-                              <div className="space-y-0">
-                                {activeChildren.map((child) => (
-                                  <NavLink key={child.id} to={child.to} title={child.description} className="group block">
-                                    {({ isActive }) => (
-                                      <span
-                                        className={cn(
-                                          'flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition-colors',
-                                          isActive
-                                            ? 'text-[#7ea7ff]'
-                                            : 'text-[#a9b6c6] hover:bg-white/[0.04] hover:text-white',
-                                        )}
-                                      >
-                                        <span
-                                          className={cn(
-                                            'h-1.5 w-1.5 rounded-full',
-                                            isActive ? 'bg-[#4f7dff]' : 'bg-[#5f6f82]',
-                                          )}
-                                        />
-                                        <span className={cn('truncate transition-colors', isActive ? 'text-[#7ea7ff]' : 'text-[#b8c5d5] group-hover:text-white')}>
-                                          {child.label}
-                                        </span>
-                                      </span>
-                                    )}
-                                  </NavLink>
-                                ))}
-                              </div>
-                            </nav>
-                          ) : null}
-                        </div>
-                      )
-                    })}
-                  </nav>
-                </div>
-
-                {!isRailCollapsed ? (
-                  <>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 px-1">
-                        <span className="ui-type-page-eyebrow text-[#8ea0b3]">Favorites</span>
-                        <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.12),transparent)]" />
-                      </div>
-                      <div className="space-y-0.5">
-                        {favoriteItems.map((item) => (
-                          <div
-                            key={item.path}
-                            className="flex items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-white/[0.05]"
-                          >
-                            <NavLink
-                              to={item.path}
-                              className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 text-[#d4dee8] transition-colors hover:text-white"
-                            >
-                              <span className="grid h-7.5 w-7.5 place-items-center rounded-lg border border-white/[0.05] bg-white/[0.025] text-[#f4b73f]">
-                                <ShellIcon name={item.icon} />
-                              </span>
-                              <span className="truncate text-sm text-[#e4ebf4]">{item.label}</span>
-                            </NavLink>
-                            <button
-                              type="button"
-                              aria-label={`Unpin ${item.label}`}
-                              className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-[#f4b73f] transition-colors hover:bg-white/[0.06] hover:text-[#ffd26a]"
-                              onClick={(event) => {
-                                event.preventDefault()
-                                event.stopPropagation()
-                                toggleFavorite({
-                                  path: item.path,
-                                  label: item.label,
-                                  icon: item.icon,
-                                  description: item.description,
-                                  meta: item.meta,
-                                })
-                              }}
-                            >
-                              <Star className="h-3.5 w-3.5 fill-current" />
-                            </button>
-                          </div>
-                        ))}
-                        {!favoriteItems.length ? (
-                          <p className="px-2 py-2 text-sm text-[#8091a7]">No favorites pinned yet.</p>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 px-1">
-                        <span className="ui-type-page-eyebrow text-[#8ea0b3]">Recent</span>
-                        <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.12),transparent)]" />
-                        {visibleRecentItems.length ? (
-                          <button
-                            type="button"
-                            className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[#8ea0b3] transition-colors hover:text-white"
-                            onClick={clearRecent}
-                          >
-                            Clear
-                          </button>
-                        ) : null}
-                      </div>
-                      <div className="space-y-0.5">
-                        {visibleRecentItems.map((item) => (
-                          <div
-                            key={item.path}
-                            className="flex items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-white/[0.05]"
-                          >
-                            <NavLink
-                              to={item.path}
-                              className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 text-[#d4dee8] transition-colors hover:text-white"
-                            >
-                              <span className="grid h-7.5 w-7.5 place-items-center rounded-lg border border-white/[0.05] bg-white/[0.025] text-[#9cb0c7]">
-                                <ShellIcon name={item.icon} />
-                              </span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate text-sm text-[#e4ebf4]">{item.label}</span>
-                              </span>
-                              <span className="shrink-0 text-[0.72rem] text-[#7f90a6]">
-                                {formatRelativeVisit(item.visitedAt)}
-                              </span>
-                            </NavLink>
-                            <button
-                              type="button"
-                              aria-label={`Remove ${item.label} from recent`}
-                              className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-[#93a4b8] transition-colors hover:bg-white/[0.06] hover:text-white"
-                              onClick={(event) => {
-                                event.preventDefault()
-                                event.stopPropagation()
-                                removeRecent(item.path)
-                              }}
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                        {!visibleRecentItems.length ? (
-                          <p className="px-2 py-2 text-sm text-[#8091a7]">No recent pages yet.</p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </>
-                ) : null}
+            {!collapsed ? (
+              <div className="min-w-0 flex-1">
+                <p className="ui-type-page-eyebrow text-[#9daaba]">PhoenixHRMS</p>
+                <strong className="ui-type-card-title block text-white">{currentPage.label}</strong>
               </div>
-            </div>
+            ) : null}
+            {mobile ? (
+              <button
+                type="button"
+                onClick={() => setIsMobileRailOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] text-[#dbe4f0] transition-colors hover:bg-white/[0.08] hover:text-white"
+                aria-label="Close navigation"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
 
-              <div className="mt-3 space-y-2">
-              {isRailCollapsed ? (
-                <div className="space-y-2">
-                  <div className="mx-auto h-px w-8 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.16),transparent)]" />
-                  <button
-                    type="button"
-                    title="Favorites"
-                    className="mx-auto grid h-11 w-11 place-items-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-[#f2c251] transition-colors hover:bg-white/[0.06]"
-                    onClick={() => setIsRailCollapsed(false)}
-                  >
-                    <Star className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    title="Recent"
-                    className="mx-auto grid h-11 w-11 place-items-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-[#cbd5e1] transition-colors hover:bg-white/[0.06]"
-                    onClick={() => setIsRailCollapsed(false)}
-                  >
-                    <Clock3 className="h-5 w-5" />
-                  </button>
-                </div>
-              ) : null}
-
+          <div className="mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className={cn('space-y-3', collapsed && 'space-y-2')}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
                     className={cn(
                       'w-full rounded-2xl border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0.025)_100%)] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.07]',
-                      isRailCollapsed ? 'mx-auto flex h-12 w-12 items-center justify-center rounded-full px-0' : 'flex items-center gap-3 px-3 py-2.5',
+                      collapsed ? 'mx-auto flex h-11 w-11 items-center justify-center rounded-2xl px-0' : 'flex items-center gap-3 px-3 py-2.5',
                     )}
-                    aria-label="Profile menu"
+                    aria-label="Workspace switcher"
                   >
-                    <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#f8fafc_0%,#d4dee9_100%)] text-[0.78rem] font-bold text-[#152130]">
-                      {userInitials}
-                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#0f1624] bg-emerald-400" />
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[#ffb663]/20 bg-[linear-gradient(180deg,#ff9c3f_0%,#f0872f_100%)] text-white shadow-[0_12px_22px_rgba(240,135,47,0.28)]">
+                      <Building2 className="h-5 w-5" />
                     </span>
-                    {!isRailCollapsed ? (
+                    {!collapsed ? (
                       <>
                         <span className="min-w-0 flex-1">
-                          <strong className="ui-type-body-strong block truncate text-white">{userName}</strong>
-                          <span className="ui-type-caption block truncate text-[#8fa0b3]">{currentRoleLabel}</span>
-                          <span className="mt-1 inline-flex items-center gap-1.5 text-[0.72rem] font-medium text-[#9ab0c9]">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                            Online
-                          </span>
+                          <strong className="ui-type-body-strong block truncate text-white">{tenantLabel}</strong>
+                          <span className="ui-type-caption block truncate text-[#8fa0b3]">{planLabel}</span>
                         </span>
                         <ChevronDown className="h-4 w-4 text-[#91a0b5]" />
                       </>
                     ) : null}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64">
-                  <DropdownMenuLabel>{userName}</DropdownMenuLabel>
-                  <DropdownMenuItem>
-                    <UserRound className="h-4 w-4" />
-                    My profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell className="h-4 w-4" />
-                    Notifications
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings2 className="h-4 w-4" />
-                    Settings
+                <DropdownMenuContent align="start" className="w-72">
+                  <DropdownMenuLabel>Workspace switcher</DropdownMenuLabel>
+                  <DropdownMenuItem className="flex-col items-start gap-0.5">
+                    <span className="ui-type-body-strong">{tenantLabel}</span>
+                    <span className="ui-type-caption text-muted-foreground">{planLabel}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <CircleHelp className="h-4 w-4" />
-                    Support center
+                  <DropdownMenuLabel>Session mode</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      startTransition(() => {
+                        dispatch(setMode('demo'))
+                      })
+                    }
+                  >
+                    Demo workspace
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive focus:text-destructive">
-                    <LogOut className="h-4 w-4" />
-                    Logout
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      startTransition(() => {
+                        dispatch(setMode('live'))
+                      })
+                    }
+                  >
+                    Live API session
                   </DropdownMenuItem>
+                  {snapshot ? (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Demo personas</DropdownMenuLabel>
+                      {(Object.keys(demoPersonaLabels) as Array<keyof typeof demoPersonaLabels>).map((persona) => (
+                        <DropdownMenuItem
+                          key={persona}
+                          onSelect={() =>
+                            startTransition(() => {
+                              dispatch(setMode('demo'))
+                              dispatch(setDemoPersona(persona))
+                            })
+                          }
+                        >
+                          {demoPersonaLabels[persona]}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  ) : null}
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {!collapsed ? (
+                <div className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.025] px-3 py-2">
+                  <span className="ui-type-page-eyebrow text-[#8ea0b3]">Role</span>
+                  <span className="ui-type-caption font-semibold text-[#e4ebf4]">{currentRoleLabel}</span>
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                {!collapsed ? (
+                  <div className="flex items-center gap-3 px-1">
+                    <span className="ui-type-page-eyebrow text-[#8ea0b3]">Main navigation</span>
+                    <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.12),transparent)]" />
+                  </div>
+                ) : (
+                  <div className="mx-auto h-px w-8 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.16),transparent)]" />
+                )}
+
+                <nav className={cn('space-y-0.5', collapsed && 'space-y-1')} aria-label="Primary">
+                  {visibleNavigation.map((item) => {
+                    const visibleChildren =
+                      item.children?.filter((child) =>
+                        hasPermissions(grantedPermissions, child.requiredPermissions, child.match ?? 'all'),
+                      ) ?? []
+                    const isCurrentModule = currentPage.id === item.id
+                    const activeChildren = visibleChildren
+
+                    return (
+                      <div key={item.id} className="space-y-1">
+                        <NavLink
+                          to={item.to}
+                          title={collapsed ? item.label : undefined}
+                          onClick={handleRailNavigate}
+                          className={({ isActive }) =>
+                            cn(
+                              'group flex items-center rounded-xl px-2.5 py-2 text-[#dfe6ef] transition-all duration-200',
+                              collapsed ? 'mx-auto h-12 w-12 justify-center rounded-2xl px-0 py-0' : 'gap-3',
+                              isActive || isCurrentModule
+                                ? 'border border-[#4978f6]/70 bg-[linear-gradient(180deg,#2f66f2_0%,#2358dc_100%)] text-white shadow-[0_16px_28px_rgba(35,88,220,0.28)]'
+                                : 'border border-transparent text-[#e0e8f1] hover:bg-white/[0.045] hover:text-white',
+                            )
+                          }
+                        >
+                          <span
+                            className={cn(
+                              'grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-colors',
+                              isCurrentModule
+                                ? 'border-white/15 bg-white/[0.1] text-white'
+                                : 'border-white/[0.05] bg-white/[0.02] text-[#d9e2ec] group-hover:border-white/[0.08] group-hover:bg-white/[0.04]',
+                              collapsed && 'h-10 w-10 rounded-2xl',
+                            )}
+                          >
+                            <ShellIcon name={item.icon} />
+                          </span>
+                          {!collapsed ? (
+                            <>
+                              <span className="min-w-0 flex-1">
+                                <strong className="ui-type-body-strong block truncate text-[#edf2f8] group-hover:text-white">
+                                  {item.label}
+                                </strong>
+                              </span>
+                              {activeChildren.length ? (
+                                <ChevronRight
+                                  className={cn(
+                                    'h-4 w-4 shrink-0 text-[#8fa0b3] transition-transform',
+                                    isCurrentModule && 'rotate-90',
+                                  )}
+                                />
+                              ) : null}
+                            </>
+                          ) : null}
+                        </NavLink>
+
+                        {!collapsed && isCurrentModule && activeChildren.length ? (
+                          <nav className="ml-4 border-l border-white/[0.07] pl-4" aria-label={`${item.label} sections`}>
+                            <div className="space-y-0">
+                              {activeChildren.map((child) => (
+                                <NavLink
+                                  key={child.id}
+                                  to={child.to}
+                                  title={child.description}
+                                  className="group block"
+                                  onClick={handleRailNavigate}
+                                >
+                                  {({ isActive }) => (
+                                    <span
+                                      className={cn(
+                                        'flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition-colors',
+                                        isActive
+                                          ? 'text-[#7ea7ff]'
+                                          : 'text-[#a9b6c6] hover:bg-white/[0.04] hover:text-white',
+                                      )}
+                                    >
+                                      <span
+                                        className={cn(
+                                          'h-1.5 w-1.5 rounded-full',
+                                          isActive ? 'bg-[#4f7dff]' : 'bg-[#5f6f82]',
+                                        )}
+                                      />
+                                      <span
+                                        className={cn(
+                                          'truncate transition-colors',
+                                          isActive ? 'text-[#7ea7ff]' : 'text-[#b8c5d5] group-hover:text-white',
+                                        )}
+                                      >
+                                        {child.label}
+                                      </span>
+                                    </span>
+                                  )}
+                                </NavLink>
+                              ))}
+                            </div>
+                          </nav>
+                        ) : null}
+                      </div>
+                    )
+                  })}
+                </nav>
+              </div>
+
+              {!collapsed ? (
+                <>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 px-1">
+                      <span className="ui-type-page-eyebrow text-[#8ea0b3]">Favorites</span>
+                      <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.12),transparent)]" />
+                    </div>
+                    <div className="space-y-0.5">
+                      {favoriteItems.map((item) => (
+                        <div
+                          key={item.path}
+                          className="flex items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-white/[0.05]"
+                        >
+                          <NavLink
+                            to={item.path}
+                            onClick={handleRailNavigate}
+                            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 text-[#d4dee8] transition-colors hover:text-white"
+                          >
+                            <span className="grid h-7.5 w-7.5 place-items-center rounded-lg border border-white/[0.05] bg-white/[0.025] text-[#f4b73f]">
+                              <ShellIcon name={item.icon} />
+                            </span>
+                            <span className="truncate text-sm text-[#e4ebf4]">{item.label}</span>
+                          </NavLink>
+                          <button
+                            type="button"
+                            aria-label={`Unpin ${item.label}`}
+                            className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-[#f4b73f] transition-colors hover:bg-white/[0.06] hover:text-[#ffd26a]"
+                            onClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              toggleFavorite({
+                                path: item.path,
+                                label: item.label,
+                                icon: item.icon,
+                                description: item.description,
+                                meta: item.meta,
+                              })
+                            }}
+                          >
+                            <Star className="h-3.5 w-3.5 fill-current" />
+                          </button>
+                        </div>
+                      ))}
+                      {!favoriteItems.length ? (
+                        <p className="px-2 py-2 text-sm text-[#8091a7]">No favorites pinned yet.</p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 px-1">
+                      <span className="ui-type-page-eyebrow text-[#8ea0b3]">Recent</span>
+                      <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.12),transparent)]" />
+                      {visibleRecentItems.length ? (
+                        <button
+                          type="button"
+                          className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[#8ea0b3] transition-colors hover:text-white"
+                          onClick={clearRecent}
+                        >
+                          Clear
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="space-y-0.5">
+                      {visibleRecentItems.map((item) => (
+                        <div
+                          key={item.path}
+                          className="flex items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-white/[0.05]"
+                        >
+                          <NavLink
+                            to={item.path}
+                            onClick={handleRailNavigate}
+                            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 text-[#d4dee8] transition-colors hover:text-white"
+                          >
+                            <span className="grid h-7.5 w-7.5 place-items-center rounded-lg border border-white/[0.05] bg-white/[0.025] text-[#9cb0c7]">
+                              <ShellIcon name={item.icon} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm text-[#e4ebf4]">{item.label}</span>
+                            </span>
+                            <span className="shrink-0 text-[0.72rem] text-[#7f90a6]">
+                              {formatRelativeVisit(item.visitedAt)}
+                            </span>
+                          </NavLink>
+                          <button
+                            type="button"
+                            aria-label={`Remove ${item.label} from recent`}
+                            className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-[#93a4b8] transition-colors hover:bg-white/[0.06] hover:text-white"
+                            onClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              removeRecent(item.path)
+                            }}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      {!visibleRecentItems.length ? (
+                        <p className="px-2 py-2 text-sm text-[#8091a7]">No recent pages yet.</p>
+                      ) : null}
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {collapsed ? (
+              <div className="space-y-2">
+                <div className="mx-auto h-px w-8 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.16),transparent)]" />
+                <button
+                  type="button"
+                  title="Favorites"
+                  className="mx-auto grid h-11 w-11 place-items-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-[#f2c251] transition-colors hover:bg-white/[0.06]"
+                  onClick={() => setIsRailCollapsed(false)}
+                >
+                  <Star className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  title="Recent"
+                  className="mx-auto grid h-11 w-11 place-items-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-[#cbd5e1] transition-colors hover:bg-white/[0.06]"
+                  onClick={() => setIsRailCollapsed(false)}
+                >
+                  <Clock3 className="h-5 w-5" />
+                </button>
+              </div>
+            ) : null}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    'w-full rounded-2xl border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0.025)_100%)] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.07]',
+                    collapsed ? 'mx-auto flex h-12 w-12 items-center justify-center rounded-full px-0' : 'flex items-center gap-3 px-3 py-2.5',
+                  )}
+                  aria-label="Profile menu"
+                >
+                  <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#f8fafc_0%,#d4dee9_100%)] text-[0.78rem] font-bold text-[#152130]">
+                    {userInitials}
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#0f1624] bg-emerald-400" />
+                  </span>
+                  {!collapsed ? (
+                    <>
+                      <span className="min-w-0 flex-1">
+                        <strong className="ui-type-body-strong block truncate text-white">{userName}</strong>
+                        <span className="ui-type-caption block truncate text-[#8fa0b3]">{currentRoleLabel}</span>
+                        <span className="mt-1 inline-flex items-center gap-1.5 text-[0.72rem] font-medium text-[#9ab0c9]">
+                          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                          Online
+                        </span>
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-[#91a0b5]" />
+                    </>
+                  ) : null}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64">
+                <DropdownMenuLabel>{userName}</DropdownMenuLabel>
+                <DropdownMenuItem>
+                  <UserRound className="h-4 w-4" />
+                  My profile
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Bell className="h-4 w-4" />
+                  Notifications
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings2 className="h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <CircleHelp className="h-4 w-4" />
+                  Support center
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {mobile ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-10 w-full justify-start rounded-2xl border border-white/[0.06] bg-white/[0.03] text-[#d7e2ef] hover:bg-white/[0.06] hover:text-white"
+                onClick={() => setIsMobileRailOpen(false)}
+              >
+                <PanelLeftClose className="h-4 w-4" />
+                Close navigation
+              </Button>
+            ) : (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className={cn(
                   'h-10 w-full justify-start rounded-2xl border border-white/[0.06] bg-white/[0.03] text-[#d7e2ef] hover:bg-white/[0.06] hover:text-white',
-                  isRailCollapsed && 'mx-auto h-11 w-11 justify-center rounded-2xl px-0',
+                  collapsed && 'mx-auto h-11 w-11 justify-center rounded-2xl px-0',
                 )}
                 onClick={() => setIsRailCollapsed((current) => !current)}
               >
-                {isRailCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                {!isRailCollapsed ? 'Collapse' : null}
+                {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+                {!collapsed ? 'Collapse' : null}
               </Button>
-            </div>
+            )}
           </div>
         </div>
-      </aside>
+      </div>
+    )
+  }
 
-      <main className="min-w-0 bg-[radial-gradient(circle_at_top_right,rgba(92,167,255,0.08),transparent_26%),radial-gradient(circle_at_top_left,rgba(234,138,52,0.06),transparent_22%),var(--page-bg)]">
-        <header className="relative overflow-hidden border-b border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,253,0.94)_100%)] px-4 py-3 shadow-[inset_0_-1px_0_rgba(255,255,255,0.7)] lg:px-6">
-          <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(124,174,255,0.28),rgba(234,138,52,0.18),transparent)]" />
-          <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0 space-y-0.5">
-              <p className="ui-type-page-eyebrow text-text-subtle">{shellHeaderEyebrow}</p>
-              <h1 className="ui-type-page-title text-foreground">{currentPage.label}</h1>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground" aria-label="Page tools">
-              <button
-                type="button"
-                onClick={openCommandCenter}
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-line/80 bg-white/74 px-3 text-[0.83rem] font-semibold text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition-colors hover:bg-white"
-              >
-                <Search className="h-3.5 w-3.5 text-primary" />
-                Search
-                <span className="inline-flex items-center gap-1 rounded-md border border-line/80 bg-page px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-text-subtle">
-                  <Command className="h-3 w-3" />
-                  K
-                </span>
-              </button>
-            </div>
-          </div>
-        </header>
+  return (
+    <>
+      <div
+        className={cn(
+          'min-h-svh bg-page lg:grid',
+          isRailCollapsed ? 'lg:grid-cols-[4.5rem_minmax(0,1fr)]' : 'lg:grid-cols-[17.5rem_minmax(0,1fr)]',
+        )}
+      >
+        <aside className="hidden overflow-hidden lg:sticky lg:top-0 lg:block lg:h-svh lg:border-r lg:border-r-white/[0.06]">
+          {renderShellRail({ collapsed: isRailCollapsed })}
+        </aside>
 
-        <section className="mx-auto w-full max-w-[1400px] px-4 py-3 lg:px-6 lg:py-4">
-          <Outlet />
-        </section>
-      </main>
+        <main className="min-w-0 bg-[radial-gradient(circle_at_top_right,rgba(92,167,255,0.08),transparent_26%),radial-gradient(circle_at_top_left,rgba(234,138,52,0.06),transparent_22%),var(--page-bg)]">
+          <header className="relative overflow-hidden border-b border-line/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,253,0.94)_100%)] px-4 py-3 shadow-[inset_0_-1px_0_rgba(255,255,255,0.7)] lg:px-6">
+            <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(124,174,255,0.28),rgba(234,138,52,0.18),transparent)]" />
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex items-start gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileRailOpen(true)}
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-line/80 bg-white/74 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition-colors hover:bg-white lg:hidden"
+                  aria-label="Open navigation"
+                >
+                  <PanelLeftOpen className="h-4 w-4" />
+                </button>
+                <div className="min-w-0 space-y-0.5">
+                  <p className="ui-type-page-eyebrow text-text-subtle">{shellHeaderEyebrow}</p>
+                  <h1 className="ui-type-page-title text-foreground">{currentPage.label}</h1>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground" aria-label="Page tools">
+                <button
+                  type="button"
+                  onClick={openCommandCenter}
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-line/80 bg-white/74 px-3 text-[0.83rem] font-semibold text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition-colors hover:bg-white"
+                >
+                  <Search className="h-3.5 w-3.5 text-primary" />
+                  Command center
+                  <span className="hidden items-center gap-1 rounded-md border border-line/80 bg-page px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-text-subtle sm:inline-flex">
+                    <Command className="h-3 w-3" />
+                    K
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <section className="mx-auto w-full max-w-[1400px] px-4 py-3 lg:px-6 lg:py-4">
+            <Outlet />
+          </section>
+        </main>
+      </div>
+
+      <Dialog open={isMobileRailOpen} onOpenChange={setIsMobileRailOpen}>
+        <DialogContent
+          size="sm"
+          showCloseButton={false}
+          className="left-0 top-0 h-svh max-h-svh w-[21.5rem] max-w-[calc(100vw-1rem)] translate-x-0 translate-y-0 rounded-none rounded-r-[1.5rem] border-[#0c1220] bg-transparent p-0 text-white shadow-[0_30px_60px_rgba(4,10,20,0.52)]"
+        >
+          <DialogHeader className="sr-only">
+            <DialogTitle>Primary navigation</DialogTitle>
+            <DialogDescription>Browse modules, favorites, and recent workspaces.</DialogDescription>
+          </DialogHeader>
+          {renderShellRail({ collapsed: false, mobile: true })}
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={isCommandCenterOpen}
@@ -935,7 +1034,7 @@ export function AppShell() {
           <DialogHeader className="border-b border-line/80 px-5 py-4">
             <DialogTitle>Command center</DialogTitle>
             <DialogDescription>
-              Search across workspaces, module views, and recent destinations.
+              Jump to modules, routed sections, favorites, and recent workspaces.
             </DialogDescription>
           </DialogHeader>
           <div className="border-b border-line/80 px-5 py-4">
@@ -945,7 +1044,7 @@ export function AppShell() {
                 autoFocus
                 value={commandQuery}
                 onChange={(event) => setCommandQuery(event.target.value)}
-                placeholder="Search employee, shift, department, location..."
+                placeholder="Jump to a module, section, policy, or employee workspace..."
                 className="h-11 rounded-2xl pl-10 pr-14"
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-line/80 bg-page px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-text-subtle">
@@ -1045,6 +1144,6 @@ export function AppShell() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }

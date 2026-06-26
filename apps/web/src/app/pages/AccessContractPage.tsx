@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { AlertTriangle, ShieldCheck, Star } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useShellFavorites } from '../shell/favorites'
@@ -6,7 +6,7 @@ import { getModuleRecentActivity, useShellRecent } from '../shell/recent'
 import { useAccessSnapshot } from '../../modules/access/hooks/useAccessSnapshot'
 import { Badge } from '../../shared/ui/badge'
 import { Button } from '../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../shared/ui/card'
+import { CardTitle } from '../../shared/ui/card'
 import { cn } from '../../shared/ui/cn'
 import {
   CommandCenterActivityItem,
@@ -28,7 +28,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import {
   WorkspaceEmptyState,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspacePinButton,
   WorkspaceSummaryRow,
@@ -44,17 +44,6 @@ export function AccessContractPage() {
   const navigate = useNavigate()
   const { recentItems } = useShellRecent()
   const { snapshot, isLoading, error, source } = useAccessSnapshot()
-  const [activeTab, setActiveTab] = useState<'navigation' | 'actions' | 'diagnostics'>(() => {
-    if (typeof window === 'undefined') {
-      return 'navigation'
-    }
-
-    return window.location.hash === '#actions'
-      ? 'actions'
-      : window.location.hash === '#diagnostics'
-        ? 'diagnostics'
-        : 'navigation'
-  })
   const [search, setSearch] = useState('')
   const [inspector, setInspector] = useState<
     | { type: 'navigation'; id: string }
@@ -64,6 +53,7 @@ export function AccessContractPage() {
   >(null)
   const deferredSearch = useDeferredValue(search)
   const { isFavorite, toggleFavorite } = useShellFavorites()
+  const activeTab = resolveAccessTab(location.hash)
   const activeWorkspaceFavorite =
     activeTab === 'actions'
       ? {
@@ -86,16 +76,7 @@ export function AccessContractPage() {
             description: 'Pinned access route contract workspace',
           }
 
-  useEffect(() => {
-    const hash = location.hash
-    const nextTab =
-      hash === '#actions' ? 'actions' : hash === '#diagnostics' ? 'diagnostics' : 'navigation'
-
-    setActiveTab((current) => (current === nextTab ? current : nextTab))
-  }, [location.hash])
-
   const setAccessTab = (tab: 'navigation' | 'actions' | 'diagnostics') => {
-    setActiveTab(tab)
     navigate(
       {
         pathname: location.pathname,
@@ -419,27 +400,27 @@ export function AccessContractPage() {
       {snapshot ? (
         <>
           <WorkspaceSurface>
-            <WorkspaceHeader compact>
-              <div className="space-y-1">
-                <p className="ui-type-page-eyebrow text-text-subtle">Live module · Operations center</p>
-                <CardTitle>Access Operations Center</CardTitle>
-                <CardDescription>
-                  Review route exposure, permitted actions, and backend enforcement posture from one governance workspace.
-                </CardDescription>
-              </div>
-              <WorkspaceHeaderActions>
-                <WorkspacePinButton
-                  pinned={isFavorite(activeWorkspaceFavorite.path)}
-                  onToggle={() => toggleFavorite(activeWorkspaceFavorite)}
-                />
-                <Button size="xs" variant="secondary" onClick={() => setAccessTab('diagnostics')}>
-                  Review diagnostics
-                </Button>
-                <Button size="xs" variant="primary" onClick={() => setAccessTab('actions')}>
-                  Open actions
-                </Button>
-              </WorkspaceHeaderActions>
-            </WorkspaceHeader>
+            <WorkspaceHeroHeader
+              moduleLabel="Access"
+              title="Access Operations Center"
+              description="Review route exposure, permitted actions, and backend enforcement posture from one governance workspace."
+              badge={<Badge variant={source === 'live' ? 'info' : 'warning'}>{source === 'live' ? 'Live contract' : 'Demo contract'}</Badge>}
+              context={[snapshot.user.roles.join(', '), snapshot.user.tenant.company_name]}
+              actions={
+                <>
+                  <WorkspacePinButton
+                    pinned={isFavorite(activeWorkspaceFavorite.path)}
+                    onToggle={() => toggleFavorite(activeWorkspaceFavorite)}
+                  />
+                  <Button size="xs" variant="secondary" onClick={() => setAccessTab('diagnostics')}>
+                    Review diagnostics
+                  </Button>
+                  <Button size="xs" variant="primary" onClick={() => setAccessTab('actions')}>
+                    Open actions
+                  </Button>
+                </>
+              }
+            />
             <WorkspaceContent className="space-y-4">
               <CommandCenterMetricGrid>
                 {metricCards.map((card) => (
@@ -859,6 +840,18 @@ export function AccessContractPage() {
       ) : null}
     </WorkspacePage>
   )
+}
+
+function resolveAccessTab(hash: string): 'navigation' | 'actions' | 'diagnostics' {
+  if (hash === '#actions') {
+    return 'actions'
+  }
+
+  if (hash === '#diagnostics') {
+    return 'diagnostics'
+  }
+
+  return 'navigation'
 }
 
 function AccessNavigationInspector({

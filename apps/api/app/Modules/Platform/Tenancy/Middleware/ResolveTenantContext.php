@@ -2,6 +2,8 @@
 
 namespace App\Modules\Platform\Tenancy\Middleware;
 
+use App\Models\Company;
+use App\Models\User;
 use App\Modules\Platform\Shared\Http\ApiResponse;
 use App\Modules\Platform\Tenancy\TenantContext;
 use Closure;
@@ -15,14 +17,14 @@ class ResolveTenantContext
     {
         $user = $request->user();
 
-        if (! $user) {
+        if (! $user instanceof User) {
             return $next($request);
         }
 
         $user->loadMissing('company');
         $company = $user->company;
 
-        if (! $user->is_active || ! $company || ! $company->isActive()) {
+        if (! $user->is_active || ! $company instanceof Company || ! $company->isActive()) {
             return $this->blockedResponse();
         }
 

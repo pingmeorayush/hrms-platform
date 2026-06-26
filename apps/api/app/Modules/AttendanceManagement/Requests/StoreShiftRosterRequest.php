@@ -2,17 +2,24 @@
 
 namespace App\Modules\AttendanceManagement\Requests;
 
+use App\Modules\Platform\Shared\Requests\Concerns\AuthorizesRoutePermissions;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreShiftRosterRequest extends FormRequest
 {
+    use AuthorizesRoutePermissions;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeFromRoutePermissions();
     }
 
+    /**
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, \Closure|\Illuminate\Contracts\Validation\Rule|ValidationRule|string>|string>
+     */
     public function rules(): array
     {
         $companyId = $this->user()?->company_id;
@@ -30,13 +37,33 @@ class StoreShiftRosterRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            $entries = collect($this->input('entries', []));
-            $keys = $entries
-                ->map(fn (array $entry): string => ($entry['employee_id'] ?? '').'|'.($entry['work_date'] ?? ''))
-                ->filter()
-                ->countBy();
+            $entries = $this->input('entries', []);
+
+            if (! is_array($entries)) {
+                return;
+            }
+
+            $keys = [];
+
+            foreach ($entries as $entry) {
+                if (! is_array($entry)) {
+                    continue;
+                }
+
+                $key = ($entry['employee_id'] ?? '').'|'.($entry['work_date'] ?? '');
+
+                if ($key === '|') {
+                    continue;
+                }
+
+                $keys[$key] = ($keys[$key] ?? 0) + 1;
+            }
 
             foreach ($entries as $index => $entry) {
+                if (! is_array($entry)) {
+                    continue;
+                }
+
                 $key = ($entry['employee_id'] ?? '').'|'.($entry['work_date'] ?? '');
 
                 if (($keys[$key] ?? 0) > 1) {

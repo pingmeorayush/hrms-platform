@@ -64,9 +64,23 @@ The Asset Management module governs organizational assets from request and regis
 
 - `GET /api/v1/assets`
 - `POST /api/v1/assets`
-- `GET /api/v1/assets/{id}`
-- `POST /api/v1/assets/{id}/assign`
-- `POST /api/v1/assets/{id}/return`
+- `GET /api/v1/assets/categories`
+- `POST /api/v1/assets/categories`
+- `PATCH /api/v1/assets/categories/{assetCategoryId}`
+- `GET /api/v1/assets/{assetId}`
+- `POST /api/v1/assets/{assetId}/assign`
+- `POST /api/v1/assets/{assetId}/issue`
+- `POST /api/v1/assets/{assetId}/return`
+
+## Implementation Notes
+
+- Sprint 06 backend delivery now includes the `S06-003` asset-management baseline in `apps/api`.
+- The current slice supports tenant-scoped asset category setup, asset registration, current-holder visibility, assignment, issuance, and return workflows with auditable lifecycle events.
+- Asset history is preserved through assignment records that capture who held the asset, when it was assigned, when it was issued, when it was returned, and the recorded handover or return condition.
+- Asset tags remain unique per tenant, active employee validation is enforced at assignment time, and invalid lifecycle transitions are rejected instead of silently mutating state.
+- Sprint 06 now also includes `S06-006`, exposing a linked-employee assigned-assets view in the `/self-service/assets` workspace so employees can review the current equipment they hold, return expectations, and handover context without opening broader asset-operations controls.
+- Sprint 06 now also includes `S06-007`, where `/operations/assets` in `apps/web` gives HR and IT operators one routed inventory view for assignment, issuance, return, overdue follow-up, and blocked maintenance or handoff states.
+- Sprint 06 now also includes `S06-008`, publishing the asset catalog, assignment, issuance, return, and self-service asset schemas in `apps/api/openapi/sprint-06-documents-assets-ess-onoffboarding.yaml` as the shared integration contract for this sprint.
 
 ## Dependencies
 

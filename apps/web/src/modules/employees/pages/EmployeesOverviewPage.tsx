@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -19,7 +19,7 @@ import { useEmployeeDirectory, employeeStatusOptions } from '../hooks/useEmploye
 import type { EmployeeDirectoryFilters, EmployeeRecord, EmployeeStatus } from '../types'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
+import { CardTitle } from '../../../shared/ui/card'
 import {
   CommandCenterActivityItem,
   CommandCenterActivityList,
@@ -42,7 +42,7 @@ import {
   WorkspaceEmptyState,
   WorkspaceFilters,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSummaryRow,
   WorkspaceSurface,
@@ -73,15 +73,17 @@ const baseInitialFilters: EmployeeDirectoryFilters = {
   page: 1,
   perPage: 50,
 }
+const emptyPermissions: string[] = []
+const emptyEmployeeRecords: EmployeeRecord[] = []
 
 export function EmployeesOverviewPage() {
   const { snapshot } = useAccessSnapshot()
   const { isFavorite, toggleFavorite } = useShellFavorites()
   const { recentItems } = useShellRecent()
-  const permissions = snapshot?.user.permissions ?? []
+  const permissions = snapshot?.user.permissions ?? emptyPermissions
   const canViewAudit = permissions.includes('audit.view')
   const [filters, setFilters] = useState<EmployeeDirectoryFilters>(baseInitialFilters)
-  const [activeTab, setActiveTab] = useState<EmployeeOverviewTab>('directory')
+  const [activeTabSelection, setActiveTab] = useState<EmployeeOverviewTab>('directory')
   const { directory, departments, managers, isLoading, error, source } = useEmployeeDirectory(filters)
 
   const availableTabs = useMemo(
@@ -96,14 +98,14 @@ export function EmployeesOverviewPage() {
     [canViewAudit],
   )
 
-  useEffect(() => {
-    if (!availableTabs.some((tab) => tab.id === activeTab)) {
-      setActiveTab(availableTabs[0]?.id ?? 'directory')
-    }
-  }, [activeTab, availableTabs])
-
-  const employees = directory?.items ?? []
-  const filteredEmployees = useMemo(() => employees.filter((employee) => matchesEmployeeOverviewTab(employee, activeTab)), [activeTab, employees])
+  const activeTab = availableTabs.some((tab) => tab.id === activeTabSelection)
+    ? activeTabSelection
+    : (availableTabs[0]?.id ?? 'directory')
+  const employees = useMemo(() => directory?.items ?? emptyEmployeeRecords, [directory?.items])
+  const filteredEmployees = useMemo(
+    () => employees.filter((employee) => matchesEmployeeOverviewTab(employee, activeTab)),
+    [activeTab, employees],
+  )
   const employeeInsights = useMemo(() => {
     return new Map<number, EmployeeModuleInsight>(
       filteredEmployees.map((employee) => [employee.id, getEmployeeModuleInsight(employee, source, snapshot)]),
@@ -338,23 +340,22 @@ export function EmployeesOverviewPage() {
       {error ? <p className="workspace-error">{error.message}</p> : null}
 
       <WorkspaceSurface>
-        <WorkspaceHeader compact>
-          <div className="space-y-1">
-            <p className="ui-type-page-eyebrow text-text-subtle">Live module · Operations center</p>
-            <CardTitle>Employees Operations Center</CardTitle>
-            <CardDescription>
-              Monitor workforce health, onboarding risk, document posture, and move directly into employee workspaces.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            <Button asChild size="xs" variant="secondary">
-              <Link to="/employees/lifecycle-watch">Open lifecycle watch</Link>
-            </Button>
-            <Button asChild size="xs" variant="primary">
-              <Link to="/employees/directory">Open directory</Link>
-            </Button>
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+        <WorkspaceHeroHeader
+          moduleLabel="Employees"
+          title="Employees Operations Center"
+          description="Monitor workforce health, onboarding risk, document posture, and move directly into employee workspaces."
+          context={['Lifecycle watch ready', 'Directory command surface']}
+          actions={
+            <>
+              <Button asChild size="xs" variant="secondary">
+                <Link to="/employees/lifecycle-watch">Open lifecycle watch</Link>
+              </Button>
+              <Button asChild size="xs" variant="primary">
+                <Link to="/employees/directory">Open directory</Link>
+              </Button>
+            </>
+          }
+        />
         <WorkspaceContent className="space-y-4">
           <CommandCenterMetricGrid>
             {metricCards.map((card) => (

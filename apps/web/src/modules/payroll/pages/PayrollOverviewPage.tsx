@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
 import {
   CommandCenterAttentionItem,
   CommandCenterAttentionStrip,
@@ -28,8 +27,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import {
   WorkspaceContent,
   WorkspaceEmptyState,
-  WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSurface,
   WorkspaceTabButton,
@@ -236,6 +234,23 @@ export function PayrollOverviewPage() {
 
   return (
     <WorkspacePage>
+      <WorkspaceSurface>
+        <WorkspaceHeroHeader
+          moduleLabel="Payroll"
+          title="Payroll Operations Center"
+          description="Track run readiness, exception pressure, and payslip posture before payroll release."
+          context={['Release readiness', `${blockedRuns.length} blocked run(s)`]}
+          actions={
+            <Button asChild variant="secondary" size="xs">
+              <Link to="/payroll/run-console">
+                Open run console
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          }
+        />
+      </WorkspaceSurface>
+
       <CommandCenterMetricGrid>
         {metricCards.map((card) => (
           <CommandCenterMetricCard key={card.label} {...card} />
@@ -259,22 +274,6 @@ export function PayrollOverviewPage() {
       <CommandCenterLayout>
         <CommandCenterMain>
           <WorkspaceSurface>
-            <WorkspaceHeader compact>
-              <div className="min-w-0 space-y-1">
-                <CardTitle>Payroll operations center</CardTitle>
-                <CardDescription className="max-w-3xl">
-                  Track run readiness, exception pressure, and payslip posture before payroll release.
-                </CardDescription>
-              </div>
-              <WorkspaceHeaderActions>
-                <Button asChild variant="secondary" size="xs">
-                  <Link to="/payroll/run-console">
-                    Open run console
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </WorkspaceHeaderActions>
-            </WorkspaceHeader>
             <WorkspaceContent className="space-y-3.5">
               <ConsoleToolbar>
                 <ConsoleToolbarRow>

@@ -2,9 +2,13 @@ import type { PermissionMatch } from '../../shared/auth/permissions'
 import { attendanceSectionNavigation } from '../../modules/attendance/navigation'
 import { employeeWorkspaceSectionNavigation } from '../../modules/employees/navigation'
 import { leaveSectionNavigation } from '../../modules/leave/navigation'
+import { learningSectionNavigation } from '../../modules/learning/navigation'
 import { operationsSectionNavigation } from '../../modules/operations/navigation'
 import { organizationSectionNavigation } from '../../modules/organization/navigation'
 import { payrollSectionNavigation } from '../../modules/payroll/navigation'
+import { performanceSectionNavigation } from '../../modules/performance/navigation'
+import { reportingSectionNavigation } from '../../modules/reporting/navigation'
+import { recruitmentSectionNavigation } from '../../modules/recruitment/navigation'
 import { selfServiceSectionNavigation } from '../../modules/self-service/navigation'
 
 export interface AppNavChildItem {
@@ -21,7 +25,20 @@ export interface AppNavItem {
   label: string
   to: string
   description: string
-  icon: 'foundation' | 'organization' | 'employees' | 'operations' | 'attendance' | 'leave' | 'payroll' | 'selfService' | 'access'
+  icon:
+    | 'foundation'
+    | 'organization'
+    | 'employees'
+    | 'recruitment'
+    | 'performance'
+    | 'learning'
+    | 'operations'
+    | 'attendance'
+    | 'leave'
+    | 'payroll'
+    | 'reporting'
+    | 'selfService'
+    | 'access'
   requiredPermissions: string[]
   match?: PermissionMatch
   status: 'live' | 'planned'
@@ -59,6 +76,39 @@ export const appNavigation: AppNavItem[] = [
     match: 'any',
     status: 'live',
     children: employeeWorkspaceSectionNavigation,
+  },
+  {
+    id: 'recruitment',
+    label: 'Recruitment',
+    to: '/recruitment',
+    description: 'Recruiter and hiring-manager workspace for requisitions, pipeline movement, interviews, offers, and hire handoff.',
+    icon: 'recruitment',
+    requiredPermissions: ['recruitment.view', 'recruitment.manage', 'recruitment.approve'],
+    match: 'any',
+    status: 'live',
+    children: recruitmentSectionNavigation,
+  },
+  {
+    id: 'performance',
+    label: 'Performance',
+    to: '/performance',
+    description: 'Goal setup, review cycles, self and manager review execution, and calibration posture now share one routed talent module.',
+    icon: 'performance',
+    requiredPermissions: ['performance.view', 'performance.manage', 'performance.review', 'performance.calibrate'],
+    match: 'any',
+    status: 'live',
+    children: performanceSectionNavigation,
+  },
+  {
+    id: 'learning',
+    label: 'Learning',
+    to: '/learning',
+    description: 'Compliance-ready learning operations for catalog setup, assignment targeting, renewal posture, and learner completion tracking.',
+    icon: 'learning',
+    requiredPermissions: ['learning.view', 'learning.manage', 'learning.assign', 'learning.complete'],
+    match: 'any',
+    status: 'live',
+    children: learningSectionNavigation,
   },
   {
     id: 'operations',
@@ -125,6 +175,17 @@ export const appNavigation: AppNavItem[] = [
     match: 'any',
     status: 'live',
     children: payrollSectionNavigation,
+  },
+  {
+    id: 'reporting',
+    label: 'Reporting',
+    to: '/reporting',
+    description: 'Governed dashboards for workforce, team, payroll, recruiting, and leadership reporting posture.',
+    icon: 'reporting',
+    requiredPermissions: ['reporting.view', 'reporting.manage', 'reporting.certify', 'reporting.export'],
+    match: 'any',
+    status: 'live',
+    children: reportingSectionNavigation,
   },
   {
     id: 'self-service',

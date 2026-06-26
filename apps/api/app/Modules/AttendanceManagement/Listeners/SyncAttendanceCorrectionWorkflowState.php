@@ -73,25 +73,25 @@ class SyncAttendanceCorrectionWorkflowState
             $timestamp = now($company->timezone)->toIso8601String();
 
             if (array_key_exists('check_in_at', $correctedValues)) {
-                $record->check_in_at = $this->parseTimestamp($company, $correctedValues['check_in_at']);
+                $record->setAttribute('check_in_at', $this->parseTimestamp($company, $correctedValues['check_in_at']));
                 $record->check_in_channel = $record->check_in_channel ?? 'correction';
-                $record->check_in_metadata = array_merge($record->check_in_metadata ?? [], [
+                $record->setAttribute('check_in_metadata', array_merge($record->check_in_metadata ?? [], [
                     'correction' => [
                         'attendance_correction_id' => $correction->id,
                         'applied_at' => $timestamp,
                     ],
-                ]);
+                ]));
             }
 
             if (array_key_exists('check_out_at', $correctedValues)) {
-                $record->check_out_at = $this->parseTimestamp($company, $correctedValues['check_out_at']);
+                $record->setAttribute('check_out_at', $this->parseTimestamp($company, $correctedValues['check_out_at']));
                 $record->check_out_channel = $record->check_out_channel ?? 'correction';
-                $record->check_out_metadata = array_merge($record->check_out_metadata ?? [], [
+                $record->setAttribute('check_out_metadata', array_merge($record->check_out_metadata ?? [], [
                     'correction' => [
                         'attendance_correction_id' => $correction->id,
                         'applied_at' => $timestamp,
                     ],
-                ]);
+                ]));
             }
 
             $record->updated_by_user_id = $actor?->id;
@@ -222,6 +222,19 @@ class SyncAttendanceCorrectionWorkflowState
         return Carbon::parse($value, $company->timezone)->setTimezone($company->timezone);
     }
 
+    /**
+     * @return array{
+     *   attendance_date: string|null,
+     *   check_in_at: string|null,
+     *   check_out_at: string|null,
+     *   check_in_channel: string|null,
+     *   check_out_channel: string|null,
+     *   worked_minutes: int|null,
+     *   primary_status: string|null,
+     *   shift_id: int|null,
+     *   shift_roster_id: int|null
+     * }
+     */
     private function buildRecordSnapshot(AttendanceRecord $record): array
     {
         return [

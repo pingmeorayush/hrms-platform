@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import type { AppNavItem } from './navigation'
+import { useBrowserStoreSnapshot } from './browserStore'
 
 export const SHELL_RECENT_STORAGE_KEY = 'phoenixhrms.shell.recent'
 const SHELL_RECENT_EVENT = 'phoenixhrms.shell.recent.changed'
@@ -24,6 +25,14 @@ export type ShellRecentActivityItem = {
   detail: string
   meta: string
   tone: ShellRecentActivityTone
+}
+
+function readShellRecentRaw() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  return window.localStorage.getItem(SHELL_RECENT_STORAGE_KEY)
 }
 
 function isShellRecentEntry(value: unknown): value is ShellRecentEntry {
@@ -52,12 +61,7 @@ function dispatchRecentChanged() {
   window.dispatchEvent(new CustomEvent(SHELL_RECENT_EVENT))
 }
 
-export function readShellRecent(): ShellRecentEntry[] | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  const raw = window.localStorage.getItem(SHELL_RECENT_STORAGE_KEY)
+function parseShellRecent(raw: string | null): ShellRecentEntry[] | null {
   if (!raw) {
     return null
   }
@@ -65,15 +69,24 @@ export function readShellRecent(): ShellRecentEntry[] | null {
   try {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) {
-      window.localStorage.removeItem(SHELL_RECENT_STORAGE_KEY)
       return null
     }
 
     return sortRecent(parsed.filter(isShellRecentEntry))
   } catch {
-    window.localStorage.removeItem(SHELL_RECENT_STORAGE_KEY)
     return null
   }
+}
+
+export function readShellRecent(): ShellRecentEntry[] | null {
+  const raw = readShellRecentRaw()
+  const parsed = parseShellRecent(raw)
+
+  if (raw && parsed === null && typeof window !== 'undefined') {
+    window.localStorage.removeItem(SHELL_RECENT_STORAGE_KEY)
+  }
+
+  return parsed
 }
 
 export function writeShellRecent(items: ShellRecentEntry[]) {
@@ -131,29 +144,11 @@ export function getModuleRecentActivity(
 }
 
 export function useShellRecent() {
-  const [recentItems, setRecentItems] = useState<ShellRecentEntry[]>([])
-
-  useEffect(() => {
-    setRecentItems(readShellRecent() ?? [])
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const syncRecent = () => {
-      setRecentItems(readShellRecent() ?? [])
-    }
-
-    window.addEventListener(SHELL_RECENT_EVENT, syncRecent)
-    window.addEventListener('storage', syncRecent)
-
-    return () => {
-      window.removeEventListener(SHELL_RECENT_EVENT, syncRecent)
-      window.removeEventListener('storage', syncRecent)
-    }
-  }, [])
+  const recentItemsRaw = useBrowserStoreSnapshot(SHELL_RECENT_EVENT, readShellRecentRaw)
+  const recentItems = useMemo(
+    () => parseShellRecent(recentItemsRaw) ?? [],
+    [recentItemsRaw],
+  )
 
   const recentPaths = useMemo(() => new Set(recentItems.map((item) => item.path)), [recentItems])
 

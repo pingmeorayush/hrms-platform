@@ -3,17 +3,24 @@
 namespace App\Modules\DocumentManagement\Requests;
 
 use App\Models\DocumentCategory;
+use App\Modules\Platform\Shared\Requests\Concerns\AuthorizesRoutePermissions;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreDocumentRequest extends FormRequest
 {
+    use AuthorizesRoutePermissions;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeFromRoutePermissions();
     }
 
+    /**
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, \Closure|\Illuminate\Contracts\Validation\Rule|ValidationRule|string>|string>
+     */
     public function rules(): array
     {
         $allowedExtensions = implode(',', config('document_repository.allowed_extensions', []));
@@ -37,6 +44,9 @@ class StoreDocumentRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<int, \Closure(Validator): void>
+     */
     public function after(): array
     {
         return [

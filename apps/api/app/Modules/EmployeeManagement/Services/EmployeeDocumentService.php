@@ -13,10 +13,20 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * @phpstan-type EmployeeDocumentPayload array{
+ *   document_type: string,
+ *   expiry_date?: string|null,
+ *   notes?: string|null
+ * }
+ */
 class EmployeeDocumentService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @return Collection<int, EmployeeDocument>
+     */
     public function listForEmployee(Employee $employee, User $actor): Collection
     {
         $documents = $employee->documents()
@@ -38,6 +48,9 @@ class EmployeeDocumentService
         return $documents;
     }
 
+    /**
+     * @param  EmployeeDocumentPayload  $payload
+     */
     public function create(Employee $employee, User $actor, UploadedFile $file, array $payload): EmployeeDocument
     {
         return DB::transaction(function () use ($employee, $actor, $file, $payload): EmployeeDocument {

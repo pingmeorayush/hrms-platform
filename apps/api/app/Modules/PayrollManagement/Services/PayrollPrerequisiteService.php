@@ -10,8 +10,32 @@ use App\Models\LeaveRequest;
 use App\Models\PayrollPeriod;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * @phpstan-type PayrollPrerequisiteMetrics array<string, bool|int>
+ * @phpstan-type PayrollPrerequisiteCheck array{
+ *   code: string,
+ *   label: string,
+ *   status: 'passed'|'warning'|'failed',
+ *   blocking: bool,
+ *   message: string,
+ *   metrics: PayrollPrerequisiteMetrics
+ * }
+ * @phpstan-type PayrollPrerequisiteSummary array{
+ *   ready_for_calculation: bool,
+ *   blocking_count: int,
+ *   warning_count: int,
+ *   passed_count: int
+ * }
+ * @phpstan-type PayrollPrerequisiteSnapshot array{
+ *   checks: list<PayrollPrerequisiteCheck>,
+ *   summary: PayrollPrerequisiteSummary
+ * }
+ */
 class PayrollPrerequisiteService
 {
+    /**
+     * @return PayrollPrerequisiteSnapshot
+     */
     public function buildSnapshot(PayrollPeriod $period): array
     {
         $activeEmployeeIds = Employee::query()
@@ -112,6 +136,9 @@ class PayrollPrerequisiteService
         ];
     }
 
+    /**
+     * @return PayrollPrerequisiteCheck
+     */
     private function activeEmployeeRosterCheck(int $activeEmployeeCount): array
     {
         if ($activeEmployeeCount === 0) {
@@ -139,6 +166,9 @@ class PayrollPrerequisiteService
         ];
     }
 
+    /**
+     * @return PayrollPrerequisiteCheck
+     */
     private function attendanceCompletionCheck(
         int $activeEmployeeCount,
         int $attendanceRecordsCount,
@@ -204,6 +234,9 @@ class PayrollPrerequisiteService
         ];
     }
 
+    /**
+     * @return PayrollPrerequisiteCheck
+     */
     private function leaveApprovalCheck(int $pendingLeaveRequestsCount): array
     {
         if ($pendingLeaveRequestsCount > 0) {
@@ -231,6 +264,9 @@ class PayrollPrerequisiteService
         ];
     }
 
+    /**
+     * @return PayrollPrerequisiteCheck
+     */
     private function compensationReadinessCheck(
         int $activeEmployeeCount,
         bool $salaryStructuresReady,

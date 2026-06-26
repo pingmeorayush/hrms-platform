@@ -13,11 +13,198 @@ use App\Models\PolicyAcknowledgement;
 use App\Models\User;
 use App\Modules\Platform\Audit\Services\AuditLogger;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+/**
+ * @phpstan-type EmployeeSelfServiceDirectoryNode array{
+ *   id: int,
+ *   code: string,
+ *   name: string,
+ *   status: string
+ * }
+ * @phpstan-type EmployeeSelfServiceManagerNode array{
+ *   id: int,
+ *   employee_code: string,
+ *   full_name: string,
+ *   email: string|null
+ * }
+ * @phpstan-type EmployeeSelfServiceLocationNode array{
+ *   id: int,
+ *   code: string,
+ *   name: string,
+ *   timezone: string|null,
+ *   currency: string|null,
+ *   city: string|null,
+ *   country: string|null,
+ *   status: string
+ * }
+ * @phpstan-type EmployeeSelfServiceEmployee array{
+ *   id: int,
+ *   employee_code: string,
+ *   first_name: string,
+ *   middle_name: string|null,
+ *   last_name: string|null,
+ *   full_name: string,
+ *   email: string|null,
+ *   phone: string|null,
+ *   date_of_birth: string|null,
+ *   gender: string|null,
+ *   marital_status: string|null,
+ *   date_of_joining: string|null,
+ *   employment_type: string|null,
+ *   employment_status: string|null,
+ *   termination_reason: string|null,
+ *   terminated_at: string|null,
+ *   department: EmployeeSelfServiceDirectoryNode|null,
+ *   designation: EmployeeSelfServiceDirectoryNode|null,
+ *   manager: EmployeeSelfServiceManagerNode|null,
+ *   location: EmployeeSelfServiceLocationNode|null,
+ *   cost_center: EmployeeSelfServiceDirectoryNode|null,
+ *   user_id: int|null,
+ *   created_at: string|null,
+ *   updated_at: string|null
+ * }
+ * @phpstan-type EmployeeSelfServiceContact array{
+ *   id: int,
+ *   employee_id: int,
+ *   type: string,
+ *   label: string|null,
+ *   value: string,
+ *   is_primary: bool,
+ *   status: string,
+ *   notes: string|null,
+ *   created_at: string|null,
+ *   updated_at: string|null
+ * }
+ * @phpstan-type EmployeeSelfServiceAddress array{
+ *   id: int,
+ *   employee_id: int,
+ *   type: string,
+ *   address_line_1: string,
+ *   address_line_2: string|null,
+ *   city: string|null,
+ *   state: string|null,
+ *   country: string|null,
+ *   postal_code: string|null,
+ *   notes: string|null,
+ *   created_at: string|null,
+ *   updated_at: string|null
+ * }
+ * @phpstan-type EmployeeSelfServiceEmergencyContact array{
+ *   id: int,
+ *   employee_id: int,
+ *   name: string,
+ *   relationship: string|null,
+ *   phone_number: string|null,
+ *   email: string|null,
+ *   address: string|null,
+ *   priority: int,
+ *   notes: string|null,
+ *   created_at: string|null,
+ *   updated_at: string|null
+ * }
+ * @phpstan-type EmployeeSelfServiceDocumentCategory array{
+ *   id: int,
+ *   code: string,
+ *   name: string
+ * }
+ * @phpstan-type EmployeeSelfServiceDocumentItem array{
+ *   id: string,
+ *   source_type: 'policy_acknowledgement'|'employee_document'|'repository_document',
+ *   source_id: int,
+ *   title: string,
+ *   subtitle: string,
+ *   status: string,
+ *   document_type: string,
+ *   file_name: string|null,
+ *   mime_type: string|null,
+ *   file_size_bytes: int|null,
+ *   due_date: string|null,
+ *   expiry_date: string|null,
+ *   visibility_scope: string|null,
+ *   download_url: string|null,
+ *   acknowledge_url: string|null,
+ *   action_required: bool,
+ *   notes: string|null,
+ *   category: EmployeeSelfServiceDocumentCategory|null,
+ *   repository_scope: string|null,
+ *   created_at: string|null,
+ *   updated_at: string|null
+ * }
+ * @phpstan-type EmployeeSelfServiceAssetCategory array{
+ *   id: int,
+ *   code: string,
+ *   name: string,
+ *   status: string
+ * }
+ * @phpstan-type EmployeeSelfServiceAssetAssignment array{
+ *   id: int,
+ *   status: string,
+ *   assigned_at: string|null,
+ *   issued_at: string|null,
+ *   expected_return_date: string|null,
+ *   returned_at: string|null,
+ *   handover_condition: string|null,
+ *   return_condition: string|null,
+ *   assignment_notes: string|null,
+ *   issue_notes: string|null,
+ *   return_notes: string|null,
+ *   due_state: string
+ * }
+ * @phpstan-type EmployeeSelfServiceAssetItem array{
+ *   id: int,
+ *   asset_tag: string,
+ *   name: string,
+ *   asset_type: string|null,
+ *   status: string,
+ *   serial_number: string|null,
+ *   manufacturer: string|null,
+ *   model_name: string|null,
+ *   purchase_date: string|null,
+ *   notes: string|null,
+ *   category: EmployeeSelfServiceAssetCategory|null,
+ *   assignment: EmployeeSelfServiceAssetAssignment|null,
+ *   created_at: string|null,
+ *   updated_at: string|null
+ * }
+ * @phpstan-type EmployeeSelfServiceWorkspace array{
+ *   employee: EmployeeSelfServiceEmployee,
+ *   profile: array{
+ *     contacts: list<EmployeeSelfServiceContact>,
+ *     addresses: list<EmployeeSelfServiceAddress>,
+ *     emergency_contacts: list<EmployeeSelfServiceEmergencyContact>,
+ *     sensitive_panels: array{
+ *       bank_accounts: array{
+ *         visible: bool,
+ *         message: string|null
+ *       }
+ *     }
+ *   },
+ *   documents: array{
+ *     summary: array{
+ *       total_count: int,
+ *       pending_acknowledgement_count: int,
+ *       acknowledged_count: int,
+ *       downloadable_count: int,
+ *       hidden_sensitive_count: int
+ *     },
+ *     items: list<EmployeeSelfServiceDocumentItem>
+ *   },
+ *   assets: array{
+ *     summary: array{
+ *       active_count: int,
+ *       assigned_count: int,
+ *       issued_count: int,
+ *       overdue_count: int
+ *     },
+ *     items: list<EmployeeSelfServiceAssetItem>
+ *   }
+ * }
+ */
 class EmployeeSelfServiceWorkspaceService
 {
     public function __construct(
@@ -26,6 +213,9 @@ class EmployeeSelfServiceWorkspaceService
         private readonly EmployeeSelfServiceAccessScopeService $selfServiceAccessScopeService,
     ) {}
 
+    /**
+     * @return EmployeeSelfServiceWorkspace
+     */
     public function workspace(User $actor): array
     {
         $employee = $this->selfServiceAccessScopeService->resolveLinkedEmployee($actor);
@@ -159,7 +349,10 @@ class EmployeeSelfServiceWorkspaceService
         return Storage::disk($document->disk)->download($document->file_path, $document->original_file_name);
     }
 
-    private function loadPolicyAcknowledgements(Employee $employee): Collection
+    /**
+     * @return EloquentCollection<int, PolicyAcknowledgement>
+     */
+    private function loadPolicyAcknowledgements(Employee $employee): EloquentCollection
     {
         return PolicyAcknowledgement::query()
             ->with('document')
@@ -170,7 +363,10 @@ class EmployeeSelfServiceWorkspaceService
             ->get();
     }
 
-    private function loadEmployeeDocuments(Employee $employee): Collection
+    /**
+     * @return EloquentCollection<int, EmployeeDocument>
+     */
+    private function loadEmployeeDocuments(Employee $employee): EloquentCollection
     {
         return EmployeeDocument::query()
             ->where('employee_id', $employee->id)
@@ -179,9 +375,15 @@ class EmployeeSelfServiceWorkspaceService
             ->get();
     }
 
-    private function loadAccessibleRepositoryDocuments(Employee $employee, User $actor): Collection
+    /**
+     * @return SupportCollection<int, Document>
+     */
+    private function loadAccessibleRepositoryDocuments(Employee $employee, User $actor): SupportCollection
     {
-        $roleNames = $actor->getRoleNames()->all();
+        $roleNames = $actor->getRoleNames()
+            ->map(static fn (string $roleName): string => $roleName)
+            ->values()
+            ->all();
 
         return Document::query()
             ->with('documentCategory')
@@ -204,7 +406,10 @@ class EmployeeSelfServiceWorkspaceService
             ->count();
     }
 
-    private function loadAssignedAssets(Employee $employee): Collection
+    /**
+     * @return EloquentCollection<int, Asset>
+     */
+    private function loadAssignedAssets(Employee $employee): EloquentCollection
     {
         return Asset::query()
             ->with(['assetCategory', 'currentAssignment'])
@@ -217,6 +422,9 @@ class EmployeeSelfServiceWorkspaceService
             ->get();
     }
 
+    /**
+     * @param  list<string>  $roleNames
+     */
     private function canViewRepositoryDocument(Document $document, User $actor, array $roleNames): bool
     {
         if ($actor->can('document.manage') || $actor->can('document.view')) {
@@ -227,7 +435,10 @@ class EmployeeSelfServiceWorkspaceService
             return false;
         }
 
-        $allowedRoles = $document->documentCategory?->allowed_role_names ?? [];
+        $allowedRoles = collect($document->documentCategory->allowed_role_names ?? [])
+            ->filter(static fn (string $roleName): bool => $roleName !== '')
+            ->values()
+            ->all();
 
         if ($allowedRoles === []) {
             return true;
@@ -236,6 +447,9 @@ class EmployeeSelfServiceWorkspaceService
         return count(array_intersect($roleNames, $allowedRoles)) > 0;
     }
 
+    /**
+     * @return EmployeeSelfServiceEmployee
+     */
     private function mapEmployee(Employee $employee): array
     {
         return [
@@ -295,6 +509,9 @@ class EmployeeSelfServiceWorkspaceService
         ];
     }
 
+    /**
+     * @return EmployeeSelfServiceContact
+     */
     private function mapContact(EmployeeContact $contact): array
     {
         return [
@@ -311,6 +528,9 @@ class EmployeeSelfServiceWorkspaceService
         ];
     }
 
+    /**
+     * @return EmployeeSelfServiceAddress
+     */
     private function mapAddress(EmployeeAddress $address): array
     {
         return [
@@ -329,6 +549,9 @@ class EmployeeSelfServiceWorkspaceService
         ];
     }
 
+    /**
+     * @return EmployeeSelfServiceEmergencyContact
+     */
     private function mapEmergencyContact(EmployeeEmergencyContact $contact): array
     {
         return [
@@ -346,6 +569,9 @@ class EmployeeSelfServiceWorkspaceService
         ];
     }
 
+    /**
+     * @return EmployeeSelfServiceDocumentItem
+     */
     private function mapPolicyAcknowledgement(PolicyAcknowledgement $acknowledgement): array
     {
         return [
@@ -377,6 +603,9 @@ class EmployeeSelfServiceWorkspaceService
         ];
     }
 
+    /**
+     * @return EmployeeSelfServiceDocumentItem
+     */
     private function mapEmployeeDocument(EmployeeDocument $document): array
     {
         return [
@@ -406,16 +635,21 @@ class EmployeeSelfServiceWorkspaceService
         ];
     }
 
+    /**
+     * @return EmployeeSelfServiceDocumentItem
+     */
     private function mapRepositoryDocument(Document $document): array
     {
+        $category = $document->documentCategory;
+
         return [
             'id' => 'repository-document-'.$document->id,
             'source_type' => 'repository_document',
             'source_id' => $document->id,
             'title' => $document->title,
-            'subtitle' => $document->documentCategory?->name ?? ucfirst(str_replace('_', ' ', $document->repository_scope)),
+            'subtitle' => $category ? $category->name : ucfirst(str_replace('_', ' ', $document->repository_scope)),
             'status' => 'available',
-            'document_type' => $document->documentCategory?->code ?? $document->repository_scope,
+            'document_type' => $category ? $category->code : $document->repository_scope,
             'file_name' => $document->original_file_name,
             'mime_type' => $document->mime_type,
             'file_size_bytes' => $document->file_size_bytes,
@@ -439,6 +673,9 @@ class EmployeeSelfServiceWorkspaceService
         ];
     }
 
+    /**
+     * @return EmployeeSelfServiceAssetItem
+     */
     private function mapAssignedAsset(Asset $asset): array
     {
         $assignment = $asset->currentAssignment;
@@ -448,7 +685,7 @@ class EmployeeSelfServiceWorkspaceService
             'asset_tag' => $asset->asset_tag,
             'name' => $asset->name,
             'asset_type' => $asset->asset_type,
-            'status' => $assignment?->status ?? $asset->status,
+            'status' => $assignment ? $assignment->status : $asset->status,
             'serial_number' => $asset->serial_number,
             'manufacturer' => $asset->manufacturer,
             'model_name' => $asset->model_name,

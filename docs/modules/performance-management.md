@@ -66,12 +66,42 @@ The Performance Management module helps organizations set goals, track progress,
 - `GET /api/v1/performance/reviews`
 - `POST /api/v1/performance/reviews`
 - `POST /api/v1/performance/reviews/{id}/submit`
+- `POST /api/v1/performance/reviews/{id}/calibrate`
+- `POST /api/v1/performance/reviews/{id}/finalize`
+- `POST /api/v1/performance/reviews/{id}/publish`
+- `POST /api/v1/performance/reviews/{id}/reopen`
 
 ## Dependencies
 
 - Employee hierarchy and role visibility
 - Workflow, notification, and audit services
 - Compensation planning and reporting consumers
+
+## Sprint 07 V1 Planning Notes
+
+- Sprint 07 performance delivery should cover more than just goal assignment and self-review submission. The v1 slice needs goal libraries, review-cycle templates, competency visibility, calibration-state handling, and locked-final review behavior.
+- Enterprise-grade v1 performance depends on strong role visibility controls for self, manager, reviewer, HR, and leadership contexts, including confidential or restricted feedback sections where configured.
+- Review states should be modeled explicitly enough for later reporting and compensation-adjacent decisions, with draft, self-assessment, manager review, calibration, finalized, published, and controlled reopen behavior treated as durable workflow state.
+
+## Current Sprint 07 Delivery Status
+
+- `S07-005` is now implemented in `apps/api` as the performance configuration baseline with tenant-scoped competencies, goal libraries, and review-cycle records.
+- The current performance baseline now covers owner-bound goals with deadline and weight controls, competency scale-definition management, participant-rule configuration, review-template section weighting, and competency-visibility baselines for downstream review execution.
+- `S07-006` is now implemented in `apps/api` as the performance review execution baseline with review creation, participant submissions, calibration, finalization, publication, and controlled reopen behavior.
+- Runtime review states are now modeled as `draft`, `self_assessment`, `manager_review`, `calibration`, `finalized`, `published`, and `reopened`, while configuration-level review-cycle records remain `draft`, `scheduled`, `active`, and `archived`.
+- The current execution slice now covers role-aware visibility for self, manager, reviewer, and HR sessions, anonymous peer feedback where configured, deadline enforcement, locked-final review controls, and auditable reopen behavior.
+- The current goal types are intentionally limited to `library` for the v1 configuration slice so later employee-assigned goal execution can build on a stable source of truth instead of mixing configuration with in-flight review data.
+- `S07-007` is now implemented in `apps/web` through routed `/performance/overview`, `/performance/goals`, `/performance/cycles`, and `/performance/reviews` workspaces.
+- The current performance UI now covers goal-library visibility, competency and review-cycle administration, employee self-assessment, manager and reviewer input, calibration posture, finalization controls, and publication or reopen actions with demo-live workspace wiring.
+- The performance module is now enterprise-routed end to end for HR, managers, reviewers, and employees.
+- `S07-010` is now implemented as the focused performance contract publication in [apps/api/openapi/sprint-07-performance-management.yaml](../../apps/api/openapi/sprint-07-performance-management.yaml), covering goals, competencies, review cycles, review execution, calibration, publication, and reopen controls in one dedicated performance contract.
+
+## Explicit Sprint 07 Deferrals
+
+- Continuous feedback and recurring check-in meetings
+- Development plans and pip plans
+- Talent reviews and succession planning
+- AI-generated performance insights and summaries
 
 ## Related Sprints
 

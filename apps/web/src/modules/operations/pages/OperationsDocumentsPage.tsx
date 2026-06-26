@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
 import { Input } from '../../../shared/ui/input'
 import { Modal } from '../../../shared/ui/modal'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
@@ -11,7 +10,7 @@ import {
   WorkspaceEmptyState,
   WorkspaceField,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSurface,
   WorkspaceTableShell,
@@ -123,16 +122,18 @@ export function OperationsDocumentsPage() {
   return (
     <WorkspacePage>
       <WorkspaceSurface>
-        <WorkspaceHeader>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Document operations</h1>
-            <CardTitle>Repository governance and retention watch</CardTitle>
-            <CardDescription>
-              Manage repository categories, role-aware visibility defaults, and the current tenant document posture.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            {workspace.canManageDocuments ? (
+        <WorkspaceHeroHeader
+          moduleLabel="Document Operations"
+          title="Document Operations"
+          description="Manage repository categories, role-aware visibility defaults, and the current tenant document posture."
+          badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
+          context={[
+            `${filteredCategories.length} category record(s) in scope`,
+            `${filteredDocuments.length} document record(s) in scope`,
+            workspace.canManageDocuments ? 'Governance controls live' : 'Read only session',
+          ]}
+          actions={
+            workspace.canManageDocuments ? (
               <Button
                 size="xs"
                 variant="primary"
@@ -148,9 +149,9 @@ export function OperationsDocumentsPage() {
               </Button>
             ) : (
               <Badge variant="warning">Read only in this session</Badge>
-            )}
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+            )
+          }
+        />
 
         <WorkspaceContent className="space-y-4">
           <WorkspaceToolbar>

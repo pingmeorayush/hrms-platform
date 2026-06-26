@@ -12,9 +12,30 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property bool $is_active
+ * @property bool $requires_mfa
+ * @property string|null $mfa_method
+ * @property string|null $mfa_secret
+ * @property string|null $mfa_email_otp
+ * @property Carbon|null $mfa_email_otp_expires_at
+ * @property Carbon|null $mfa_confirmed_at
+ * @property int $failed_login_attempts
+ * @property Carbon|null $locked_until
+ * @property Carbon|null $last_login_at
+ * @property string|null $last_login_ip
+ * @property-read Company|null $company
+ * @property-read Employee|null $employee
+ */
 #[Fillable([
     'company_id',
     'name',
@@ -35,26 +56,36 @@ use Spatie\Permission\Traits\HasRoles;
 #[Hidden(['password', 'remember_token', 'mfa_secret', 'mfa_email_otp'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use BelongsToCompany;
-
     use HasApiTokens;
+
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
+
     use HasRoles;
     use Notifiable;
 
     protected string $guard_name = 'web';
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return HasOne<Employee, $this>
+     */
     public function employee(): HasOne
     {
         return $this->hasOne(Employee::class);
     }
 
+    /**
+     * @return Attribute<string, never>
+     */
     public function initials(): Attribute
     {
         return Attribute::make(

@@ -11,10 +11,108 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type SalaryComponentPayload array{
+ *   code: string,
+ *   name: string,
+ *   category: string,
+ *   calculation_type: string,
+ *   flat_amount?: int|float|string|null,
+ *   percentage_value?: int|float|string|null,
+ *   percentage_basis_component_codes?: list<string>|null,
+ *   expression_formula?: string|null,
+ *   is_taxable?: bool|int|string,
+ *   is_proratable?: bool|int|string,
+ *   display_order?: int|string,
+ *   status: string
+ * }
+ * @phpstan-type SalaryComponentNormalizedPayload array{
+ *   company_id: int|null,
+ *   code: string,
+ *   name: string,
+ *   category: string,
+ *   calculation_type: string,
+ *   flat_amount: float|null,
+ *   percentage_value: float|null,
+ *   percentage_basis_component_codes: list<string>,
+ *   expression_formula: string|null,
+ *   is_taxable: bool,
+ *   is_proratable: bool,
+ *   display_order: int,
+ *   status: string
+ * }
+ * @phpstan-type SalaryStructureLinePayload array{
+ *   salary_component_id: int|string,
+ *   display_order?: int|string,
+ *   configured_amount?: int|float|string|null,
+ *   configured_percentage?: int|float|string|null,
+ *   configured_basis_component_codes?: list<string>|null,
+ *   configured_expression_formula?: string|null
+ * }
+ * @phpstan-type SalaryStructurePayload array{
+ *   code: string,
+ *   name: string,
+ *   currency: string,
+ *   country_code: string,
+ *   pay_frequency: string,
+ *   grade?: string|null,
+ *   band?: string|null,
+ *   level?: string|null,
+ *   annual_ctc_amount: int|float|string,
+ *   basic_salary_amount: int|float|string,
+ *   gross_salary_amount: int|float|string,
+ *   net_salary_amount: int|float|string,
+ *   effective_from: string,
+ *   revision_date: string,
+ *   status: string,
+ *   notes?: string|null,
+ *   components: list<SalaryStructureLinePayload>
+ * }
+ * @phpstan-type SalaryStructureNormalizedPayload array{
+ *   code: string,
+ *   name: string,
+ *   currency: string,
+ *   country_code: string,
+ *   pay_frequency: string,
+ *   grade: string|null,
+ *   band: string|null,
+ *   level: string|null,
+ *   annual_ctc_amount: float,
+ *   basic_salary_amount: float,
+ *   gross_salary_amount: float,
+ *   net_salary_amount: float,
+ *   effective_from: string,
+ *   revision_date: string,
+ *   status: string,
+ *   notes: string|null,
+ *   components: list<SalaryStructureLinePayload>
+ * }
+ * @phpstan-type SalaryStructureAttributes array{
+ *   code: string,
+ *   name: string,
+ *   currency: string,
+ *   country_code: string,
+ *   pay_frequency: string,
+ *   grade: string|null,
+ *   band: string|null,
+ *   level: string|null,
+ *   annual_ctc_amount: float,
+ *   basic_salary_amount: float,
+ *   gross_salary_amount: float,
+ *   net_salary_amount: float,
+ *   effective_from: string,
+ *   revision_date: string,
+ *   status: string,
+ *   notes: string|null
+ * }
+ */
 class SalaryConfigurationService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  SalaryComponentPayload  $payload
+     */
     public function createComponent(User $actor, array $payload): SalaryComponent
     {
         return DB::transaction(function () use ($actor, $payload): SalaryComponent {
@@ -52,6 +150,9 @@ class SalaryConfigurationService
         });
     }
 
+    /**
+     * @param  SalaryComponentPayload  $payload
+     */
     public function updateComponent(User $actor, SalaryComponent $component, array $payload): SalaryComponent
     {
         return DB::transaction(function () use ($actor, $component, $payload): SalaryComponent {
@@ -107,6 +208,9 @@ class SalaryConfigurationService
         });
     }
 
+    /**
+     * @param  SalaryStructurePayload  $payload
+     */
     public function createStructure(User $actor, array $payload): SalaryStructure
     {
         return DB::transaction(function () use ($actor, $payload): SalaryStructure {
@@ -149,6 +253,9 @@ class SalaryConfigurationService
         });
     }
 
+    /**
+     * @param  SalaryStructurePayload  $payload
+     */
     public function versionStructure(User $actor, SalaryStructure $structure, array $payload): SalaryStructure
     {
         return DB::transaction(function () use ($actor, $structure, $payload): SalaryStructure {
@@ -215,6 +322,10 @@ class SalaryConfigurationService
         });
     }
 
+    /**
+     * @param  SalaryComponentPayload  $payload
+     * @return SalaryComponentNormalizedPayload
+     */
     private function normalizeComponentPayload(array $payload): array
     {
         $flatAmount = $payload['flat_amount'] ?? null;
@@ -240,6 +351,10 @@ class SalaryConfigurationService
         ];
     }
 
+    /**
+     * @param  SalaryStructurePayload  $payload
+     * @return SalaryStructureNormalizedPayload
+     */
     private function normalizeStructurePayload(array $payload): array
     {
         return [
@@ -259,10 +374,14 @@ class SalaryConfigurationService
             'revision_date' => $payload['revision_date'],
             'status' => $payload['status'],
             'notes' => filled($payload['notes'] ?? null) ? trim((string) $payload['notes']) : null,
-            'components' => array_values($payload['components']),
+            'components' => $payload['components'],
         ];
     }
 
+    /**
+     * @param  SalaryStructureNormalizedPayload  $payload
+     * @return SalaryStructureAttributes
+     */
     private function structureAttributes(array $payload): array
     {
         return [

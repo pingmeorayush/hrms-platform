@@ -40,9 +40,11 @@ The Employee Management module is the system of record for workforce identity, e
 
 - Employee creation with validation, approval, account creation, notification, and audit entry
 - Employee onboarding with checklist completion and readiness tracking
+- Employee offboarding with checklist completion, ownership tracking, and approval hooks where required
 - Employee profile updates with configurable editable fields and optional approval
 - Department transfer and promotion with effective-date history
 - Resignation, termination, and archive without hard deletion
+- Employee task-center review and action on assigned policy, document, asset, onboarding, and offboarding requests
 
 ## Key Business Rules
 
@@ -54,6 +56,8 @@ The Employee Management module is the system of record for workforce identity, e
 - Multiple address types must be supported per employee
 - Emergency contacts must support create and update flows with validation
 - Onboarding progress must be derived consistently from checklist task state
+- Lifecycle task templates must support onboarding and offboarding checklists without leaking across tenants
+- Employee self-service actions must only expose items linked to the authenticated employee record
 - Employee documents must stay on private storage and honor approved upload types
 - Employee lifecycle audit history must preserve before and after state where applicable
 - Bulk intake validation must report row-level success and failure counts without silently creating invalid employees
@@ -70,6 +74,8 @@ The Employee Management module is the system of record for workforce identity, e
 - `employee_documents`
 - `employment_history`
 - `employee_onboarding_tasks`
+- `employee_lifecycle_task_templates`
+- `policy_acknowledgements`
 
 ## Primary APIs
 
@@ -89,6 +95,22 @@ The Employee Management module is the system of record for workforce identity, e
 - `POST /api/v1/employees/{id}/emergency-contacts`
 - `PATCH /api/v1/employees/{id}/emergency-contacts/{emergencyContactId}`
 - `GET /api/v1/employees/onboarding-status`
+- `GET /api/v1/employees/lifecycle-task-status`
+- `GET /api/v1/task-center`
+- `PATCH /api/v1/task-center/lifecycle-tasks/{taskId}`
+- `GET /api/v1/policy-acknowledgements`
+- `POST /api/v1/policy-acknowledgements`
+- `PATCH /api/v1/policy-acknowledgements/{id}/acknowledge`
+- `GET /api/v1/policy-acknowledgements/{id}/download`
+- `GET /api/v1/self-service/workspace`
+- `GET /api/v1/self-service/employee-documents/{employeeDocumentId}/download`
+- `GET /api/v1/employee-task-templates`
+- `POST /api/v1/employee-task-templates`
+- `PATCH /api/v1/employee-task-templates/{templateId}`
+- `GET /api/v1/employees/{id}/lifecycle-tasks`
+- `POST /api/v1/employees/{id}/lifecycle-tasks`
+- `PATCH /api/v1/employees/{id}/lifecycle-tasks/{taskId}`
+- `POST /api/v1/employees/{id}/lifecycle-tasks/apply-templates`
 - `GET /api/v1/employees/{id}/onboarding-tasks`
 - `POST /api/v1/employees/{id}/onboarding-tasks`
 - `PATCH /api/v1/employees/{id}/onboarding-tasks/{taskId}`
@@ -111,6 +133,14 @@ The Employee Management module is the system of record for workforce identity, e
 - Document storage and notifications
 - Audit logging
 - Published Sprint 02 contract: `apps/api/openapi/sprint-02-employee-organization-management.yaml`
+
+## Implementation Notes
+
+- Sprint 06 now includes `S06-004`, `S06-005`, and `S06-006`, extending the employee module with lifecycle task templates, employee task-center aggregation, policy acknowledgements, and a linked-employee self-service workspace for profile review, approved document access, and assigned-asset visibility.
+- The self-service API remains scoped to the authenticated employee record, reuses the existing employee profile shape for visible fields, keeps banking and other restricted panels hidden unless the session carries the required permission, and preserves auditable download plus acknowledgement flows.
+- The current `apps/web` self-service module lives at `/self-service` and deliberately stays read only for Sprint 06, focusing on review, acknowledgement, and download flows rather than employee-initiated profile edits.
+- Sprint 06 now also includes `S06-007`, adding `/operations/lifecycle` in `apps/web` so HR operators can switch between onboarding and offboarding progress views, inspect selected employee task detail, and move visible lifecycle items forward from one shared operations module.
+- Sprint 06 now also includes `S06-008`, publishing the task-center, policy acknowledgement, and self-service workspace contract in `apps/api/openapi/sprint-06-documents-assets-ess-onoffboarding.yaml` so employee-facing consumers and admin workspaces can align on one reviewed API source.
 
 ## Related Sprints
 

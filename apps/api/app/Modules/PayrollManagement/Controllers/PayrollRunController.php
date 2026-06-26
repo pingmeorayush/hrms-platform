@@ -21,7 +21,7 @@ class PayrollRunController
         $payload = ApiResponse::success(
             'Payroll runs loaded successfully.',
             [
-                'items' => PayrollRunResource::collection($runs->getCollection()),
+                'items' => PayrollRunResource::collection($runs->items()),
                 'meta' => [
                     'page' => $runs->currentPage(),
                     'per_page' => $runs->perPage(),

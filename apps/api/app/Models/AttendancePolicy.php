@@ -7,6 +7,23 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property string $name
+ * @property int|null $working_hours_minutes
+ * @property int|null $grace_minutes
+ * @property int|null $late_after_minutes
+ * @property int|null $half_day_minutes
+ * @property bool $overtime_eligible
+ * @property int|null $overtime_after_minutes
+ * @property array<string, mixed>|null $weekend_rule
+ * @property bool $work_from_home_allowed
+ * @property bool $enforce_geofence
+ * @property int|null $allowed_radius_meters
+ * @property string $status
+ * @property-read Company|null $company
+ */
 #[Fillable([
     'company_id',
     'name',
@@ -26,6 +43,9 @@ class AttendancePolicy extends Model
 {
     use BelongsToCompany;
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

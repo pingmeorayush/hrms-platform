@@ -9,6 +9,8 @@ use App\Modules\Platform\Workflow\Events\WorkflowInstanceTransitioned;
 use App\Modules\Platform\Workflow\Events\WorkflowTaskAssigned;
 use App\Modules\Platform\Workflow\Listeners\SendWorkflowInstanceTransitionNotification;
 use App\Modules\Platform\Workflow\Listeners\SendWorkflowTaskAssignedNotification;
+use App\Modules\RecruitmentManagement\Listeners\SyncJobRequisitionWorkflowState;
+use App\Modules\RecruitmentManagement\Listeners\SyncOfferWorkflowState;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -22,6 +24,8 @@ class EventServiceProvider extends ServiceProvider
             SyncAttendanceCorrectionWorkflowState::class,
             SyncEmployeeLifecycleTaskWorkflowState::class,
             SyncLeaveRequestWorkflowState::class,
+            SyncJobRequisitionWorkflowState::class,
+            SyncOfferWorkflowState::class,
         ],
     ];
 }

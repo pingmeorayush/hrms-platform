@@ -2,6 +2,7 @@
 
 namespace App\Modules\AttendanceManagement\Services;
 
+use App\Models\Company;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\HolidayCalendar;
@@ -26,8 +27,9 @@ class AttendanceContextResolver
      */
     public function resolveScheduleForDate(Employee $employee, string|Carbon $attendanceDate): array
     {
+        $timezone = $this->resolveEmployeeTimezone($employee);
         $date = $attendanceDate instanceof Carbon
-            ? $attendanceDate->copy()->setTimezone($employee->company?->timezone ?? config('app.timezone'))->toDateString()
+            ? $attendanceDate->copy()->setTimezone($timezone)->toDateString()
             : $attendanceDate;
 
         $roster = ShiftRoster::query()
@@ -40,7 +42,7 @@ class AttendanceContextResolver
         if ($roster) {
             return $this->buildSchedulePayload(
                 $date,
-                $employee->company?->timezone ?? config('app.timezone'),
+                $timezone,
                 $roster->shift,
                 $roster,
                 'roster',
@@ -75,7 +77,7 @@ class AttendanceContextResolver
             if ($assignment) {
                 return $this->buildSchedulePayload(
                     $date,
-                    $employee->company?->timezone ?? config('app.timezone'),
+                    $timezone,
                     $assignment->shift,
                     null,
                     $scope['assignment_type'].'_assignment',
@@ -83,13 +85,14 @@ class AttendanceContextResolver
             }
         }
 
-        return $this->buildSchedulePayload($date, $employee->company?->timezone ?? config('app.timezone'), null, null, null);
+        return $this->buildSchedulePayload($date, $timezone, null, null, null);
     }
 
     public function resolveHolidayForDate(Employee $employee, string|Carbon $attendanceDate): ?Holiday
     {
+        $timezone = $this->resolveEmployeeTimezone($employee);
         $date = $attendanceDate instanceof Carbon
-            ? $attendanceDate->copy()->setTimezone($employee->company?->timezone ?? config('app.timezone'))->toDateString()
+            ? $attendanceDate->copy()->setTimezone($timezone)->toDateString()
             : $attendanceDate;
 
         $calendars = HolidayCalendar::query()
@@ -190,5 +193,14 @@ class AttendanceContextResolver
     private function nextDate(string $date): string
     {
         return Carbon::parse($date)->addDay()->toDateString();
+    }
+
+    private function resolveEmployeeTimezone(Employee $employee): string
+    {
+        $company = $employee->company;
+
+        return $company instanceof Company
+            ? $company->timezone
+            : (string) config('app.timezone');
     }
 }

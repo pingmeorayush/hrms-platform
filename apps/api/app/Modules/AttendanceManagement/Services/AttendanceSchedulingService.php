@@ -13,10 +13,26 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type ShiftPayload array<string, mixed>
+ * @phpstan-type ShiftAssignmentPayload array<string, mixed>
+ * @phpstan-type ShiftRosterEntry array{
+ *   employee_id: int|string,
+ *   shift_id: int|string,
+ *   work_date: string,
+ *   notes?: string|null,
+ *   status?: string|null
+ * }
+ * @phpstan-type ShiftRosterBatchPayload array{entries: list<ShiftRosterEntry>}
+ * @phpstan-type ShiftRosterPayload array<string, mixed>
+ */
 class AttendanceSchedulingService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  ShiftPayload  $payload
+     */
     public function createShift(User $actor, array $payload): Shift
     {
         return DB::transaction(function () use ($actor, $payload): Shift {
@@ -44,6 +60,9 @@ class AttendanceSchedulingService
         });
     }
 
+    /**
+     * @param  ShiftPayload  $payload
+     */
     public function updateShift(User $actor, Shift $shift, array $payload): Shift
     {
         return DB::transaction(function () use ($actor, $shift, $payload): Shift {
@@ -89,6 +108,9 @@ class AttendanceSchedulingService
         });
     }
 
+    /**
+     * @param  ShiftAssignmentPayload  $payload
+     */
     public function createShiftAssignment(User $actor, array $payload): ShiftAssignment
     {
         return DB::transaction(function () use ($actor, $payload): ShiftAssignment {
@@ -118,6 +140,9 @@ class AttendanceSchedulingService
         });
     }
 
+    /**
+     * @param  ShiftAssignmentPayload  $payload
+     */
     public function updateShiftAssignment(User $actor, ShiftAssignment $assignment, array $payload): ShiftAssignment
     {
         return DB::transaction(function () use ($actor, $assignment, $payload): ShiftAssignment {
@@ -165,15 +190,16 @@ class AttendanceSchedulingService
     }
 
     /**
+     * @param  ShiftRosterBatchPayload  $payload
      * @return Collection<int, ShiftRoster>
      */
     public function createRosters(User $actor, array $payload): Collection
     {
         return DB::transaction(function () use ($actor, $payload): Collection {
-            $entries = collect($payload['entries'] ?? []);
+            $entries = $this->normalizeRosterEntries($payload);
             $this->ensureRosterEntriesDoNotConflict($entries);
 
-            $created = $entries->map(function (array $entry) use ($actor): ShiftRoster {
+            $created = collect($entries)->map(function (array $entry) use ($actor): ShiftRoster {
                 $roster = ShiftRoster::query()->create([
                     'employee_id' => $entry['employee_id'],
                     'shift_id' => $entry['shift_id'],
@@ -206,6 +232,9 @@ class AttendanceSchedulingService
         });
     }
 
+    /**
+     * @param  ShiftRosterPayload  $payload
+     */
     public function updateRoster(User $actor, ShiftRoster $roster, array $payload): ShiftRoster
     {
         return DB::transaction(function () use ($actor, $roster, $payload): ShiftRoster {
@@ -231,6 +260,10 @@ class AttendanceSchedulingService
         });
     }
 
+    /**
+     * @param  ShiftPayload  $payload
+     * @return ShiftPayload
+     */
     private function normalizeShiftPayload(array $payload): array
     {
         $payload['is_overnight'] = $payload['end_time'] < $payload['start_time'];
@@ -239,7 +272,16 @@ class AttendanceSchedulingService
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  ShiftRosterBatchPayload  $payload
+     * @return list<ShiftRosterEntry>
+     */
+    private function normalizeRosterEntries(array $payload): array
+    {
+        return $payload['entries'];
+    }
+
+    /**
+     * @param  ShiftAssignmentPayload  $payload
      */
     private function ensureAssignmentDoesNotOverlap(array $payload, ?int $ignoreId = null): void
     {
@@ -277,11 +319,11 @@ class AttendanceSchedulingService
     }
 
     /**
-     * @param  Collection<int, array<string, mixed>>  $entries
+     * @param  list<ShiftRosterEntry>  $entries
      */
-    private function ensureRosterEntriesDoNotConflict(Collection $entries): void
+    private function ensureRosterEntriesDoNotConflict(array $entries): void
     {
-        $existingConflicts = $entries->first(function (array $entry): bool {
+        $existingConflicts = collect($entries)->first(function (array $entry): bool {
             return ShiftRoster::query()
                 ->where('employee_id', $entry['employee_id'])
                 ->where('work_date', '>=', $entry['work_date'])

@@ -1,8 +1,9 @@
 import { cva } from 'class-variance-authority'
 import type { ComponentPropsWithoutRef, HTMLAttributes, PropsWithChildren, ReactNode } from 'react'
 import { Star } from 'lucide-react'
+import { Badge } from './badge'
 import { Button } from './button'
-import { Card, CardContent, CardHeader } from './card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
 import { cn } from './cn'
 
 const workspaceTabVariants = cva(
@@ -69,6 +70,91 @@ export function WorkspaceContent({
   return <CardContent className={cn('space-y-3.5 p-3.5 pt-3.5', className)} {...props} />
 }
 
+function buildWorkspaceHeroMonogram(moduleLabel: string) {
+  const letters = moduleLabel
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((segment) => segment[0]?.toUpperCase() ?? '')
+    .join('')
+
+  return letters || 'PH'
+}
+
+export function WorkspaceHeroHeader({
+  moduleLabel,
+  title,
+  description,
+  badge,
+  context = [],
+  actions,
+  className,
+}: {
+  moduleLabel: string
+  title: ReactNode
+  description?: ReactNode
+  badge?: ReactNode
+  context?: ReactNode[]
+  actions?: ReactNode
+  className?: string
+}) {
+  const monogram = buildWorkspaceHeroMonogram(moduleLabel)
+
+  return (
+    <WorkspaceHeader
+      compact
+      className={cn(
+        'overflow-hidden rounded-[1.15rem] border border-line/75 bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(246,249,255,0.98)_46%,rgba(255,247,236,0.98)_100%)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_22px_36px_rgba(15,23,42,0.06)] before:inset-0 before:h-auto before:bg-[radial-gradient(circle_at_top_left,rgba(9,114,211,0.12),transparent_34%),radial-gradient(circle_at_86%_14%,rgba(184,92,16,0.11),transparent_28%)] after:right-6 after:top-5 after:h-11 after:w-11 after:rounded-full after:border after:border-white/70 after:bg-white/28 after:shadow-[0_0_0_12px_rgba(255,255,255,0.08)]',
+        className,
+      )}
+    >
+      <div className="relative z-10 flex min-w-0 items-start gap-3.5">
+        <div className="hidden sm:block">
+          <div className="relative grid h-14 w-14 shrink-0 place-items-center rounded-[1.1rem] border border-slate-900/10 bg-[linear-gradient(135deg,#fff5e4_0%,#e5f0ff_56%,#ffffff_100%)] text-[1.08rem] font-semibold tracking-[0.18em] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.84),0_16px_28px_rgba(15,23,42,0.08)]">
+            <span>{monogram}</span>
+            <span className="absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-[#1f6fe5]" />
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#d97706]" />
+          </div>
+        </div>
+        <div className="min-w-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {badge ?? <Badge variant="info">Live module</Badge>}
+            <span className="ui-type-page-eyebrow text-[#5a6879]">PhoenixHRMS command layer</span>
+          </div>
+          <div className="space-y-1">
+            <CardTitle className="text-[1.5rem] leading-[0.98] tracking-[-0.034em] md:text-[1.72rem]">
+              {title}
+            </CardTitle>
+            {description ? (
+              <CardDescription className="max-w-3xl text-[0.95rem] leading-[1.55] text-slate-600">
+                {description}
+              </CardDescription>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="subtle" className="border-line/90 bg-white/72 text-[#586676]">
+              {moduleLabel}
+            </Badge>
+            <Badge variant="subtle" className="border-line/90 bg-white/68 text-[#586676]">
+              Operations center
+            </Badge>
+            {context.map((item, index) => (
+              <Badge
+                key={`${moduleLabel}-${index}`}
+                variant="subtle"
+                className="border-line/90 bg-white/62 text-[#617082]"
+              >
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+      {actions ? <WorkspaceHeaderActions className="relative z-10 md:max-w-[22rem]">{actions}</WorkspaceHeaderActions> : null}
+    </WorkspaceHeader>
+  )
+}
+
 export function WorkspacePillRow({
   className,
   ...props
@@ -110,16 +196,17 @@ export function WorkspaceTabs({
   return <div className={cn('flex flex-wrap items-center gap-2', className)} {...props} />
 }
 
-export function workspaceTabClassName(active: boolean, className?: string) {
+function workspaceTabClassName(active: boolean, className?: string) {
   return cn(workspaceTabVariants({ active }), className)
 }
 
 export function WorkspaceTabButton({
   active = false,
+  isActive,
   className,
   ...props
-}: ComponentPropsWithoutRef<'button'> & { active?: boolean }) {
-  return <button className={workspaceTabClassName(active, className)} {...props} />
+}: ComponentPropsWithoutRef<'button'> & { active?: boolean; isActive?: boolean }) {
+  return <button className={workspaceTabClassName(isActive ?? active, className)} {...props} />
 }
 
 export function WorkspaceToolbarStatus({
@@ -180,7 +267,7 @@ export function WorkspaceField({
   className,
   children,
 }: PropsWithChildren<{
-  label: ReactNode
+  label?: ReactNode
   error?: string
   compact?: boolean
   className?: string
@@ -193,9 +280,7 @@ export function WorkspaceField({
         className,
       )}
       >
-      <span className="ui-workspace-field__label text-text-subtle">
-        {label}
-      </span>
+      {label ? <span className="ui-workspace-field__label text-text-subtle">{label}</span> : null}
       {children}
       {error ? <small className="ui-workspace-field__error font-medium text-destructive">{error}</small> : null}
     </label>
@@ -358,7 +443,19 @@ export function WorkspaceSummaryRow({
 
 export function WorkspaceSplit({
   className,
+  children,
+  primary,
+  secondary,
   ...props
-}: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('grid gap-3.5 xl:grid-cols-[minmax(0,1fr)_19rem]', className)} {...props} />
+}: HTMLAttributes<HTMLDivElement> & {
+  primary?: ReactNode
+  secondary?: ReactNode
+}) {
+  return (
+    <div className={cn('grid gap-3.5 xl:grid-cols-[minmax(0,1fr)_19rem]', className)} {...props}>
+      {primary}
+      {secondary}
+      {children}
+    </div>
+  )
 }

@@ -25,6 +25,9 @@ use App\Modules\EmployeeManagement\Controllers\EmployeeOnboardingTaskController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeSelfServiceController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeTaskCenterController;
 use App\Modules\EmployeeManagement\Controllers\PolicyAcknowledgementController;
+use App\Modules\LearningManagement\Controllers\LearningAssignmentController;
+use App\Modules\LearningManagement\Controllers\LearningAssignmentTargetController;
+use App\Modules\LearningManagement\Controllers\LearningItemController;
 use App\Modules\LeaveManagement\Controllers\LeaveAccrualController;
 use App\Modules\LeaveManagement\Controllers\LeaveBalanceController;
 use App\Modules\LeaveManagement\Controllers\LeavePolicyController;
@@ -44,6 +47,10 @@ use App\Modules\PayrollManagement\Controllers\PayrollRunController;
 use App\Modules\PayrollManagement\Controllers\PayslipController;
 use App\Modules\PayrollManagement\Controllers\SalaryComponentController;
 use App\Modules\PayrollManagement\Controllers\SalaryStructureController;
+use App\Modules\PerformanceManagement\Controllers\PerformanceCompetencyController;
+use App\Modules\PerformanceManagement\Controllers\PerformanceGoalController;
+use App\Modules\PerformanceManagement\Controllers\PerformanceReviewController;
+use App\Modules\PerformanceManagement\Controllers\PerformanceReviewCycleController;
 use App\Modules\Platform\Admin\Controllers\PermissionController;
 use App\Modules\Platform\Admin\Controllers\RoleController;
 use App\Modules\Platform\Audit\Controllers\AuditLogController;
@@ -55,6 +62,18 @@ use App\Modules\Platform\UI\Controllers\UiVisibilityController;
 use App\Modules\Platform\Workflow\Controllers\WorkflowDefinitionController;
 use App\Modules\Platform\Workflow\Controllers\WorkflowInstanceController;
 use App\Modules\Platform\Workflow\Controllers\WorkflowTaskController;
+use App\Modules\RecruitmentManagement\Controllers\CandidateController;
+use App\Modules\RecruitmentManagement\Controllers\InterviewController;
+use App\Modules\RecruitmentManagement\Controllers\JobRequisitionController;
+use App\Modules\RecruitmentManagement\Controllers\OfferController;
+use App\Modules\RecruitmentManagement\Controllers\RecruitmentHireHandoffController;
+use App\Modules\ReportingAnalytics\Controllers\KpiDefinitionController;
+use App\Modules\ReportingAnalytics\Controllers\ReportDatasetController;
+use App\Modules\ReportingAnalytics\Controllers\ReportExportController;
+use App\Modules\ReportingAnalytics\Controllers\ReportingDashboardController;
+use App\Modules\ReportingAnalytics\Controllers\ReportQueryController;
+use App\Modules\ReportingAnalytics\Controllers\ReportSubscriptionController;
+use App\Modules\ReportingAnalytics\Controllers\SavedReportViewController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
@@ -261,6 +280,188 @@ Route::prefix('v1')
                 Route::get('payslips/{payslipId}/download', [PayslipController::class, 'download'])
                     ->middleware('permission:payroll.view|compensation.view|payslip.view')
                     ->name('payroll.payslips.download');
+            });
+
+            Route::prefix('learning')->group(function (): void {
+                Route::get('items', [LearningItemController::class, 'index'])
+                    ->middleware('permission:learning.manage|learning.assign');
+                Route::post('items', [LearningItemController::class, 'store'])
+                    ->middleware('permission:learning.manage');
+                Route::get('items/{learningItemId}', [LearningItemController::class, 'show'])
+                    ->middleware('permission:learning.manage|learning.assign');
+                Route::patch('items/{learningItemId}', [LearningItemController::class, 'update'])
+                    ->middleware('permission:learning.manage');
+
+                Route::get('assignments', [LearningAssignmentController::class, 'index'])
+                    ->middleware('permission:learning.view|learning.manage|learning.assign');
+                Route::post('assignments', [LearningAssignmentController::class, 'store'])
+                    ->middleware('permission:learning.assign|learning.manage');
+                Route::get('assignments/{learningAssignmentId}', [LearningAssignmentController::class, 'show'])
+                    ->middleware('permission:learning.view|learning.manage|learning.assign');
+
+                Route::get('targets', [LearningAssignmentTargetController::class, 'index'])
+                    ->middleware('permission:learning.view|learning.manage|learning.assign');
+                Route::get('targets/{learningAssignmentTargetId}', [LearningAssignmentTargetController::class, 'show'])
+                    ->middleware('permission:learning.view|learning.manage|learning.assign');
+                Route::patch('targets/{learningAssignmentTargetId}/complete', [LearningAssignmentTargetController::class, 'complete'])
+                    ->middleware('permission:learning.complete|learning.manage');
+                Route::get('my-assignments', [LearningAssignmentTargetController::class, 'mine'])
+                    ->middleware('permission:learning.view|learning.complete|learning.manage');
+            });
+
+            Route::prefix('performance')->group(function (): void {
+                Route::get('goals', [PerformanceGoalController::class, 'index'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::post('goals', [PerformanceGoalController::class, 'store'])
+                    ->middleware('permission:performance.manage');
+                Route::get('goals/{performanceGoalId}', [PerformanceGoalController::class, 'show'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::patch('goals/{performanceGoalId}', [PerformanceGoalController::class, 'update'])
+                    ->middleware('permission:performance.manage');
+
+                Route::get('competencies', [PerformanceCompetencyController::class, 'index'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::post('competencies', [PerformanceCompetencyController::class, 'store'])
+                    ->middleware('permission:performance.manage');
+                Route::get('competencies/{performanceCompetencyId}', [PerformanceCompetencyController::class, 'show'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::patch('competencies/{performanceCompetencyId}', [PerformanceCompetencyController::class, 'update'])
+                    ->middleware('permission:performance.manage');
+
+                Route::get('review-cycles', [PerformanceReviewCycleController::class, 'index'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::post('review-cycles', [PerformanceReviewCycleController::class, 'store'])
+                    ->middleware('permission:performance.manage');
+                Route::get('review-cycles/{performanceReviewCycleId}', [PerformanceReviewCycleController::class, 'show'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::patch('review-cycles/{performanceReviewCycleId}', [PerformanceReviewCycleController::class, 'update'])
+                    ->middleware('permission:performance.manage');
+
+                Route::get('reviews', [PerformanceReviewController::class, 'index'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::post('reviews', [PerformanceReviewController::class, 'store'])
+                    ->middleware('permission:performance.manage');
+                Route::get('reviews/{performanceReviewId}', [PerformanceReviewController::class, 'show'])
+                    ->middleware('permission:performance.view|performance.manage|performance.review|performance.calibrate');
+                Route::patch('reviews/{performanceReviewId}', [PerformanceReviewController::class, 'update'])
+                    ->middleware('permission:performance.manage');
+                Route::post('reviews/{performanceReviewId}/submit', [PerformanceReviewController::class, 'submit'])
+                    ->middleware('permission:performance.view|performance.review|performance.manage');
+                Route::post('reviews/{performanceReviewId}/calibrate', [PerformanceReviewController::class, 'calibrate'])
+                    ->middleware('permission:performance.calibrate|performance.manage');
+                Route::post('reviews/{performanceReviewId}/finalize', [PerformanceReviewController::class, 'finalize'])
+                    ->middleware('permission:performance.calibrate|performance.manage');
+                Route::post('reviews/{performanceReviewId}/publish', [PerformanceReviewController::class, 'publish'])
+                    ->middleware('permission:performance.manage');
+                Route::post('reviews/{performanceReviewId}/reopen', [PerformanceReviewController::class, 'reopen'])
+                    ->middleware('permission:performance.calibrate|performance.manage');
+            });
+
+            Route::prefix('recruitment')->group(function (): void {
+                Route::get('requisitions', [JobRequisitionController::class, 'index'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::post('requisitions', [JobRequisitionController::class, 'store'])
+                    ->middleware('permission:recruitment.manage');
+                Route::get('requisitions/{jobRequisitionId}', [JobRequisitionController::class, 'show'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::patch('requisitions/{jobRequisitionId}', [JobRequisitionController::class, 'update'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::get('candidates', [CandidateController::class, 'index'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::post('candidates', [CandidateController::class, 'store'])
+                    ->middleware('permission:recruitment.manage');
+                Route::get('candidates/{candidateId}', [CandidateController::class, 'show'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::patch('candidates/{candidateId}', [CandidateController::class, 'update'])
+                    ->middleware('permission:recruitment.manage');
+                Route::post('candidates/{candidateId}/resumes', [CandidateController::class, 'storeResume'])
+                    ->middleware('permission:recruitment.manage');
+                Route::get('candidates/{candidateId}/resumes/{candidateResumeId}/download', [CandidateController::class, 'downloadResume'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve')
+                    ->name('recruitment.candidates.resumes.download');
+                Route::post('candidates/{candidateId}/stage-transitions', [CandidateController::class, 'transitionStage'])
+                    ->middleware('permission:recruitment.manage');
+                Route::get('interviews', [InterviewController::class, 'index'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.interview|recruitment.approve');
+                Route::post('interviews', [InterviewController::class, 'store'])
+                    ->middleware('permission:recruitment.manage');
+                Route::get('interviews/{interviewId}', [InterviewController::class, 'show'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.interview|recruitment.approve');
+                Route::patch('interviews/{interviewId}', [InterviewController::class, 'update'])
+                    ->middleware('permission:recruitment.manage');
+                Route::post('interviews/{interviewId}/feedback', [InterviewController::class, 'storeFeedback'])
+                    ->middleware('permission:recruitment.manage|recruitment.interview');
+                Route::get('offers', [OfferController::class, 'index'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::post('offers', [OfferController::class, 'store'])
+                    ->middleware('permission:recruitment.manage');
+                Route::get('offers/{offerId}', [OfferController::class, 'show'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::patch('offers/{offerId}', [OfferController::class, 'update'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve');
+                Route::get('handoffs', [RecruitmentHireHandoffController::class, 'index'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve|employee.view|employee.manage');
+                Route::post('offers/{offerId}/handoff', [RecruitmentHireHandoffController::class, 'store'])
+                    ->middleware('permission:employee.manage');
+                Route::get('handoffs/{handoffId}', [RecruitmentHireHandoffController::class, 'show'])
+                    ->middleware('permission:recruitment.view|recruitment.manage|recruitment.approve|employee.view|employee.manage');
+            });
+
+            Route::prefix('reporting')->group(function (): void {
+                Route::get('kpis', [KpiDefinitionController::class, 'index'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::post('kpis', [KpiDefinitionController::class, 'store'])
+                    ->middleware('permission:reporting.manage|reporting.certify');
+                Route::get('kpis/{kpiDefinitionId}', [KpiDefinitionController::class, 'show'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::patch('kpis/{kpiDefinitionId}', [KpiDefinitionController::class, 'update'])
+                    ->middleware('permission:reporting.manage|reporting.certify');
+
+                Route::get('datasets', [ReportDatasetController::class, 'index'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::post('datasets', [ReportDatasetController::class, 'store'])
+                    ->middleware('permission:reporting.manage|reporting.certify');
+                Route::get('datasets/{reportDatasetId}', [ReportDatasetController::class, 'show'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::patch('datasets/{reportDatasetId}', [ReportDatasetController::class, 'update'])
+                    ->middleware('permission:reporting.manage|reporting.certify');
+                Route::get('reports/{datasetKey}', [ReportQueryController::class, 'show'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::get('dashboards/{dashboardKey}', [ReportingDashboardController::class, 'show'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::get('exports', [ReportExportController::class, 'index'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::post('exports', [ReportExportController::class, 'store'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::get('exports/{reportExportId}', [ReportExportController::class, 'show'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::post('exports/{reportExportId}/process', [ReportExportController::class, 'process'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::get('exports/{reportExportId}/download', [ReportExportController::class, 'download'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify')
+                    ->name('reporting.exports.download');
+                Route::get('saved-views', [SavedReportViewController::class, 'index'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::post('saved-views', [SavedReportViewController::class, 'store'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::get('saved-views/{savedReportViewId}', [SavedReportViewController::class, 'show'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::patch('saved-views/{savedReportViewId}', [SavedReportViewController::class, 'update'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::delete('saved-views/{savedReportViewId}', [SavedReportViewController::class, 'destroy'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::get('subscriptions', [ReportSubscriptionController::class, 'index'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::post('subscriptions', [ReportSubscriptionController::class, 'store'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::get('subscriptions/{reportSubscriptionId}', [ReportSubscriptionController::class, 'show'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::patch('subscriptions/{reportSubscriptionId}', [ReportSubscriptionController::class, 'update'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::delete('subscriptions/{reportSubscriptionId}', [ReportSubscriptionController::class, 'destroy'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
+                Route::post('subscriptions/{reportSubscriptionId}/deliver', [ReportSubscriptionController::class, 'deliver'])
+                    ->middleware('permission:reporting.view|reporting.manage|reporting.certify');
             });
 
             Route::get('employees', [EmployeeController::class, 'index'])->middleware('permission:employee.view|employee.manage');

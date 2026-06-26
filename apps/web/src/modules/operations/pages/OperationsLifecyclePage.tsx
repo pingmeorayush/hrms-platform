@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
 import {
   WorkspaceContent,
   WorkspaceEmptyState,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSurface,
   WorkspaceTableShell,
@@ -66,20 +65,17 @@ export function OperationsLifecyclePage() {
   return (
     <WorkspacePage>
       <WorkspaceSurface>
-        <WorkspaceHeader>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Lifecycle operations</h1>
-            <CardTitle>Onboarding and offboarding progress watch</CardTitle>
-            <CardDescription>
-              Review employee-level progress, then move individual tasks forward without leaving the operations module.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            <Badge variant={workspace.canManageLifecycle ? 'success' : 'warning'}>
-              {workspace.canManageLifecycle ? 'Lifecycle updates enabled' : 'Lifecycle view restricted'}
-            </Badge>
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+        <WorkspaceHeroHeader
+          moduleLabel="Lifecycle Operations"
+          title="Lifecycle Operations"
+          description="Review employee-level progress, then move individual tasks forward without leaving the operations module."
+          badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
+          context={[
+            `${workspace.selectedLifecycleStatuses.length} employee record(s) in scope`,
+            workspace.selectedLifecycleType,
+            workspace.canManageLifecycle ? 'Lifecycle updates enabled' : 'Lifecycle view restricted',
+          ]}
+        />
 
         <WorkspaceContent className="space-y-4">
           <WorkspaceTabs aria-label="Lifecycle types">

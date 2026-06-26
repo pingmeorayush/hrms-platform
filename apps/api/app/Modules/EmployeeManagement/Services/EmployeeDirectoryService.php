@@ -7,8 +7,22 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
+/**
+ * @phpstan-type EmployeeDirectoryFilters array{
+ *   search?: string|null,
+ *   employment_status?: string|null,
+ *   department_id?: int|string|null,
+ *   designation_id?: int|string|null,
+ *   manager_id?: int|string|null,
+ *   per_page?: int|string|null
+ * }
+ */
 class EmployeeDirectoryService
 {
+    /**
+     * @param  EmployeeDirectoryFilters  $filters
+     * @return LengthAwarePaginator<int, Employee>
+     */
     public function search(array $filters): LengthAwarePaginator
     {
         $employees = Employee::query()
@@ -38,6 +52,9 @@ class EmployeeDirectoryService
         return $employees->paginate((int) min((int) ($filters['per_page'] ?? 25), 100));
     }
 
+    /**
+     * @param  Builder<Employee>  $query
+     */
     private function applySearch(Builder $query, string $search): void
     {
         $search = trim($search);

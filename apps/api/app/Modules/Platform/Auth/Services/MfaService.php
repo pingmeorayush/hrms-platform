@@ -3,6 +3,7 @@
 namespace App\Modules\Platform\Auth\Services;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
@@ -34,7 +35,9 @@ class MfaService
                 && $this->verifyTotp($user->mfa_secret, $code);
         }
 
-        if (! $user->mfa_email_otp || ! $user->mfa_email_otp_expires_at || $user->mfa_email_otp_expires_at->isPast()) {
+        $emailOtpExpiresAt = Carbon::make($user->mfa_email_otp_expires_at);
+
+        if (! $user->mfa_email_otp || ! $emailOtpExpiresAt || $emailOtpExpiresAt->isPast()) {
             return false;
         }
 

@@ -1,10 +1,11 @@
 import type { AccessSnapshot } from '../../access/types'
+import { buildDemoEmployees } from '../../employees/data/demoEmployees'
 import { buildDemoEmployeeWorkspace } from '../../employees/data/demoEmployeeProfiles'
 import type { SelfServiceAssetRecord, SelfServiceDocumentRecord, SelfServiceWorkspaceData } from '../types'
 
-const selfServiceEmployeeIdByUserId: Record<number, number | null> = {
-  1: null,
-  2: null,
+const selfServiceEmployeeIdAliasesByUserId: Record<number, number | null> = {
+  1: 1001,
+  2: 1004,
   3: 1001,
   4: 1005,
 }
@@ -14,7 +15,7 @@ export function buildDemoSelfServiceWorkspace(snapshot: AccessSnapshot | null): 
     return null
   }
 
-  const employeeId = resolveDemoSelfServiceEmployeeId(snapshot.user.id)
+  const employeeId = resolveLinkedDemoEmployeeId(snapshot)
 
   if (!employeeId) {
     return null
@@ -84,7 +85,40 @@ export function resolveDemoSelfServiceEmployeeId(userId: number | null | undefin
     return null
   }
 
-  return selfServiceEmployeeIdByUserId[userId] ?? null
+  return selfServiceEmployeeIdAliasesByUserId[userId] ?? null
+}
+
+function resolveLinkedDemoEmployeeId(snapshot: AccessSnapshot): number | null {
+  const linkedEmployee = snapshot.user.employee
+  const demoEmployees = buildDemoEmployees(snapshot)
+
+  if (linkedEmployee) {
+    const directMatch = demoEmployees.find((employee) => employee.id === linkedEmployee.id)
+    if (directMatch) {
+      return directMatch.id
+    }
+
+    const matchByCode = demoEmployees.find((employee) => employee.employee_code === linkedEmployee.employee_code)
+    if (matchByCode) {
+      return matchByCode.id
+    }
+
+    const linkedEmail = linkedEmployee.email?.toLowerCase()
+    if (linkedEmail) {
+      const matchByEmail = demoEmployees.find((employee) => employee.email.toLowerCase() === linkedEmail)
+      if (matchByEmail) {
+        return matchByEmail.id
+      }
+    }
+
+    const linkedName = linkedEmployee.full_name.toLowerCase()
+    const matchByName = demoEmployees.find((employee) => employee.full_name.toLowerCase() === linkedName)
+    if (matchByName) {
+      return matchByName.id
+    }
+  }
+
+  return resolveDemoSelfServiceEmployeeId(snapshot.user.id)
 }
 
 function buildPolicyItems(employeeId: number): SelfServiceDocumentRecord[] {

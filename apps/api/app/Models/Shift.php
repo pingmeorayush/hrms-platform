@@ -8,6 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property string $code
+ * @property string $name
+ * @property string|null $description
+ * @property string $start_time
+ * @property string $end_time
+ * @property int $break_duration_minutes
+ * @property int $grace_minutes
+ * @property int|null $working_hours_minutes
+ * @property bool $is_overnight
+ * @property string $status
+ * @property-read Company|null $company
+ */
 #[Fillable([
     'company_id',
     'code',
@@ -25,16 +40,25 @@ class Shift extends Model
 {
     use BelongsToCompany;
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return HasMany<ShiftAssignment, $this>
+     */
     public function assignments(): HasMany
     {
         return $this->hasMany(ShiftAssignment::class);
     }
 
+    /**
+     * @return HasMany<ShiftRoster, $this>
+     */
     public function rosters(): HasMany
     {
         return $this->hasMany(ShiftRoster::class);

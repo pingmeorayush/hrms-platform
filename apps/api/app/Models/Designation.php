@@ -19,16 +19,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Designation extends Model
 {
-    /** @use HasFactory<DesignationFactory> */
     use BelongsToCompany;
 
+    /** @use HasFactory<DesignationFactory> */
     use HasFactory;
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return HasMany<Employee, $this>
+     */
     public function employees(): HasMany
     {
         return $this->hasMany(Employee::class);

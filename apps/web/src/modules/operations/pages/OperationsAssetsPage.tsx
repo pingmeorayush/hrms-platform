@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
 import { Input } from '../../../shared/ui/input'
 import { Modal } from '../../../shared/ui/modal'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
@@ -11,7 +10,7 @@ import {
   WorkspaceEmptyState,
   WorkspaceField,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSurface,
   WorkspaceTableShell,
@@ -201,16 +200,18 @@ export function OperationsAssetsPage() {
   return (
     <WorkspacePage>
       <WorkspaceSurface>
-        <WorkspaceHeader>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Asset operations</h1>
-            <CardTitle>Assignment, issue, return, and blocked-state review</CardTitle>
-            <CardDescription>
-              Keep asset custody visible across onboarding, offboarding, and IT handoff workflows.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            {workspace.canManageAssets ? (
+        <WorkspaceHeroHeader
+          moduleLabel="Asset Operations"
+          title="Asset Operations"
+          description="Keep asset custody visible across onboarding, offboarding, and IT handoff workflows."
+          badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
+          context={[
+            `${filteredAssets.length} asset(s) in scope`,
+            `${overdueAssets.length} overdue return(s)`,
+            workspace.canManageAssets ? 'Asset controls live' : 'Read only session',
+          ]}
+          actions={
+            workspace.canManageAssets ? (
               <>
                 <Button size="xs" variant="secondary" onClick={() => setIsCategoryModalOpen(true)}>
                   Add asset category
@@ -221,9 +222,9 @@ export function OperationsAssetsPage() {
               </>
             ) : (
               <Badge variant="warning">Read only in this session</Badge>
-            )}
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+            )
+          }
+        />
 
         <WorkspaceContent className="space-y-4">
           <WorkspaceToolbar>

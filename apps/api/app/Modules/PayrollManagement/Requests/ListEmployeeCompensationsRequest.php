@@ -3,11 +3,15 @@
 namespace App\Modules\PayrollManagement\Requests;
 
 use App\Models\Employee;
+use App\Modules\Platform\Shared\Requests\Concerns\AuthorizesRoutePermissions;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ListEmployeeCompensationsRequest extends FormRequest
 {
+    use AuthorizesRoutePermissions;
+
     protected function prepareForValidation(): void
     {
         if (! $this->has('current_only')) {
@@ -23,9 +27,12 @@ class ListEmployeeCompensationsRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeFromRoutePermissions();
     }
 
+    /**
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, \Closure|\Illuminate\Contracts\Validation\Rule|ValidationRule|string>|string>
+     */
     public function rules(): array
     {
         $companyId = $this->user()?->company_id;

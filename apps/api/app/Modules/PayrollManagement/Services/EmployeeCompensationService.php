@@ -13,10 +13,56 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type EmployeeCompensationFilters array{
+ *   employee_id?: int|string|null,
+ *   current_only?: bool
+ * }
+ * @phpstan-type EmployeeCompensationSummaryEmployee array{
+ *   id: int,
+ *   employee_code: string,
+ *   full_name: string,
+ *   email: string|null,
+ *   employment_status: string|null
+ * }
+ * @phpstan-type PayrollResolvedFormulaInputs array{
+ *   calculation_type: string|null,
+ *   flat_amount: float|int|string|null,
+ *   percentage_value: float|int|string|null,
+ *   percentage_basis_component_codes: list<string>,
+ *   expression_formula: string|null
+ * }
+ * @phpstan-type PayrollComponentSnapshotLine array{
+ *   salary_component_id: int,
+ *   code: string|null,
+ *   name: string|null,
+ *   category: string|null,
+ *   display_order: int,
+ *   is_proratable?: bool,
+ *   resolved_formula_inputs: PayrollResolvedFormulaInputs
+ * }
+ * @phpstan-type EmployeeCompensationAssignmentPayload array{
+ *   employee_id: int|string,
+ *   salary_structure_id: int|string,
+ *   revision_reason: string,
+ *   effective_from: string,
+ *   revision_date: string,
+ *   notes?: string|null
+ * }
+ * @phpstan-type EmployeeCompensationSummary array{
+ *   employee: EmployeeCompensationSummaryEmployee,
+ *   current_assignment: EmployeeCompensation|null,
+ *   history: Collection<int, EmployeeCompensation>
+ * }
+ */
 class EmployeeCompensationService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  EmployeeCompensationFilters  $filters
+     * @return Collection<int, EmployeeCompensation>
+     */
     public function listCompensations(User $actor, array $filters): Collection
     {
         $query = EmployeeCompensation::query()
@@ -39,6 +85,9 @@ class EmployeeCompensationService
         return $compensations->values();
     }
 
+    /**
+     * @return EmployeeCompensationSummary
+     */
     public function showEmployeeCompensations(User $actor, int $employeeId): array
     {
         $employee = Employee::query()->findOrFail($employeeId);
@@ -64,6 +113,9 @@ class EmployeeCompensationService
         ];
     }
 
+    /**
+     * @param  EmployeeCompensationAssignmentPayload  $payload
+     */
     public function assignCompensation(User $actor, array $payload): EmployeeCompensation
     {
         return DB::transaction(function () use ($actor, $payload): EmployeeCompensation {
@@ -167,6 +219,9 @@ class EmployeeCompensationService
         }
     }
 
+    /**
+     * @return list<PayrollComponentSnapshotLine>
+     */
     private function buildComponentSnapshot(SalaryStructure $salaryStructure): array
     {
         return $salaryStructure->components
@@ -184,12 +239,13 @@ class EmployeeCompensationService
                     'name' => $component?->name,
                     'category' => $component?->category,
                     'display_order' => $line->display_order,
+                    'is_proratable' => (bool) ($component->is_proratable ?? true),
                     'resolved_formula_inputs' => [
                         'calculation_type' => $component?->calculation_type,
                         'flat_amount' => $line->configured_amount ?? $component?->flat_amount,
                         'percentage_value' => $line->configured_percentage ?? $component?->percentage_value,
                         'percentage_basis_component_codes' => $line->configured_basis_component_codes
-                            ?? $component?->percentage_basis_component_codes
+                            ?? $component->percentage_basis_component_codes
                             ?? [],
                         'expression_formula' => $line->configured_expression_formula ?? $component?->expression_formula,
                     ],

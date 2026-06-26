@@ -128,7 +128,7 @@ class EmployeeDirectoryBenchmarkService
     {
         $start = hrtime(true);
         $employees = $this->employeeDirectoryService->search($filters);
-        EmployeeResource::collection($employees->getCollection())->resolve();
+        EmployeeResource::collection($employees->items())->resolve();
         $durationMs = (hrtime(true) - $start) / 1_000_000;
 
         return [round($durationMs, 2), $employees->total()];

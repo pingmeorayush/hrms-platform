@@ -13,7 +13,7 @@ import { useShellFavorites } from '../../../app/shell/favorites'
 import { getModuleRecentActivity, useShellRecent } from '../../../app/shell/recent'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
+import { CardTitle } from '../../../shared/ui/card'
 import {
   CommandCenterActivityItem,
   CommandCenterActivityList,
@@ -34,7 +34,7 @@ import {
   WorkspaceContent,
   WorkspaceEmptyState,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSummaryRow,
   WorkspaceSurface,
@@ -50,6 +50,8 @@ import { useOrganizationRouteWorkspace } from './useOrganizationRouteWorkspace'
 
 type OrganizationOverviewTab = 'companyProfile' | 'structure' | 'locations' | 'costCenters'
 type MetricCardTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
+const emptyOrganizationRecords: OrganizationMasterRecord[] = []
+const emptyLocationRecords: LocationRecord[] = []
 
 type StructureRow = {
   id: string
@@ -65,25 +67,52 @@ export function OrganizationOverviewPage() {
   const [activeTab, setActiveTab] = useState<OrganizationOverviewTab>('companyProfile')
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
-
-  const activeDepartments = data?.departments.filter((record) => record.status === 'active') ?? []
-  const inactiveDepartments = data?.departments.filter((record) => record.status !== 'active') ?? []
-  const activeDesignations = data?.designations.filter((record) => record.status === 'active') ?? []
-  const inactiveDesignations = data?.designations.filter((record) => record.status !== 'active') ?? []
-  const activeLocations = data?.locations.filter((record) => record.status === 'active') ?? []
-  const inactiveLocations = data?.locations.filter((record) => record.status !== 'active') ?? []
-  const activeCostCenters = data?.costCenters.filter((record) => record.status === 'active') ?? []
-  const inactiveCostCenters = data?.costCenters.filter((record) => record.status !== 'active') ?? []
+  const departments = data?.departments ?? emptyOrganizationRecords
+  const designations = data?.designations ?? emptyOrganizationRecords
+  const locations = data?.locations ?? emptyLocationRecords
+  const costCenters = data?.costCenters ?? emptyOrganizationRecords
+  const activeDepartments = useMemo(
+    () => departments.filter((record) => record.status === 'active'),
+    [departments],
+  )
+  const inactiveDepartments = useMemo(
+    () => departments.filter((record) => record.status !== 'active'),
+    [departments],
+  )
+  const activeDesignations = useMemo(
+    () => designations.filter((record) => record.status === 'active'),
+    [designations],
+  )
+  const inactiveDesignations = useMemo(
+    () => designations.filter((record) => record.status !== 'active'),
+    [designations],
+  )
+  const activeLocations = useMemo(
+    () => locations.filter((record) => record.status === 'active'),
+    [locations],
+  )
+  const inactiveLocations = useMemo(
+    () => locations.filter((record) => record.status !== 'active'),
+    [locations],
+  )
+  const activeCostCenters = useMemo(
+    () => costCenters.filter((record) => record.status === 'active'),
+    [costCenters],
+  )
+  const inactiveCostCenters = useMemo(
+    () => costCenters.filter((record) => record.status !== 'active'),
+    [costCenters],
+  )
   const inactiveCount =
     inactiveDepartments.length + inactiveDesignations.length + inactiveLocations.length + inactiveCostCenters.length
 
   const structureRows = useMemo<StructureRow[]>(
     () =>
       [
-        ...(data?.departments.map((record) => ({ id: `department-${record.id}`, type: 'Department' as const, record })) ?? []),
-        ...(data?.designations.map((record) => ({ id: `designation-${record.id}`, type: 'Designation' as const, record })) ?? []),
+        ...departments.map((record) => ({ id: `department-${record.id}`, type: 'Department' as const, record })),
+        ...designations.map((record) => ({ id: `designation-${record.id}`, type: 'Designation' as const, record })),
       ].sort((left, right) => left.record.name.localeCompare(right.record.name)),
-    [data?.departments, data?.designations],
+    [departments, designations],
   )
 
   const metricCards: Array<{
@@ -372,25 +401,25 @@ export function OrganizationOverviewPage() {
 
       {data ? (
         <WorkspaceSurface>
-          <WorkspaceHeader compact>
-            <div className="space-y-1">
-              <p className="ui-type-page-eyebrow text-text-subtle">Live module · Operations center</p>
-              <CardTitle>Organization Operations Center</CardTitle>
-              <CardDescription>
-                Monitor structure health, location coverage, and master-data posture before downstream workflows drift.
-              </CardDescription>
-            </div>
-            <WorkspaceHeaderActions>
-              <Button asChild size="xs" variant="secondary">
-                <Link to="/admin/organization/structure">Open structure</Link>
-              </Button>
-              <Button asChild size="xs" variant="primary">
-                <Link to={canManage ? '/admin/organization/company-profile' : '/admin/organization/locations'}>
-                  {canManage ? 'Open company profile' : 'Open locations'}
-                </Link>
-              </Button>
-            </WorkspaceHeaderActions>
-          </WorkspaceHeader>
+          <WorkspaceHeroHeader
+            moduleLabel="Organization"
+            title="Organization Operations Center"
+            description="Monitor structure health, location coverage, and master-data posture before downstream workflows drift."
+            badge={<Badge variant={source === 'live' ? 'info' : 'warning'}>{source === 'live' ? 'Live contract' : 'Demo contract'}</Badge>}
+            context={[canManage ? 'Master-data controls live' : 'Coverage workspace', 'Structure and location posture']}
+            actions={
+              <>
+                <Button asChild size="xs" variant="secondary">
+                  <Link to="/admin/organization/structure">Open structure</Link>
+                </Button>
+                <Button asChild size="xs" variant="primary">
+                  <Link to={canManage ? '/admin/organization/company-profile' : '/admin/organization/locations'}>
+                    {canManage ? 'Open company profile' : 'Open locations'}
+                  </Link>
+                </Button>
+              </>
+            }
+          />
           <WorkspaceContent className="space-y-4">
             <CommandCenterMetricGrid>
               {metricCards.map((card) => (

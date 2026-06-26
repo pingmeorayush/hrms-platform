@@ -2,14 +2,34 @@
 
 namespace App\Modules\Platform\Auth\Services;
 
+use App\Models\Company;
 use App\Models\User;
 use App\Modules\Platform\Audit\Services\AuditLogger;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type AuthChallengeResponse array{
+ *   mfa_required: true,
+ *   mfa_method: string
+ * }
+ * @phpstan-type AuthSuccessResponse array{
+ *   access_token: string,
+ *   token_type: string,
+ *   expires_at: string
+ * }
+ * @phpstan-type AuthLoginResponse AuthChallengeResponse|AuthSuccessResponse
+ * @phpstan-type ResetPasswordPayload array{
+ *   email: string,
+ *   token: string,
+ *   password: string,
+ *   password_confirmation?: string
+ * }
+ */
 class AuthService
 {
     public function __construct(
@@ -17,6 +37,9 @@ class AuthService
         private readonly MfaService $mfaService,
     ) {}
 
+    /**
+     * @return AuthLoginResponse
+     */
     public function login(string $email, string $password, string $deviceName, ?string $ipAddress, ?string $userAgent): array
     {
         $user = User::withoutGlobalScopes()
@@ -63,6 +86,9 @@ class AuthService
         return $this->completeAuthentication($user, $deviceName, $ipAddress, $userAgent);
     }
 
+    /**
+     * @return AuthSuccessResponse
+     */
     public function verifyMfa(string $email, string $code, string $deviceName, ?string $ipAddress, ?string $userAgent): array
     {
         $user = User::withoutGlobalScopes()
@@ -94,9 +120,7 @@ class AuthService
     {
         $token = $user->currentAccessToken();
 
-        if ($token) {
-            $token->delete();
-        }
+        $token->delete();
 
         $this->auditLogger->record(
             eventType: 'auth.logout.succeeded',
@@ -122,6 +146,9 @@ class AuthService
         }
     }
 
+    /**
+     * @param  ResetPasswordPayload  $payload
+     */
     public function resetPassword(array $payload, ?string $ipAddress, ?string $userAgent): void
     {
         $status = Password::broker()->reset(
@@ -158,6 +185,9 @@ class AuthService
         }
     }
 
+    /**
+     * @return AuthSuccessResponse
+     */
     private function completeAuthentication(User $user, string $deviceName, ?string $ipAddress, ?string $userAgent): array
     {
         $expiresAt = now()->addMinutes((int) config('platform.auth.session_timeout_minutes'));
@@ -190,7 +220,9 @@ class AuthService
 
     private function guardAgainstLockedAccount(User $user): void
     {
-        if ($user->locked_until && $user->locked_until->isFuture()) {
+        $lockedUntil = Carbon::make($user->locked_until);
+
+        if ($lockedUntil?->isFuture()) {
             throw ValidationException::withMessages([
                 'email' => ['This account is temporarily locked.'],
             ]);
@@ -199,7 +231,9 @@ class AuthService
 
     private function guardAgainstInactiveTenant(User $user): void
     {
-        if (! $user->is_active || ! $user->company || ! $user->company->isActive()) {
+        $company = $user->company;
+
+        if (! $user->is_active || ! $company instanceof Company || ! $company->isActive()) {
             throw ValidationException::withMessages([
                 'email' => ['This account does not belong to an active tenant.'],
             ]);

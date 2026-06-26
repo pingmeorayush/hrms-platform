@@ -1,0 +1,23 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - app/Models
+        - app/Modules/AssetManagement
+        - app/Modules/AttendanceManagement
+        - app/Modules/DocumentManagement
+        - app/Modules/EmployeeManagement
+        - app/Modules/LearningManagement
+        - app/Modules/LeaveManagement
+        - app/Modules/OrganizationManagement
+        - app/Modules/PayrollManagement
+        - app/Modules/PerformanceManagement
+        - app/Modules/Platform
+        - app/Modules/RecruitmentManagement
+        - routes/api.php
+    tmpDir: storage/phpstan
+    excludePaths:
+        - bootstrap/cache/*
+        - app/Modules/*/Resources/*

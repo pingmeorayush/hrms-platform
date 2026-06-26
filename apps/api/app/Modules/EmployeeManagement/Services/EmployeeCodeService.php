@@ -8,6 +8,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type EmployeeCodePolicy array{
+ *   mode: string,
+ *   prefix: string,
+ *   number_padding: int
+ * }
+ */
 class EmployeeCodeService
 {
     public function resolveCodeForCreate(int $companyId, ?string $manualCode): string
@@ -34,15 +41,19 @@ class EmployeeCodeService
         return $this->generateNextCode($companyId, $policy['prefix'], (int) $policy['number_padding']);
     }
 
+    /**
+     * @return EmployeeCodePolicy
+     */
     public function resolvePolicy(int $companyId): array
     {
+        /** @var array{mode:string, prefix:string, number_padding:int} $defaults */
         $defaults = config('employee_management.code_policy');
         $setting = TenantSetting::withoutGlobalScopes()
             ->where('company_id', $companyId)
             ->where('key', 'employee.code_policy')
             ->first();
 
-        $value = is_array($setting?->value) ? $setting->value : [];
+        $value = $setting->value ?? [];
 
         return [
             'mode' => $value['mode'] ?? $defaults['mode'],
@@ -70,6 +81,10 @@ class EmployeeCodeService
         return $normalizedPrefix.str_pad((string) $nextNumber, max($padding, 1), '0', STR_PAD_LEFT);
     }
 
+    /**
+     * @param  Collection<int, string>  $codes
+     * @return Collection<int, int>
+     */
     private function extractSequenceNumbers(Collection $codes, string $prefix): Collection
     {
         return $codes

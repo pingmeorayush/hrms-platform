@@ -9,8 +9,20 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+/**
+ * @phpstan-type PayslipSearchFilters array{
+ *   employee_id?: int|string,
+ *   payroll_run_id?: int|string,
+ *   payroll_period_id?: int|string,
+ *   per_page?: int|string
+ * }
+ */
 class PayslipAccessScopeService
 {
+    /**
+     * @param  PayslipSearchFilters  $filters
+     * @return LengthAwarePaginator<int, Payslip>
+     */
     public function searchPayslips(User $actor, array $filters): LengthAwarePaginator
     {
         return $this->payslipsQuery($actor, ['employee', 'payrollRun.payrollPeriod'])
@@ -28,9 +40,12 @@ class PayslipAccessScopeService
             )
             ->orderByDesc('generated_at')
             ->orderByDesc('id')
-            ->paginate($filters['per_page'] ?? 15);
+            ->paginate((int) ($filters['per_page'] ?? 15));
     }
 
+    /**
+     * @param  list<string>  $with
+     */
     public function resolveAccessiblePayslip(User $actor, int $payslipId, array $with = ['employee', 'payrollRun.payrollPeriod']): Payslip
     {
         $payslip = $this->payslipsQuery($actor, $with)->find($payslipId);
@@ -42,6 +57,10 @@ class PayslipAccessScopeService
         return $payslip;
     }
 
+    /**
+     * @param  list<string>  $with
+     * @return Builder<Payslip>
+     */
     public function payslipsQuery(User $actor, array $with = []): Builder
     {
         $query = Payslip::query()

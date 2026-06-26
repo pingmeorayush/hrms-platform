@@ -12,6 +12,9 @@ class OrganizationStructureService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
     public function updateCompanyProfile(User $actor, Company $company, array $payload): Company
     {
         return DB::transaction(function () use ($actor, $company, $payload): Company {
@@ -37,6 +40,7 @@ class OrganizationStructureService
 
     /**
      * @param  class-string<Model>  $modelClass
+     * @param  array<string, mixed>  $payload
      */
     public function createMasterRecord(
         User $actor,
@@ -61,6 +65,10 @@ class OrganizationStructureService
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  list<string>  $trackedFields
+     */
     public function updateMasterRecord(
         User $actor,
         Model $record,

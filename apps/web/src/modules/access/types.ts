@@ -1,4 +1,4 @@
-export type DemoPersona = 'platformAdmin' | 'tenantAdmin' | 'itOperator' | 'manager' | 'employee'
+export type DemoPersona = 'platformAdmin' | 'tenantAdmin' | 'recruiter' | 'itOperator' | 'manager' | 'employee'
 
 export interface TenantInfo {
   company_id: number

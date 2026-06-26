@@ -2,18 +2,26 @@
 
 namespace App\Modules\AttendanceManagement\Requests;
 
+use App\Models\User;
+use App\Modules\Platform\Shared\Requests\Concerns\AuthorizesRoutePermissions;
 use Carbon\Carbon;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class RecalculateAttendanceRequest extends FormRequest
 {
+    use AuthorizesRoutePermissions;
+
     public function authorize(): bool
     {
-        return true;
+        return $this->authorizeFromRoutePermissions();
     }
 
+    /**
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, \Closure|\Illuminate\Contracts\Validation\Rule|ValidationRule|string>|string>
+     */
     public function rules(): array
     {
         $companyId = $this->user()?->company_id;
@@ -32,7 +40,14 @@ class RecalculateAttendanceRequest extends FormRequest
                 return;
             }
 
-            $today = now($this->user()?->company?->timezone ?? config('app.timezone'))->startOfDay();
+            $timezone = config('app.timezone');
+            $user = $this->user();
+
+            if ($user instanceof User) {
+                $timezone = $user->company()->value('timezone') ?? $timezone;
+            }
+
+            $today = now($timezone)->startOfDay();
             $dateTo = Carbon::parse($this->string('date_to')->toString())->startOfDay();
 
             if ($dateTo->gt($today)) {

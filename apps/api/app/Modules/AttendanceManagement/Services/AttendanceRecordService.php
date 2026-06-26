@@ -13,6 +13,30 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type AttendanceRecordFilters array{
+ *   employee_id?: int|string,
+ *   date_from?: string,
+ *   date_to?: string,
+ *   primary_status?: string,
+ *   state?: string,
+ *   per_page?: int|string
+ * }
+ * @phpstan-type AttendanceCapturePayload array{
+ *   captured_at?: string|null,
+ *   channel?: string|null,
+ *   device?: string|null,
+ *   geolocation?: array<string, mixed>|string|null
+ * }
+ * @phpstan-type AttendanceCaptureContext array{
+ *   ip_address?: string|null,
+ *   user_agent?: string|null
+ * }
+ * @phpstan-type AttendanceCaptureMetadata array{
+ *   device?: string,
+ *   geolocation?: array<string, mixed>|string
+ * }
+ */
 class AttendanceRecordService
 {
     public function __construct(
@@ -22,6 +46,10 @@ class AttendanceRecordService
         private readonly AuditLogger $auditLogger,
     ) {}
 
+    /**
+     * @param  AttendanceRecordFilters  $filters
+     * @return LengthAwarePaginator<int, AttendanceRecord>
+     */
     public function search(User $actor, array $filters): LengthAwarePaginator
     {
         $query = $this->attendanceAccessScopeService
@@ -63,6 +91,10 @@ class AttendanceRecordService
             ->findOrFail($attendanceRecordId);
     }
 
+    /**
+     * @param  AttendanceCapturePayload  $payload
+     * @param  AttendanceCaptureContext  $context
+     */
     public function checkIn(User $actor, array $payload, array $context): AttendanceRecord
     {
         return DB::transaction(function () use ($actor, $payload, $context): AttendanceRecord {
@@ -112,6 +144,10 @@ class AttendanceRecordService
         });
     }
 
+    /**
+     * @param  AttendanceCapturePayload  $payload
+     * @param  AttendanceCaptureContext  $context
+     */
     public function checkOut(User $actor, array $payload, array $context): AttendanceRecord
     {
         return DB::transaction(function () use ($actor, $payload, $context): AttendanceRecord {
@@ -238,6 +274,10 @@ class AttendanceRecordService
         return Carbon::parse($value, $company->timezone);
     }
 
+    /**
+     * @param  AttendanceCapturePayload  $payload
+     * @return AttendanceCaptureMetadata
+     */
     private function extractCaptureMetadata(array $payload): array
     {
         return array_filter([

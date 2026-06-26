@@ -69,8 +69,8 @@ export function LeaveReviewWorkspaceView({
 }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const initialHash = location.hash
-  const initialRequestId = readHashRecordId(initialHash, '#request-')
+  const selectedRequestId = readHashRecordId(location.hash, '#request-')
+  const isDecisionModalOpen = selectedRequestId !== null
   const { isFavorite, toggleFavorite } = useShellFavorites()
   const approvalsWorkspaceFavorite = {
     path: '/leave/approvals',
@@ -88,29 +88,13 @@ export function LeaveReviewWorkspaceView({
     isSaving,
     decideLeaveRequest,
   } = workspace
-  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(initialRequestId)
   const [calendarStatus, setCalendarStatus] = useState<'' | 'pending' | 'approved'>('')
   const [availabilityDate, setAvailabilityDate] = useState(todayDate())
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedRequestIds, setSelectedRequestIds] = useState<number[]>([])
+  const [rawSelectedRequestIds, setRawSelectedRequestIds] = useState<number[]>([])
   const [decisionComment, setDecisionComment] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
-  const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(initialRequestId !== null)
   const { runConfirmedAction } = useOperationFeedback()
-
-  useEffect(() => {
-    const hash = location.hash
-    const requestId = readHashRecordId(hash, '#request-')
-
-    if (requestId !== null) {
-      setSelectedRequestId(requestId)
-      setIsDecisionModalOpen(true)
-      return
-    }
-
-    setSelectedRequestId(null)
-    setIsDecisionModalOpen(false)
-  }, [location.hash])
 
   const filteredPendingReviewRequests = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
@@ -144,31 +128,34 @@ export function LeaveReviewWorkspaceView({
 
     return pendingReviewRequests[0] ?? null
   }, [pendingReviewRequests, selectedRequestId])
+  const selectedRequestRecentLabel = useMemo(() => {
+    if (!selectedRequest) {
+      return null
+    }
+
+    return `${selectedRequest.employee.full_name} · Leave approval · ${formatRequestStatus(selectedRequest.status)}`
+  }, [selectedRequest])
 
   const openDecisionModal = (requestId: number) => {
-    setSelectedRequestId(requestId)
     setFormError(null)
     setDecisionComment('')
-    setIsDecisionModalOpen(true)
     navigate(
       {
         pathname: location.pathname,
         hash: `#request-${requestId}`,
       },
-      { replace: true },
+      { replace: true, flushSync: true },
     )
   }
 
   const closeDecisionModal = () => {
-    setIsDecisionModalOpen(false)
-    setSelectedRequestId(null)
     setFormError(null)
     navigate(
       {
         pathname: location.pathname,
         hash: '',
       },
-      { replace: true },
+      { replace: true, flushSync: true },
     )
   }
 
@@ -227,11 +214,18 @@ export function LeaveReviewWorkspaceView({
 
     touchShellRecent({
       path: `/leave/approvals#request-${selectedRequest.id}`,
-      label: `${selectedRequest.employee.full_name} · Leave approval · ${formatRequestStatus(selectedRequest.status)}`,
+      label: selectedRequestRecentLabel ?? 'Leave approval',
       icon: 'leave',
     })
-  }, [isDecisionModalOpen, selectedRequest?.employee.full_name, selectedRequest?.id, selectedRequest?.status])
+  }, [isDecisionModalOpen, selectedRequest?.id, selectedRequestRecentLabel])
 
+  const selectedRequestIds = useMemo(
+    () =>
+      rawSelectedRequestIds.filter((id) =>
+        filteredPendingReviewRequests.some((request) => request.id === id),
+      ),
+    [filteredPendingReviewRequests, rawSelectedRequestIds],
+  )
   const selectedRequests = useMemo(
     () => filteredPendingReviewRequests.filter((request) => selectedRequestIds.includes(request.id)),
     [filteredPendingReviewRequests, selectedRequestIds],
@@ -242,15 +236,8 @@ export function LeaveReviewWorkspaceView({
   const someRequestsSelected =
     selectedRequestIds.length > 0 && selectedRequestIds.length < filteredPendingReviewRequests.length
 
-  useEffect(() => {
-    setSelectedRequestIds((current) => {
-      const next = current.filter((id) => filteredPendingReviewRequests.some((request) => request.id === id))
-      return arraysEqual(current, next) ? current : next
-    })
-  }, [filteredPendingReviewRequests])
-
   function toggleRequestSelection(requestId: number, checked: boolean) {
-    setSelectedRequestIds((current) =>
+    setRawSelectedRequestIds((current) =>
       checked ? (current.includes(requestId) ? current : [...current, requestId]) : current.filter((id) => id !== requestId),
     )
   }
@@ -419,14 +406,14 @@ export function LeaveReviewWorkspaceView({
                 <TableHeader className="bg-panel-soft/55">
                   <TableRow>
                     <TableHead className="w-14 pl-5">
-                      <TableSelectionCheckbox
-                        checked={allRequestsSelected}
-                        indeterminate={someRequestsSelected}
-                        onChange={(checked) =>
-                          setSelectedRequestIds(checked ? filteredPendingReviewRequests.map((request) => request.id) : [])
-                        }
-                        ariaLabel={allRequestsSelected ? 'Clear visible leave request selection' : 'Select all visible leave requests'}
-                      />
+                        <TableSelectionCheckbox
+                          checked={allRequestsSelected}
+                          indeterminate={someRequestsSelected}
+                          onChange={(checked) =>
+                            setRawSelectedRequestIds(checked ? filteredPendingReviewRequests.map((request) => request.id) : [])
+                          }
+                          ariaLabel={allRequestsSelected ? 'Clear visible leave request selection' : 'Select all visible leave requests'}
+                        />
                     </TableHead>
                     <TableHead>Employee</TableHead>
                     <TableHead>Request window</TableHead>
@@ -563,7 +550,7 @@ export function LeaveReviewWorkspaceView({
                   >
                     Review selected
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedRequestIds([])}>
+                  <Button size="sm" variant="ghost" onClick={() => setRawSelectedRequestIds([])}>
                     Clear selection
                   </Button>
                 </>
@@ -740,10 +727,6 @@ function readHashRecordId(hash: string, prefix: string) {
 
   const recordId = Number(hash.replace(prefix, ''))
   return Number.isNaN(recordId) ? null : recordId
-}
-
-function arraysEqual(left: number[], right: number[]) {
-  return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
 function recordLeaveReviewDecision(

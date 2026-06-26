@@ -111,7 +111,7 @@ class PayslipApiTest extends TestCase
         $this->get('/api/v1/payroll/payslips/'.$employeePayslipId.'/download')
             ->assertOk()
             ->assertHeader('content-type', 'text/html; charset=UTF-8')
-            ->assertSee($employee->full_name, false)
+            ->assertSeeText($employee->full_name, false)
             ->assertSee('Salary Slip', false)
             ->assertSee('Employee Details', false)
             ->assertSee('Payroll Summary', false)

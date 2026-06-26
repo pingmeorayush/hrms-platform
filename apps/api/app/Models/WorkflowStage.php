@@ -27,6 +27,9 @@ class WorkflowStage extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<WorkflowVersion, $this>
+     */
     public function version(): BelongsTo
     {
         return $this->belongsTo(WorkflowVersion::class, 'workflow_version_id');

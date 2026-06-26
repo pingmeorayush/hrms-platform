@@ -8,13 +8,29 @@ use App\Models\PolicyAcknowledgement;
 use App\Models\User;
 use App\Modules\Platform\Audit\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+/**
+ * @phpstan-type PolicyAcknowledgementSearchFilters array{
+ *   employee_id?: int|string,
+ *   status?: string
+ * }
+ * @phpstan-type PolicyAcknowledgementAssignPayload array{
+ *   document_id: int|string,
+ *   employee_ids: list<int|string>,
+ *   policy_version?: string|null,
+ *   due_date?: string|null,
+ *   assignment_notes?: string|null
+ * }
+ * @phpstan-type PolicyAcknowledgementAcknowledgePayload array{
+ *   acknowledgement_notes?: string|null
+ * }
+ */
 class PolicyAcknowledgementService
 {
     public function __construct(
@@ -22,7 +38,11 @@ class PolicyAcknowledgementService
         private readonly AuditLogger $auditLogger,
     ) {}
 
-    public function search(User $actor, array $filters = []): Collection
+    /**
+     * @param  PolicyAcknowledgementSearchFilters  $filters
+     * @return EloquentCollection<int, PolicyAcknowledgement>
+     */
+    public function search(User $actor, array $filters = []): EloquentCollection
     {
         $query = PolicyAcknowledgement::query()
             ->with(['document', 'employee'])
@@ -61,10 +81,18 @@ class PolicyAcknowledgementService
         return $acknowledgements;
     }
 
-    public function assign(User $actor, array $payload): Collection
+    /**
+     * @param  PolicyAcknowledgementAssignPayload  $payload
+     * @return EloquentCollection<int, PolicyAcknowledgement>
+     */
+    public function assign(User $actor, array $payload): EloquentCollection
     {
-        return DB::transaction(function () use ($actor, $payload): Collection {
+        return DB::transaction(function () use ($actor, $payload): EloquentCollection {
             $document = Document::query()->findOrFail((int) $payload['document_id']);
+            $employeeIds = array_map(
+                static fn (int|string $employeeId): int => (int) $employeeId,
+                $payload['employee_ids'],
+            );
 
             if ($document->repository_scope !== 'policy') {
                 throw ValidationException::withMessages([
@@ -73,14 +101,14 @@ class PolicyAcknowledgementService
             }
 
             $employees = Employee::query()
-                ->whereIn('id', $payload['employee_ids'])
+                ->whereIn('id', $employeeIds)
                 ->get();
 
-            if ($employees->count() !== count($payload['employee_ids'])) {
+            if ($employees->count() !== count($employeeIds)) {
                 throw new NotFoundHttpException;
             }
 
-            $acknowledgements = $employees->map(function (Employee $employee) use ($actor, $payload, $document) {
+            $acknowledgements = $employees->map(function (Employee $employee) use ($actor, $payload, $document): PolicyAcknowledgement {
                 return PolicyAcknowledgement::query()->updateOrCreate(
                     [
                         'document_id' => $document->id,
@@ -100,6 +128,9 @@ class PolicyAcknowledgementService
                     ],
                 );
             });
+            $acknowledgementIds = $acknowledgements
+                ->map(static fn (PolicyAcknowledgement $acknowledgement): int => $acknowledgement->id)
+                ->all();
 
             foreach ($acknowledgements as $acknowledgement) {
                 $this->auditLogger->record(
@@ -119,12 +150,15 @@ class PolicyAcknowledgementService
 
             return PolicyAcknowledgement::query()
                 ->with(['document', 'employee'])
-                ->whereIn('id', $acknowledgements->pluck('id'))
+                ->whereIn('id', $acknowledgementIds)
                 ->orderBy('id')
                 ->get();
         });
     }
 
+    /**
+     * @param  PolicyAcknowledgementAcknowledgePayload  $payload
+     */
     public function acknowledge(PolicyAcknowledgement $acknowledgement, User $actor, array $payload): PolicyAcknowledgement
     {
         $acknowledgement = $this->resolveAccessibleAcknowledgement($actor, $acknowledgement->id, ['document', 'employee']);
@@ -182,6 +216,9 @@ class PolicyAcknowledgementService
         return Storage::disk($document->disk)->download($document->file_path, $document->original_file_name);
     }
 
+    /**
+     * @param  list<string>  $with
+     */
     public function resolveAccessibleAcknowledgement(User $actor, int $policyAcknowledgementId, array $with = []): PolicyAcknowledgement
     {
         $query = PolicyAcknowledgement::query()->with($with);

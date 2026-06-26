@@ -9,10 +9,18 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @phpstan-type EmployeeProfileDetailOrdering array<string, string>
+ * @phpstan-type EmployeeProfileDetailPayload array<string, mixed>
+ */
 class EmployeeProfileDetailService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  EmployeeProfileDetailOrdering  $ordering
+     * @return Collection<int, Model>
+     */
     public function list(Employee $employee, string $relation, array $ordering): Collection
     {
         $query = $employee->{$relation}();
@@ -26,6 +34,7 @@ class EmployeeProfileDetailService
 
     /**
      * @param  class-string<Model>  $modelClass
+     * @param  EmployeeProfileDetailPayload  $payload
      */
     public function create(
         Employee $employee,
@@ -64,6 +73,10 @@ class EmployeeProfileDetailService
         });
     }
 
+    /**
+     * @param  EmployeeProfileDetailPayload  $payload
+     * @param  list<string>  $trackedFields
+     */
     public function update(
         Employee $employee,
         Model $record,

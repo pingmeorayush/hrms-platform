@@ -22,7 +22,7 @@ class PayrollPeriodController
         $payload = ApiResponse::success(
             'Payroll periods loaded successfully.',
             [
-                'items' => PayrollPeriodResource::collection($periods->getCollection()),
+                'items' => PayrollPeriodResource::collection($periods->items()),
                 'meta' => [
                     'page' => $periods->currentPage(),
                     'per_page' => $periods->perPage(),

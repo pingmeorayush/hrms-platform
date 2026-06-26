@@ -1,0 +1,8 @@
+# This file instructs Redocly's linter to ignore the rules contained for specific parts of your API.
+# See https://redocly.com/docs/cli/ for more information.
+openapi/sprint-06-documents-assets-ess-onoffboarding.yaml:
+  no-ambiguous-paths:
+    - '#/paths/~1documents~1{documentId}~1download'
+    - '#/paths/~1assets~1{assetId}~1assign'
+    - '#/paths/~1assets~1{assetId}~1issue'
+    - '#/paths/~1assets~1{assetId}~1return'

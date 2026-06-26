@@ -1,0 +1,1748 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 07 Recruitment API
+  version: 1.0.0
+  description: Requisition, candidate, interview, offer, and hire-handoff APIs implemented during Sprint 07.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /recruitment/requisitions:
+    get:
+      operationId: listRecruitmentRequisitions
+      summary: List job requisitions visible to the caller
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, submitted, approved, on_hold, closed, rejected, changes_requested]
+        - in: query
+          name: recruiter_user_id
+          schema:
+            type: integer
+        - in: query
+          name: hiring_manager_employee_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Requisitions loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/JobRequisitionCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createRecruitmentRequisition
+      summary: Create a requisition draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequisitionRequest'
+      responses:
+        '201':
+          description: Requisition created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/JobRequisition'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/requisitions/{jobRequisitionId}:
+    get:
+      operationId: getRecruitmentRequisition
+      summary: Load one requisition with workflow posture
+      parameters:
+        - $ref: '#/components/parameters/JobRequisitionId'
+      responses:
+        '200':
+          description: Requisition loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/JobRequisition'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateRecruitmentRequisition
+      summary: Update requisition details or execute a requisition action
+      parameters:
+        - $ref: '#/components/parameters/JobRequisitionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequisitionUpdateRequest'
+      responses:
+        '200':
+          description: Requisition updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/JobRequisition'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/candidates:
+    get:
+      operationId: listRecruitmentCandidates
+      summary: List candidates in the recruiting pipeline
+      parameters:
+        - in: query
+          name: job_requisition_id
+          schema:
+            type: integer
+        - in: query
+          name: recruiter_user_id
+          schema:
+            type: integer
+        - in: query
+          name: current_stage
+          schema:
+            type: string
+            enum: [applied, screening, shortlisted, interview, offer, hired, rejected, withdrawn]
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Candidates loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CandidateCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createRecruitmentCandidate
+      summary: Create a candidate against an approved requisition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateRequest'
+      responses:
+        '201':
+          description: Candidate created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Candidate'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/candidates/{candidateId}:
+    get:
+      operationId: getRecruitmentCandidate
+      summary: Load one candidate with resume versions and stage history
+      parameters:
+        - $ref: '#/components/parameters/CandidateId'
+      responses:
+        '200':
+          description: Candidate loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Candidate'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateRecruitmentCandidate
+      summary: Update editable candidate profile fields
+      parameters:
+        - $ref: '#/components/parameters/CandidateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateUpdateRequest'
+      responses:
+        '200':
+          description: Candidate updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Candidate'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/candidates/{candidateId}/resumes:
+    post:
+      operationId: uploadRecruitmentCandidateResume
+      summary: Upload a new immutable resume version for a candidate
+      parameters:
+        - $ref: '#/components/parameters/CandidateId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CandidateResumeUploadRequest'
+      responses:
+        '201':
+          description: Resume version uploaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CandidateResume'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/candidates/{candidateId}/resumes/{candidateResumeId}/download:
+    get:
+      operationId: downloadRecruitmentCandidateResume
+      summary: Download one candidate resume version
+      parameters:
+        - $ref: '#/components/parameters/CandidateId'
+        - $ref: '#/components/parameters/CandidateResumeId'
+      responses:
+        '200':
+          description: Candidate resume downloaded
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+  /recruitment/candidates/{candidateId}/stage-transitions:
+    post:
+      operationId: transitionRecruitmentCandidateStage
+      summary: Move a candidate to the next explicit pipeline stage
+      parameters:
+        - $ref: '#/components/parameters/CandidateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateStageTransitionRequest'
+      responses:
+        '200':
+          description: Candidate stage transitioned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Candidate'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/interviews:
+    get:
+      operationId: listRecruitmentInterviews
+      summary: List interviews across the recruiting pipeline
+      parameters:
+        - in: query
+          name: candidate_id
+          schema:
+            type: integer
+        - in: query
+          name: interviewer_user_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [scheduled, completed, cancelled]
+      responses:
+        '200':
+          description: Interviews loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InterviewCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createRecruitmentInterview
+      summary: Schedule a candidate interview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewRequest'
+      responses:
+        '201':
+          description: Interview created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Interview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/interviews/{interviewId}:
+    get:
+      operationId: getRecruitmentInterview
+      summary: Load one interview with interviewer feedback posture
+      parameters:
+        - $ref: '#/components/parameters/InterviewId'
+      responses:
+        '200':
+          description: Interview loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Interview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateRecruitmentInterview
+      summary: Update interview schedule details or cancel an interview
+      parameters:
+        - $ref: '#/components/parameters/InterviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewUpdateRequest'
+      responses:
+        '200':
+          description: Interview updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Interview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/interviews/{interviewId}/feedback:
+    post:
+      operationId: submitRecruitmentInterviewFeedback
+      summary: Submit immutable scorecard feedback for an interview
+      parameters:
+        - $ref: '#/components/parameters/InterviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewFeedbackRequest'
+      responses:
+        '200':
+          description: Interview feedback submitted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Interview'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/offers:
+    get:
+      operationId: listRecruitmentOffers
+      summary: List candidate offers
+      parameters:
+        - in: query
+          name: candidate_id
+          schema:
+            type: integer
+        - in: query
+          name: recruiter_user_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, submitted, approved, rejected, changes_requested, sent, accepted, declined, expired]
+      responses:
+        '200':
+          description: Offers loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OfferCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    post:
+      operationId: createRecruitmentOffer
+      summary: Create an offer draft for a candidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferRequest'
+      responses:
+        '201':
+          description: Offer created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Offer'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/offers/{offerId}:
+    get:
+      operationId: getRecruitmentOffer
+      summary: Load one offer with workflow and handoff posture
+      parameters:
+        - $ref: '#/components/parameters/OfferId'
+      responses:
+        '200':
+          description: Offer loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Offer'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+    patch:
+      operationId: updateRecruitmentOffer
+      summary: Update offer fields or execute an offer action
+      parameters:
+        - $ref: '#/components/parameters/OfferId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferUpdateRequest'
+      responses:
+        '200':
+          description: Offer updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Offer'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/offers/{offerId}/handoff:
+    post:
+      operationId: createRecruitmentHireHandoff
+      summary: Convert an accepted offer into an employee hire handoff
+      parameters:
+        - $ref: '#/components/parameters/OfferId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HireHandoffRequest'
+      responses:
+        '201':
+          description: Hire handoff created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/HireHandoff'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/handoffs:
+    get:
+      operationId: listRecruitmentHireHandoffs
+      summary: List recruitment-to-onboarding handoff records
+      parameters:
+        - in: query
+          name: offer_id
+          schema:
+            type: integer
+        - in: query
+          name: employee_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Hire handoffs loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/HireHandoffCollection'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /recruitment/handoffs/{handoffId}:
+    get:
+      operationId: getRecruitmentHireHandoff
+      summary: Load one recruitment hire handoff
+      parameters:
+        - $ref: '#/components/parameters/HandoffId'
+      responses:
+        '200':
+          description: Hire handoff loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/HireHandoff'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    JobRequisitionId:
+      in: path
+      name: jobRequisitionId
+      required: true
+      schema:
+        type: integer
+    CandidateId:
+      in: path
+      name: candidateId
+      required: true
+      schema:
+        type: integer
+    CandidateResumeId:
+      in: path
+      name: candidateResumeId
+      required: true
+      schema:
+        type: integer
+    InterviewId:
+      in: path
+      name: interviewId
+      required: true
+      schema:
+        type: integer
+    OfferId:
+      in: path
+      name: offerId
+      required: true
+      schema:
+        type: integer
+    HandoffId:
+      in: path
+      name: handoffId
+      required: true
+      schema:
+        type: integer
+  responses:
+    UnauthorizedErrorResponse:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: Caller lacks the required permission or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundErrorResponse:
+      description: Requested entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message]
+    ValidationErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+          required: [errors]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    UserReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, name]
+    EmployeeReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, employee_code, full_name]
+    DepartmentReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+      required: [id, code, name]
+    DesignationReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        title:
+          type: string
+      required: [id, code, title]
+    LocationReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+      required: [id, code, name]
+    CostCenterReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+      required: [id, code, name]
+    WorkflowTask:
+      type: object
+      properties:
+        id:
+          type: integer
+        stage_key:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, completed, rejected, cancelled]
+        assignee:
+          $ref: '#/components/schemas/UserReference'
+        comment:
+          type: string
+        completed_at:
+          type: string
+          format: date-time
+      required: [id, stage_key, status]
+    WorkflowSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        definition:
+          type: object
+          properties:
+            key:
+              type: string
+            name:
+              type: string
+          required: [key, name]
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowTask'
+      required: [id, status]
+    JobRequisitionReference:
+      type: object
+      properties:
+        id:
+          type: integer
+        requisition_code:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+      required: [id, requisition_code, title, status]
+    JobRequisition:
+      allOf:
+        - $ref: '#/components/schemas/JobRequisitionReference'
+        - type: object
+          properties:
+            employment_type:
+              type: string
+              enum: [full_time, part_time, contract, consultant, intern]
+            hiring_type:
+              type: string
+              enum: [new_hire, replacement, backfill, contract]
+            priority:
+              type: string
+              enum: [low, medium, high, critical]
+            openings_count:
+              type: integer
+            min_experience_years:
+              type: integer
+            target_start_date:
+              type: string
+              format: date
+            headcount_reference:
+              type: string
+            department:
+              $ref: '#/components/schemas/DepartmentReference'
+            designation:
+              $ref: '#/components/schemas/DesignationReference'
+            location:
+              $ref: '#/components/schemas/LocationReference'
+            cost_center:
+              $ref: '#/components/schemas/CostCenterReference'
+            recruiter:
+              $ref: '#/components/schemas/UserReference'
+            hiring_manager:
+              $ref: '#/components/schemas/EmployeeReference'
+            requested_by:
+              $ref: '#/components/schemas/UserReference'
+            workflow_instance_id:
+              type: integer
+            workflow:
+              $ref: '#/components/schemas/WorkflowSummary'
+            status_before_hold:
+              type: string
+            justification:
+              type: string
+            notes:
+              type: string
+            closed_reason:
+              type: string
+            can_edit_details:
+              type: boolean
+            can_submit:
+              type: boolean
+            can_put_on_hold:
+              type: boolean
+            can_resume:
+              type: boolean
+            can_close:
+              type: boolean
+            submitted_at:
+              type: string
+              format: date-time
+            approved_at:
+              type: string
+              format: date-time
+            on_hold_at:
+              type: string
+              format: date-time
+            closed_at:
+              type: string
+              format: date-time
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+          required:
+            - employment_type
+            - hiring_type
+            - priority
+            - openings_count
+            - status
+    CandidateResume:
+      type: object
+      properties:
+        id:
+          type: integer
+        version_number:
+          type: integer
+        is_current:
+          type: boolean
+        original_file_name:
+          type: string
+        mime_type:
+          type: string
+        file_size_bytes:
+          type: integer
+        checksum_sha256:
+          type: string
+        notes:
+          type: string
+        uploaded_by:
+          $ref: '#/components/schemas/UserReference'
+        download_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required: [id, version_number, is_current, original_file_name, mime_type, file_size_bytes, download_url]
+    CandidateStageTransition:
+      type: object
+      properties:
+        id:
+          type: integer
+        from_stage:
+          type: string
+        to_stage:
+          type: string
+        resulting_status:
+          type: string
+          enum: [active, hired, rejected, withdrawn]
+        comment:
+          type: string
+        transitioned_by:
+          $ref: '#/components/schemas/UserReference'
+        transitioned_at:
+          type: string
+          format: date-time
+      required: [id, to_stage, resulting_status, transitioned_at]
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: integer
+        candidate_code:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        source:
+          type: string
+        current_stage:
+          type: string
+          enum: [applied, screening, shortlisted, interview, offer, hired, rejected, withdrawn]
+        status:
+          type: string
+          enum: [active, hired, rejected, withdrawn]
+        stage_entered_at:
+          type: string
+          format: date-time
+        total_experience_years:
+          type: number
+        notice_period_days:
+          type: integer
+        current_company:
+          type: string
+        current_title:
+          type: string
+        summary:
+          type: string
+        notes:
+          type: string
+        recruiter:
+          $ref: '#/components/schemas/UserReference'
+        requisition:
+          $ref: '#/components/schemas/JobRequisitionReference'
+        resume_count:
+          type: integer
+        latest_resume:
+          $ref: '#/components/schemas/CandidateResume'
+        resumes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidateResume'
+        stage_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidateStageTransition'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, candidate_code, first_name, full_name, email, current_stage, status]
+    InterviewFeedback:
+      type: object
+      properties:
+        id:
+          type: integer
+        rating:
+          type: number
+        recommendation:
+          type: string
+          enum: [strong_hire, hire, hold, no_hire]
+        comments:
+          type: string
+        strengths:
+          type: string
+        concerns:
+          type: string
+        interviewer:
+          $ref: '#/components/schemas/UserReference'
+        submitted_at:
+          type: string
+          format: date-time
+      required: [id, rating, recommendation, comments, submitted_at]
+    Interview:
+      type: object
+      properties:
+        id:
+          type: integer
+        interview_code:
+          type: string
+        round_number:
+          type: integer
+        interview_type:
+          type: string
+          enum: [screening, technical, managerial, hr, panel]
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled]
+        timezone:
+          type: string
+        scheduled_start_at:
+          type: string
+          format: date-time
+        scheduled_end_at:
+          type: string
+          format: date-time
+        meeting_mode:
+          type: string
+          enum: [virtual, onsite, phone]
+        meeting_location:
+          type: string
+        meeting_link:
+          type: string
+        agenda:
+          type: string
+        cancellation_reason:
+          type: string
+        candidate:
+          $ref: '#/components/schemas/Candidate'
+        requisition:
+          $ref: '#/components/schemas/JobRequisitionReference'
+        interviewer:
+          $ref: '#/components/schemas/UserReference'
+        feedback:
+          $ref: '#/components/schemas/InterviewFeedback'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, interview_code, round_number, interview_type, status, timezone, scheduled_start_at, scheduled_end_at]
+    OfferDecision:
+      type: object
+      properties:
+        id:
+          type: integer
+        decision_type:
+          type: string
+        from_status:
+          type: string
+        to_status:
+          type: string
+        comment:
+          type: string
+        decided_by:
+          $ref: '#/components/schemas/UserReference'
+        decided_at:
+          type: string
+          format: date-time
+      required: [id, decision_type, to_status, decided_at]
+    HireHandoffOfferSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        offer_code:
+          type: string
+        status:
+          type: string
+        employment_type:
+          type: string
+        proposed_start_date:
+          type: string
+          format: date
+        expires_on:
+          type: string
+          format: date
+      required: [id, offer_code, status]
+    HireHandoffSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        converted_at:
+          type: string
+          format: date-time
+        onboarding_triggered_at:
+          type: string
+          format: date-time
+      required: [id, status]
+    Offer:
+      type: object
+      properties:
+        id:
+          type: integer
+        offer_code:
+          type: string
+        status:
+          type: string
+          enum: [draft, submitted, approved, rejected, changes_requested, sent, accepted, declined, expired]
+        employment_type:
+          type: string
+          enum: [full_time, part_time, contract, consultant, intern]
+        currency:
+          type: string
+        annual_ctc_amount:
+          type: number
+        joining_bonus_amount:
+          type: number
+        proposed_start_date:
+          type: string
+          format: date
+        expires_on:
+          type: string
+          format: date
+        notes:
+          type: string
+        candidate_message:
+          type: string
+        candidate:
+          $ref: '#/components/schemas/Candidate'
+        requisition:
+          $ref: '#/components/schemas/JobRequisitionReference'
+        recruiter:
+          $ref: '#/components/schemas/UserReference'
+        requested_by:
+          $ref: '#/components/schemas/UserReference'
+        workflow_instance_id:
+          type: integer
+        workflow:
+          $ref: '#/components/schemas/WorkflowSummary'
+        hire_handoff:
+          $ref: '#/components/schemas/HireHandoffSummary'
+        decision_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfferDecision'
+        submitted_at:
+          type: string
+          format: date-time
+        approved_at:
+          type: string
+          format: date-time
+        sent_at:
+          type: string
+          format: date-time
+        accepted_at:
+          type: string
+          format: date-time
+        declined_at:
+          type: string
+          format: date-time
+        expired_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, offer_code, status, employment_type, currency, annual_ctc_amount]
+    HireHandoff:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [onboarding_skipped, onboarding_queued]
+        offer:
+          $ref: '#/components/schemas/HireHandoffOfferSummary'
+        candidate:
+          $ref: '#/components/schemas/Candidate'
+        requisition:
+          $ref: '#/components/schemas/JobRequisitionReference'
+        employee:
+          $ref: '#/components/schemas/EmployeeReference'
+        recruiter:
+          $ref: '#/components/schemas/UserReference'
+        converted_by:
+          $ref: '#/components/schemas/UserReference'
+        source_resume:
+          type: object
+          properties:
+            id:
+              type: integer
+            version_number:
+              type: integer
+            original_file_name:
+              type: string
+          required: [id, version_number, original_file_name]
+        offer_snapshot:
+          type: object
+          additionalProperties: true
+        candidate_snapshot:
+          type: object
+          additionalProperties: true
+        requisition_snapshot:
+          type: object
+          additionalProperties: true
+        document_references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        onboarding_template_ids:
+          type: array
+          items:
+            type: integer
+        onboarding_task_ids:
+          type: array
+          items:
+            type: integer
+        notes:
+          type: string
+        converted_at:
+          type: string
+          format: date-time
+        onboarding_triggered_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, status]
+    JobRequisitionCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobRequisition'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    CandidateCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    InterviewCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interview'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    OfferCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Offer'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    HireHandoffCollection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HireHandoff'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required: [items, meta]
+    JobRequisitionRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        employment_type:
+          type: string
+          enum: [full_time, part_time, contract, consultant, intern]
+        hiring_type:
+          type: string
+          enum: [new_hire, replacement, backfill, contract]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        openings_count:
+          type: integer
+        min_experience_years:
+          type: integer
+        target_start_date:
+          type: string
+          format: date
+        headcount_reference:
+          type: string
+        department_id:
+          type: integer
+        designation_id:
+          type: integer
+        location_id:
+          type: integer
+        cost_center_id:
+          type: integer
+        recruiter_user_id:
+          type: integer
+        hiring_manager_employee_id:
+          type: integer
+        justification:
+          type: string
+        notes:
+          type: string
+      required:
+        - title
+        - employment_type
+        - hiring_type
+        - priority
+        - openings_count
+        - department_id
+        - designation_id
+        - location_id
+        - recruiter_user_id
+        - hiring_manager_employee_id
+    JobRequisitionUpdateRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [submit, approve, reject, request_changes, put_on_hold, resume, close]
+        title:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        min_experience_years:
+          type: integer
+        openings_count:
+          type: integer
+        target_start_date:
+          type: string
+          format: date
+        headcount_reference:
+          type: string
+        recruiter_user_id:
+          type: integer
+        hiring_manager_employee_id:
+          type: integer
+        justification:
+          type: string
+        notes:
+          type: string
+        comment:
+          type: string
+        closed_reason:
+          type: string
+    CandidateRequest:
+      type: object
+      properties:
+        job_requisition_id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        source:
+          type: string
+        current_stage:
+          type: string
+          enum: [applied, screening, shortlisted, interview, offer, hired, rejected, withdrawn]
+        total_experience_years:
+          type: number
+        notice_period_days:
+          type: integer
+        current_company:
+          type: string
+        current_title:
+          type: string
+        summary:
+          type: string
+        notes:
+          type: string
+      required: [job_requisition_id, first_name, email, source, current_stage]
+    CandidateUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        total_experience_years:
+          type: number
+        notice_period_days:
+          type: integer
+        current_company:
+          type: string
+        current_title:
+          type: string
+        summary:
+          type: string
+        notes:
+          type: string
+    CandidateResumeUploadRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        notes:
+          type: string
+      required: [file]
+    CandidateStageTransitionRequest:
+      type: object
+      properties:
+        to_stage:
+          type: string
+          enum: [applied, screening, shortlisted, interview, offer, hired, rejected, withdrawn]
+        comment:
+          type: string
+      required: [to_stage]
+    InterviewRequest:
+      type: object
+      properties:
+        job_requisition_id:
+          type: integer
+        candidate_id:
+          type: integer
+        interviewer_user_id:
+          type: integer
+        round_number:
+          type: integer
+        interview_type:
+          type: string
+          enum: [screening, technical, managerial, hr, panel]
+        timezone:
+          type: string
+        scheduled_start_at:
+          type: string
+          format: date-time
+        scheduled_end_at:
+          type: string
+          format: date-time
+        meeting_mode:
+          type: string
+          enum: [virtual, onsite, phone]
+        meeting_location:
+          type: string
+        meeting_link:
+          type: string
+          format: uri
+        agenda:
+          type: string
+      required:
+        - job_requisition_id
+        - candidate_id
+        - interviewer_user_id
+        - round_number
+        - interview_type
+        - timezone
+        - scheduled_start_at
+        - scheduled_end_at
+        - meeting_mode
+    InterviewUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [scheduled, cancelled]
+        interviewer_user_id:
+          type: integer
+        scheduled_start_at:
+          type: string
+          format: date-time
+        scheduled_end_at:
+          type: string
+          format: date-time
+        meeting_mode:
+          type: string
+          enum: [virtual, onsite, phone]
+        meeting_location:
+          type: string
+        meeting_link:
+          type: string
+          format: uri
+        agenda:
+          type: string
+        cancellation_reason:
+          type: string
+    InterviewFeedbackRequest:
+      type: object
+      properties:
+        rating:
+          type: number
+        recommendation:
+          type: string
+          enum: [strong_hire, hire, hold, no_hire]
+        comments:
+          type: string
+        strengths:
+          type: string
+        concerns:
+          type: string
+      required: [rating, recommendation, comments]
+    OfferRequest:
+      type: object
+      properties:
+        job_requisition_id:
+          type: integer
+        candidate_id:
+          type: integer
+        employment_type:
+          type: string
+          enum: [full_time, part_time, contract, consultant, intern]
+        currency:
+          type: string
+        annual_ctc_amount:
+          type: number
+        joining_bonus_amount:
+          type: number
+        proposed_start_date:
+          type: string
+          format: date
+        expires_on:
+          type: string
+          format: date
+        notes:
+          type: string
+        candidate_message:
+          type: string
+      required:
+        - job_requisition_id
+        - candidate_id
+        - employment_type
+        - currency
+        - annual_ctc_amount
+        - expires_on
+    OfferUpdateRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [submit, approve, reject, request_changes, mark_sent, record_acceptance, record_decline, expire]
+        annual_ctc_amount:
+          type: number
+        joining_bonus_amount:
+          type: number
+        proposed_start_date:
+          type: string
+          format: date
+        expires_on:
+          type: string
+          format: date
+        notes:
+          type: string
+        candidate_message:
+          type: string
+        comment:
+          type: string
+    HireHandoffRequest:
+      type: object
+      properties:
+        trigger_onboarding:
+          type: boolean
+        notes:
+          type: string

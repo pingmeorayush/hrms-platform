@@ -17,6 +17,54 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type WorkflowStagePayload array{
+ *   key: string,
+ *   name: string,
+ *   sequence: int|string,
+ *   approver_type: string,
+ *   approver_value: mixed,
+ *   available_actions?: list<string>,
+ *   sla_hours?: int|string|null,
+ *   metadata?: array<string, mixed>
+ * }
+ * @phpstan-type WorkflowStageData array{
+ *   key: string,
+ *   name: string,
+ *   sequence: int,
+ *   approver_type: string,
+ *   approver_value: mixed,
+ *   available_actions: list<string>,
+ *   sla_hours: int|null,
+ *   metadata: array<string, mixed>
+ * }
+ * @phpstan-type WorkflowDefinitionCreatePayload array{
+ *   key: string,
+ *   name: string,
+ *   module: string,
+ *   description?: string|null,
+ *   is_template?: bool|int|string,
+ *   publish?: bool|int|string,
+ *   stages: list<WorkflowStagePayload>
+ * }
+ * @phpstan-type WorkflowDefinitionUpdatePayload array{
+ *   action: string,
+ *   version?: int|string,
+ *   publish?: bool|int|string,
+ *   stages?: list<WorkflowStagePayload>
+ * }
+ * @phpstan-type WorkflowInstanceStartPayload array{
+ *   workflow_definition_id?: int|string,
+ *   workflow_key?: string,
+ *   reference_type: string,
+ *   reference_id: string,
+ *   payload?: array<string, mixed>
+ * }
+ * @phpstan-type WorkflowTaskDecisionPayload array{
+ *   action: string,
+ *   comment?: string|null
+ * }
+ */
 class WorkflowService
 {
     public function __construct(
@@ -24,9 +72,13 @@ class WorkflowService
         private readonly Dispatcher $events,
     ) {}
 
+    /**
+     * @param  WorkflowDefinitionCreatePayload  $payload
+     */
     public function createDefinition(User $actor, array $payload): WorkflowDefinition
     {
         return DB::transaction(function () use ($actor, $payload): WorkflowDefinition {
+            $stages = $this->normalizeStagePayloads($payload['stages']);
             $definition = WorkflowDefinition::query()->create([
                 'key' => $payload['key'],
                 'name' => $payload['name'],
@@ -38,7 +90,7 @@ class WorkflowService
                 'updated_by' => $actor->id,
             ]);
 
-            $version = $this->createVersion($definition, $payload['stages'], $actor);
+            $version = $this->createVersion($definition, $stages, $actor);
 
             if ($payload['publish'] ?? false) {
                 $this->publishDefinition($definition, $version, $actor);
@@ -56,6 +108,9 @@ class WorkflowService
         });
     }
 
+    /**
+     * @param  WorkflowDefinitionUpdatePayload  $payload
+     */
     public function updateDefinition(WorkflowDefinition $definition, User $actor, array $payload): WorkflowDefinition
     {
         return DB::transaction(function () use ($definition, $actor, $payload): WorkflowDefinition {
@@ -91,7 +146,7 @@ class WorkflowService
                     ]);
                 }
 
-                $version = $this->createVersion($definition, $stages, $actor);
+                $version = $this->createVersion($definition, $this->normalizeStagePayloads($stages), $actor);
 
                 if ($payload['publish'] ?? false) {
                     $this->publishDefinition($definition, $version, $actor);
@@ -125,6 +180,9 @@ class WorkflowService
         });
     }
 
+    /**
+     * @param  WorkflowInstanceStartPayload  $payload
+     */
     public function startInstance(User $actor, array $payload): WorkflowInstance
     {
         return DB::transaction(function () use ($actor, $payload): WorkflowInstance {
@@ -132,7 +190,7 @@ class WorkflowService
                 ->with(['activeVersion.stages'])
                 ->when(
                     isset($payload['workflow_definition_id']),
-                    fn (Builder $query) => $query->where('id', $payload['workflow_definition_id']),
+                    fn (Builder $query) => $query->where('id', (int) $payload['workflow_definition_id']),
                     fn (Builder $query) => $query->where('key', $payload['workflow_key']),
                 )
                 ->firstOrFail();
@@ -179,6 +237,9 @@ class WorkflowService
         });
     }
 
+    /**
+     * @param  WorkflowTaskDecisionPayload  $payload
+     */
     public function decideTask(WorkflowTask $task, User $actor, array $payload): WorkflowTask
     {
         return DB::transaction(function () use ($task, $actor, $payload): WorkflowTask {
@@ -309,6 +370,9 @@ class WorkflowService
         });
     }
 
+    /**
+     * @param  list<WorkflowStageData>  $stages
+     */
     private function createVersion(WorkflowDefinition $definition, array $stages, User $actor): WorkflowVersion
     {
         $nextVersion = ((int) $definition->versions()->max('version')) + 1;
@@ -330,13 +394,41 @@ class WorkflowService
                 'sequence' => $stage['sequence'],
                 'approver_type' => $stage['approver_type'],
                 'approver_value' => (string) $stage['approver_value'],
-                'available_actions' => $stage['available_actions'] ?? ['approve', 'reject'],
-                'sla_hours' => $stage['sla_hours'] ?? null,
-                'metadata' => $stage['metadata'] ?? [],
+                'available_actions' => $stage['available_actions'],
+                'sla_hours' => $stage['sla_hours'],
+                'metadata' => $stage['metadata'],
             ]);
         }
 
         return $version;
+    }
+
+    /**
+     * @param  list<WorkflowStagePayload>|list<array<string, mixed>>  $stages
+     * @return list<WorkflowStageData>
+     */
+    private function normalizeStagePayloads(array $stages): array
+    {
+        return array_map(function (array $stage): array {
+            $availableActions = isset($stage['available_actions']) && is_array($stage['available_actions'])
+                ? array_values(array_map(static fn (mixed $action): string => (string) $action, $stage['available_actions']))
+                : ['approve', 'reject'];
+
+            $metadata = isset($stage['metadata']) && is_array($stage['metadata'])
+                ? $stage['metadata']
+                : [];
+
+            return [
+                'key' => (string) $stage['key'],
+                'name' => (string) $stage['name'],
+                'sequence' => (int) $stage['sequence'],
+                'approver_type' => (string) $stage['approver_type'],
+                'approver_value' => $stage['approver_value'],
+                'available_actions' => $availableActions,
+                'sla_hours' => isset($stage['sla_hours']) ? (int) $stage['sla_hours'] : null,
+                'metadata' => $metadata,
+            ];
+        }, $stages);
     }
 
     private function publishDefinition(WorkflowDefinition $definition, WorkflowVersion $version, User $actor): void
@@ -400,6 +492,7 @@ class WorkflowService
         $assignee = match ($stage->approver_type) {
             'user' => User::query()->find($stage->approver_value),
             'employee_manager' => $this->resolveEmployeeManagerApprover($instance),
+            'payload_user' => $this->resolvePayloadUserApprover($instance, (string) $stage->approver_value),
             default => User::query()
                 ->where('is_active', true)
                 ->role($stage->approver_value)
@@ -435,5 +528,18 @@ class WorkflowService
         }
 
         return $managerUser;
+    }
+
+    private function resolvePayloadUserApprover(WorkflowInstance $instance, string $payloadKey): ?User
+    {
+        $userId = $instance->payload[$payloadKey] ?? null;
+
+        if (! is_numeric($userId)) {
+            return null;
+        }
+
+        return User::query()
+            ->where('is_active', true)
+            ->find((int) $userId);
     }
 }

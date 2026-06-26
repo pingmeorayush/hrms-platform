@@ -16,10 +16,36 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * @phpstan-type DocumentRepositoryFilters array{
+ *   document_category_id?: int|string,
+ *   repository_scope?: string,
+ *   linked_entity_type?: string,
+ *   linked_entity_id?: int|string,
+ *   visibility_scope?: string,
+ *   retention_until_from?: string,
+ *   retention_until_to?: string
+ * }
+ * @phpstan-type DocumentRepositoryPayload array{
+ *   title: string,
+ *   document_category_id?: int|string|null,
+ *   repository_scope?: string|null,
+ *   linked_entity_type?: string|null,
+ *   linked_entity_id?: int|string|null,
+ *   visibility_scope?: string|null,
+ *   retention_until?: string|null,
+ *   metadata?: array<string, mixed>,
+ *   notes?: string|null
+ * }
+ */
 class DocumentRepositoryService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  DocumentRepositoryFilters  $filters
+     * @return Collection<int, Document>
+     */
     public function listDocuments(User $actor, array $filters): Collection
     {
         $documents = Document::query()
@@ -77,6 +103,9 @@ class DocumentRepositoryService
         return $documents;
     }
 
+    /**
+     * @param  DocumentRepositoryPayload  $payload
+     */
     public function create(User $actor, UploadedFile $file, array $payload): Document
     {
         return DB::transaction(function () use ($actor, $file, $payload): Document {
@@ -189,6 +218,9 @@ class DocumentRepositoryService
         return Storage::disk($document->disk)->download($document->file_path, $document->original_file_name);
     }
 
+    /**
+     * @param  DocumentRepositoryPayload  $payload
+     */
     private function resolveCategory(array $payload): ?DocumentCategory
     {
         if (! isset($payload['document_category_id'])) {
@@ -212,20 +244,29 @@ class DocumentRepositoryService
         return $category;
     }
 
+    /**
+     * @param  DocumentRepositoryPayload  $payload
+     */
     private function resolveRepositoryScope(array $payload, ?DocumentCategory $category): string
     {
-        return $category?->repository_scope ?? (string) $payload['repository_scope'];
+        return $category->repository_scope ?? (string) $payload['repository_scope'];
     }
 
+    /**
+     * @param  DocumentRepositoryPayload  $payload
+     */
     private function resolveVisibilityScope(array $payload, ?DocumentCategory $category): string
     {
         if (isset($payload['visibility_scope'])) {
             return (string) $payload['visibility_scope'];
         }
 
-        return $category?->default_visibility_scope ?? 'internal';
+        return $category->default_visibility_scope ?? 'internal';
     }
 
+    /**
+     * @param  DocumentRepositoryPayload  $payload
+     */
     private function resolveRetentionUntil(array $payload, ?DocumentCategory $category): ?string
     {
         if (filled($payload['retention_until'] ?? null)) {
@@ -254,7 +295,7 @@ class DocumentRepositoryService
             return true;
         }
 
-        $allowedRoles = $document->documentCategory?->allowed_role_names ?? [];
+        $allowedRoles = $document->documentCategory->allowed_role_names ?? [];
 
         if ($allowedRoles === []) {
             return true;

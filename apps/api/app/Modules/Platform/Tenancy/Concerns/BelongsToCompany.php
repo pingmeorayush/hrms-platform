@@ -26,17 +26,19 @@ trait BelongsToCompany
                 return;
             }
 
-            if (empty($model->company_id)) {
-                $model->company_id = $context->companyId;
+            $companyId = $model->getAttribute('company_id');
+
+            if (empty($companyId)) {
+                $model->setAttribute('company_id', $context->companyId);
 
                 return;
             }
 
-            if ((int) $model->company_id !== $context->companyId) {
+            if ((int) $companyId !== $context->companyId) {
                 throw new LogicException(sprintf(
                     'Tenant integrity violation: attempted to persist %s with company_id=%d while tenant context is company_id=%d.',
                     $model::class,
-                    (int) $model->company_id,
+                    (int) $companyId,
                     $context->companyId,
                 ));
             }

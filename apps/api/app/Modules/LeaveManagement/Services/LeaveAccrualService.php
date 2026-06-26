@@ -11,6 +11,14 @@ use App\Modules\Platform\Audit\Services\AuditLogger;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @phpstan-type LeaveAccrualPreviewPayload array{
+ *   employee_id: int|string,
+ *   period_start: string,
+ *   unused_balance_days?: int|float|string|null,
+ *   used_days_in_period?: int|float|string|null
+ * }
+ */
 class LeaveAccrualService
 {
     public function __construct(
@@ -18,6 +26,9 @@ class LeaveAccrualService
         private readonly LeaveBalanceService $leaveBalanceService,
     ) {}
 
+    /**
+     * @param  LeaveAccrualPreviewPayload  $payload
+     */
     public function previewAccrual(User $actor, LeavePolicy $policy, array $payload): LeaveAccrual
     {
         return DB::transaction(function () use ($actor, $policy, $payload): LeaveAccrual {
@@ -201,11 +212,13 @@ class LeaveAccrualService
             $reasons[] = 'Employee marital status is not eligible for this policy.';
         }
 
-        $minimumTenureDays = $rule['minimum_tenure_days'] ?? null;
+        $minimumTenureDays = isset($rule['minimum_tenure_days']) && is_numeric($rule['minimum_tenure_days'])
+            ? (int) $rule['minimum_tenure_days']
+            : null;
         if ($minimumTenureDays !== null && $employee->date_of_joining !== null) {
             $tenureDays = $employee->date_of_joining->startOfDay()->diffInDays($cycleStart, false);
 
-            if ($tenureDays < (int) $minimumTenureDays) {
+            if ($tenureDays < $minimumTenureDays) {
                 $reasons[] = 'Employee has not met the minimum tenure requirement.';
             }
         }

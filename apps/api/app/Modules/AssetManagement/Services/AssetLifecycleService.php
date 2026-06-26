@@ -11,10 +11,31 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-type AssetAssignmentPayload array{
+ *   employee_id: int|string,
+ *   assigned_at?: string|null,
+ *   expected_return_date?: string|null,
+ *   handover_condition?: string|null,
+ *   assignment_notes?: string|null
+ * }
+ * @phpstan-type AssetIssuePayload array{
+ *   issued_at?: string|null,
+ *   issue_notes?: string|null
+ * }
+ * @phpstan-type AssetReturnPayload array{
+ *   returned_at?: string|null,
+ *   return_condition?: string|null,
+ *   return_notes?: string|null
+ * }
+ */
 class AssetLifecycleService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  AssetAssignmentPayload  $payload
+     */
     public function assignAsset(User $actor, Asset $asset, array $payload): Asset
     {
         return DB::transaction(function () use ($actor, $asset, $payload): Asset {
@@ -81,6 +102,9 @@ class AssetLifecycleService
         });
     }
 
+    /**
+     * @param  AssetIssuePayload  $payload
+     */
     public function issueAsset(User $actor, Asset $asset, array $payload): Asset
     {
         return DB::transaction(function () use ($actor, $asset, $payload): Asset {
@@ -127,6 +151,9 @@ class AssetLifecycleService
         });
     }
 
+    /**
+     * @param  AssetReturnPayload  $payload
+     */
     public function returnAsset(User $actor, Asset $asset, array $payload): Asset
     {
         return DB::transaction(function () use ($actor, $asset, $payload): Asset {

@@ -16,6 +16,12 @@ This directory holds the version-controlled OpenAPI contract files published by 
   - Payroll calendars, payroll periods, payroll runs, salary components, salary structures, employee compensation assignments, input snapshots, adjustments, calculation lifecycle, and payslip APIs
 - `sprint-06-documents-assets-ess-onoffboarding.yaml`
   - Repository documents, document categories, asset catalog and lifecycle, policy acknowledgements, employee task-center, and self-service workspace APIs
+- `sprint-07-recruitment-operations.yaml`
+  - Recruitment requisitions, candidates, resumes, interviews, offers, and hire-handoff APIs
+- `sprint-07-performance-management.yaml`
+  - Goal libraries, competencies, review cycles, review execution, calibration, finalization, publication, and reopen APIs
+- `sprint-07-learning-management.yaml`
+  - Learning catalog items, assignments, resolved targets, learner completion, and self-service learning APIs
 
 ## Contract Conventions
 

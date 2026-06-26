@@ -1,13 +1,19 @@
 import { Link } from 'react-router-dom'
 import { AlertTriangle, FileWarning, LaptopMinimalCheck, ShieldAlert } from 'lucide-react'
 import { Badge } from '../../../shared/ui/badge'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
+import {
+  CommandCenterAttentionItem,
+  CommandCenterAttentionStrip,
+  CommandCenterMetricCard,
+  CommandCenterMetricGrid,
+} from '../../../shared/ui/command-center'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
 import {
   WorkspaceContent,
   WorkspaceEmptyState,
   WorkspaceHeader,
   WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSurface,
   WorkspaceTableShell,
@@ -82,49 +88,59 @@ export function OperationsOverviewPage() {
   return (
     <WorkspacePage>
       <WorkspaceSurface>
-        <WorkspaceHeader>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Operations</h1>
-            <CardTitle>HR and IT operations center</CardTitle>
-            <CardDescription>
-              Keep document governance, asset handoffs, and onboarding-offboarding follow-through in one routed workspace.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            <Badge variant={workspace.source === 'demo' ? 'info' : 'neutral'}>
-              {workspace.source === 'demo' ? 'Demo operations workspace' : 'Live operations workspace'}
-            </Badge>
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+        <WorkspaceHeroHeader
+          moduleLabel="Operations"
+          title="HR and IT Operations Center"
+          description="Keep document governance, asset handoffs, and onboarding-offboarding follow-through in one routed workspace."
+          badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
+          context={[
+            workspace.canManageDocuments ? 'Document governance live' : 'Document visibility',
+            workspace.canManageAssets ? 'Asset controls live' : 'Asset visibility',
+            workspace.canManageLifecycle ? 'Lifecycle controls live' : 'Lifecycle watch',
+          ]}
+        />
 
         <WorkspaceContent className="space-y-4">
-          <div className="organization-metric-grid">
-            <MetricCard label="Document categories" value={String(workspace.data.documentCategories.length)} caption={`${restrictedDocuments.length} confidential file(s) currently tracked`} />
-            <MetricCard label="Issued assets" value={String(issuedAssets.length)} caption={`${overdueAssets.length} return target(s) are overdue`} />
-            <MetricCard label="Blocked handoffs" value={String(blockedAssets.length)} caption="Assigned or maintenance assets that still need operator action" />
-            <MetricCard label="Lifecycle watch" value={String(onboardingRisk.length + offboardingRisk.length)} caption={`${offboardingRisk.length} offboarding record(s) still open`} />
-          </div>
+          <CommandCenterMetricGrid className="xl:grid-cols-4 2xl:grid-cols-4">
+            <CommandCenterMetricCard
+              label="Document categories"
+              value={String(workspace.data.documentCategories.length)}
+              delta={`${restrictedDocuments.length} confidential file(s) currently tracked`}
+              tone="info"
+            />
+            <CommandCenterMetricCard
+              label="Issued assets"
+              value={String(issuedAssets.length)}
+              delta={`${overdueAssets.length} return target(s) are overdue`}
+              tone="success"
+            />
+            <CommandCenterMetricCard
+              label="Blocked handoffs"
+              value={String(blockedAssets.length)}
+              delta="Assigned or maintenance assets that still need operator action"
+              tone="warning"
+            />
+            <CommandCenterMetricCard
+              label="Lifecycle watch"
+              value={String(onboardingRisk.length + offboardingRisk.length)}
+              delta={`${offboardingRisk.length} offboarding record(s) still open`}
+              tone="danger"
+            />
+          </CommandCenterMetricGrid>
 
           {attentionItems.length ? (
-            <div className="grid gap-3 lg:grid-cols-2">
+            <CommandCenterAttentionStrip title="Needs attention" className="border-[color-mix(in_srgb,var(--warning)_12%,white)]">
               {attentionItems.map((item) => (
-                <Link
+                <CommandCenterAttentionItem
                   key={item.id}
+                  title={item.title}
+                  detail={item.detail}
+                  icon={item.icon}
+                  tone={item.tone}
                   to={item.to}
-                  className="rounded-[1rem] border border-line/80 bg-white/85 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition hover:border-line-strong hover:bg-panel-tint"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <Badge variant={item.tone}>{item.icon}</Badge>
-                    </div>
-                    <div className="min-w-0 space-y-1">
-                      <p className="font-semibold text-foreground">{item.title}</p>
-                      <p className="text-sm text-muted-foreground">{item.detail}</p>
-                    </div>
-                  </div>
-                </Link>
+                />
               ))}
-            </div>
+            </CommandCenterAttentionStrip>
           ) : (
             <WorkspaceEmptyState
               title="Operations posture looks healthy"
@@ -261,16 +277,6 @@ export function OperationsOverviewPage() {
         </WorkspaceContent>
       </WorkspaceSurface>
     </WorkspacePage>
-  )
-}
-
-function MetricCard({ label, value, caption }: { label: string; value: string; caption: string }) {
-  return (
-    <div className="metric-card">
-      <span className="metric-card__label">{label}</span>
-      <strong className="metric-card__value">{value}</strong>
-      <p className="metric-card__caption">{caption}</p>
-    </div>
   )
 }
 

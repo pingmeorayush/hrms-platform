@@ -8,10 +8,40 @@ use App\Modules\Platform\Audit\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @phpstan-type DocumentCategoryFilters array{
+ *   repository_scope?: string,
+ *   status?: string
+ * }
+ * @phpstan-type DocumentCategoryPayload array{
+ *   code: string,
+ *   name: string,
+ *   repository_scope: string,
+ *   default_visibility_scope: string,
+ *   retention_days?: int|null,
+ *   allowed_role_names?: array<int, string>,
+ *   status: string,
+ *   notes?: string|null
+ * }
+ * @phpstan-type DocumentCategorySnapshot array{
+ *   code: string,
+ *   name: string,
+ *   repository_scope: string,
+ *   default_visibility_scope: string,
+ *   retention_days: int|null,
+ *   allowed_role_names: array<int, string>,
+ *   status: string,
+ *   notes: string|null
+ * }
+ */
 class DocumentCategoryService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
+    /**
+     * @param  DocumentCategoryFilters  $filters
+     * @return Collection<int, DocumentCategory>
+     */
     public function listCategories(User $actor, array $filters): Collection
     {
         $categories = DocumentCategory::query()
@@ -41,6 +71,9 @@ class DocumentCategoryService
         return $categories;
     }
 
+    /**
+     * @param  DocumentCategoryPayload  $payload
+     */
     public function create(User $actor, array $payload): DocumentCategory
     {
         return DB::transaction(function () use ($actor, $payload): DocumentCategory {
@@ -68,6 +101,9 @@ class DocumentCategoryService
         });
     }
 
+    /**
+     * @param  DocumentCategoryPayload  $payload
+     */
     public function update(User $actor, DocumentCategory $category, array $payload): DocumentCategory
     {
         return DB::transaction(function () use ($actor, $category, $payload): DocumentCategory {
@@ -100,6 +136,9 @@ class DocumentCategoryService
         });
     }
 
+    /**
+     * @return DocumentCategorySnapshot
+     */
     private function categorySnapshot(DocumentCategory $category): array
     {
         return [

@@ -14,6 +14,7 @@ import {
   WorkspaceField,
   WorkspaceHeader,
   WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSplit,
   WorkspaceSummaryRow,
@@ -109,25 +110,24 @@ export function PayrollRunConsolePage() {
   return (
     <WorkspacePage>
       <WorkspaceSurface>
-        <WorkspaceHeader>
-          <div className="min-w-0 space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Payroll run console</h1>
-            <p className="max-w-3xl text-sm text-muted-foreground">
-              Prepare periods, calculate payroll, inspect exceptions, and move locked runs through release controls.
-            </p>
-          </div>
-          <WorkspaceHeaderActions>
-            {workspace.pendingActionLabel ? (
-              <Badge variant="info">{workspace.pendingActionLabel}</Badge>
-            ) : null}
-            {workspace.lastActionMessage ? (
-              <Badge variant="success">{workspace.lastActionMessage}</Badge>
-            ) : null}
-            {workspace.actionError ? (
-              <Badge variant="danger">{workspace.actionError}</Badge>
-            ) : null}
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+        <WorkspaceHeroHeader
+          moduleLabel="Payroll Console"
+          title="Payroll Run Console"
+          description="Prepare periods, calculate payroll, inspect exceptions, and move locked runs through release controls."
+          badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo console surface' : 'Live console surface'}</Badge>}
+          context={[
+            `${filteredPeriods.length} period(s) in scope`,
+            `${filteredRuns.length} run(s) in scope`,
+            selectedPeriod?.name ?? 'No period selected',
+          ]}
+          actions={
+            <>
+              {workspace.pendingActionLabel ? <Badge variant="info">{workspace.pendingActionLabel}</Badge> : null}
+              {workspace.lastActionMessage ? <Badge variant="success">{workspace.lastActionMessage}</Badge> : null}
+              {workspace.actionError ? <Badge variant="danger">{workspace.actionError}</Badge> : null}
+            </>
+          }
+        />
 
         <WorkspaceContent className="space-y-3.5">
           <ConsoleToolbar>

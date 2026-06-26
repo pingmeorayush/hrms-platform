@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $status
+ * @property string|null $subscription_plan
+ * @property string $timezone
+ * @property string|null $currency
+ */
 #[Fillable([
     'uuid',
     'name',
@@ -25,6 +33,9 @@ class Company extends Model
 
     use SoftDeletes;
 
+    /**
+     * @return HasMany<User, $this>
+     */
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

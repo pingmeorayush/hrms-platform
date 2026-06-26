@@ -11,6 +11,25 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator as LaravelValidator;
 
+/**
+ * @phpstan-type BulkImportRowData array<string, mixed>
+ * @phpstan-type BulkImportParsedRow array{row_number: int, data: BulkImportRowData}
+ * @phpstan-type BulkImportDuplicateContext array{
+ *   emails: array<string, int>,
+ *   employee_codes: array<string, int>
+ * }
+ * @phpstan-type BulkImportValidationRowResult array{
+ *   row_number: int,
+ *   status: string,
+ *   errors: array<string, array<int, string>>
+ * }
+ * @phpstan-type BulkImportValidationSummary array{
+ *   processed: int,
+ *   success_count: int,
+ *   failed_count: int,
+ *   rows: list<BulkImportValidationRowResult>
+ * }
+ */
 class EmployeeBulkImportValidationService
 {
     public function __construct(
@@ -19,6 +38,9 @@ class EmployeeBulkImportValidationService
         private readonly EmployeeCodeService $employeeCodeService,
     ) {}
 
+    /**
+     * @return list<BulkImportParsedRow>
+     */
     public function parseCsv(UploadedFile $file): array
     {
         $handle = fopen($file->getRealPath(), 'rb');
@@ -31,7 +53,7 @@ class EmployeeBulkImportValidationService
 
         $headerRow = fgetcsv($handle);
 
-        if (! is_array($headerRow) || $headerRow === []) {
+        if ($headerRow === false) {
             fclose($handle);
 
             throw ValidationException::withMessages([
@@ -74,6 +96,10 @@ class EmployeeBulkImportValidationService
         return $rows;
     }
 
+    /**
+     * @param  list<BulkImportRowData|BulkImportParsedRow>  $rows
+     * @return BulkImportValidationSummary
+     */
     public function validateRows(User $actor, array $rows, string $source = 'rows'): array
     {
         $preparedRows = $this->prepareRows($rows);
@@ -138,6 +164,10 @@ class EmployeeBulkImportValidationService
         ];
     }
 
+    /**
+     * @param  list<BulkImportRowData|BulkImportParsedRow>  $rows
+     * @return Collection<int, BulkImportParsedRow>
+     */
     private function prepareRows(array $rows): Collection
     {
         return collect($rows)
@@ -159,6 +189,10 @@ class EmployeeBulkImportValidationService
             ->values();
     }
 
+    /**
+     * @param  Collection<int, BulkImportParsedRow>  $rows
+     * @return BulkImportDuplicateContext
+     */
     private function buildDuplicateContext(Collection $rows): array
     {
         return [
@@ -175,6 +209,10 @@ class EmployeeBulkImportValidationService
         ];
     }
 
+    /**
+     * @param  BulkImportRowData  $data
+     * @param  BulkImportDuplicateContext  $duplicateContext
+     */
     private function applyImportDuplicateValidation(
         LaravelValidator $validator,
         array $data,
@@ -198,6 +236,10 @@ class EmployeeBulkImportValidationService
         }
     }
 
+    /**
+     * @param  array<array-key, mixed>  $row
+     * @return BulkImportRowData
+     */
     private function normalizeRow(array $row): array
     {
         return collect($row)
@@ -241,6 +283,9 @@ class EmployeeBulkImportValidationService
         return Str::upper(trim($value));
     }
 
+    /**
+     * @param  BulkImportRowData  $row
+     */
     private function isBlankRow(array $row): bool
     {
         return collect($row)

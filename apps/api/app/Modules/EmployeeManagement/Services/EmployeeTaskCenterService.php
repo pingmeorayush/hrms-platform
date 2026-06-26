@@ -10,6 +10,45 @@ use App\Modules\Platform\Audit\Services\AuditLogger;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-import-type EmployeeOnboardingTaskPayload from EmployeeOnboardingService
+ *
+ * @phpstan-type EmployeeTaskCenterEmployee array{
+ *   id: int,
+ *   employee_code: string,
+ *   full_name: string
+ * }
+ * @phpstan-type EmployeeTaskCenterSummary array{
+ *   total_count: int,
+ *   pending_count: int,
+ *   policy_count: int,
+ *   lifecycle_task_count: int,
+ *   asset_count: int
+ * }
+ * @phpstan-type EmployeeTaskCenterItem array{
+ *   id: string,
+ *   source_type: 'policy_acknowledgement'|'lifecycle_task'|'asset_assignment',
+ *   source_id: int,
+ *   action_domain: string,
+ *   lifecycle_type: string|null,
+ *   title: string,
+ *   subtitle: string,
+ *   status: string,
+ *   due_date: string|null,
+ *   due_state: string,
+ *   actionable: bool,
+ *   action: 'acknowledge_policy'|'update_lifecycle_task'|null,
+ *   links: array<string, string|null>,
+ *   metadata: array<string, bool|int|string|null>,
+ *   status_priority?: int,
+ *   due_date_sort?: string|null
+ * }
+ * @phpstan-type EmployeeTaskCenterOverview array{
+ *   employee: EmployeeTaskCenterEmployee,
+ *   summary: EmployeeTaskCenterSummary,
+ *   items: list<EmployeeTaskCenterItem>
+ * }
+ */
 class EmployeeTaskCenterService
 {
     private const CLOSED_TASK_STATUSES = ['completed', 'skipped'];
@@ -20,6 +59,9 @@ class EmployeeTaskCenterService
         private readonly AuditLogger $auditLogger,
     ) {}
 
+    /**
+     * @return EmployeeTaskCenterOverview
+     */
     public function overview(User $actor): array
     {
         $employee = $this->selfServiceAccessScopeService->resolveLinkedEmployee($actor);
@@ -57,8 +99,8 @@ class EmployeeTaskCenterService
             ->orderByDesc('id')
             ->get();
 
-        $items = collect()
-            ->concat($policyAcknowledgements->map(fn (PolicyAcknowledgement $acknowledgement): array => $this->mapPolicyAcknowledgement($acknowledgement)))
+        $items = $policyAcknowledgements
+            ->map(fn (PolicyAcknowledgement $acknowledgement): array => $this->mapPolicyAcknowledgement($acknowledgement))
             ->concat($lifecycleTasks->map(fn (EmployeeOnboardingTask $task): array => $this->mapLifecycleTask($task)))
             ->concat($assetAssignments->map(fn (AssetAssignment $assignment): array => $this->mapAssetAssignment($assignment)))
             ->sortBy([
@@ -104,6 +146,9 @@ class EmployeeTaskCenterService
         ];
     }
 
+    /**
+     * @param  EmployeeOnboardingTaskPayload  $payload
+     */
     public function updateLifecycleTask(User $actor, int $taskId, array $payload): EmployeeOnboardingTask
     {
         $employee = $this->selfServiceAccessScopeService->resolveLinkedEmployee($actor);
@@ -135,6 +180,9 @@ class EmployeeTaskCenterService
         );
     }
 
+    /**
+     * @return EmployeeTaskCenterItem
+     */
     private function mapPolicyAcknowledgement(PolicyAcknowledgement $acknowledgement): array
     {
         return [
@@ -167,6 +215,9 @@ class EmployeeTaskCenterService
         ];
     }
 
+    /**
+     * @return EmployeeTaskCenterItem
+     */
     private function mapLifecycleTask(EmployeeOnboardingTask $task): array
     {
         return [
@@ -196,6 +247,9 @@ class EmployeeTaskCenterService
         ];
     }
 
+    /**
+     * @return EmployeeTaskCenterItem
+     */
     private function mapAssetAssignment(AssetAssignment $assignment): array
     {
         $asset = $assignment->asset;
@@ -206,7 +260,7 @@ class EmployeeTaskCenterService
             'source_id' => $assignment->id,
             'action_domain' => 'asset',
             'lifecycle_type' => null,
-            'title' => $asset?->name ?? 'Assigned asset',
+            'title' => $asset ? $asset->name : 'Assigned asset',
             'subtitle' => $asset?->asset_tag ? 'Asset tag '.$asset->asset_tag : 'Assigned asset',
             'status' => $assignment->status,
             'due_date' => $assignment->expected_return_date?->toDateString(),

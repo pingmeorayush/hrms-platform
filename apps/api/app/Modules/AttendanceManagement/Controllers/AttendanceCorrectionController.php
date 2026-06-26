@@ -22,7 +22,7 @@ class AttendanceCorrectionController
         $payload = ApiResponse::success(
             'Attendance corrections loaded successfully.',
             [
-                'items' => AttendanceCorrectionResource::collection($corrections->getCollection()),
+                'items' => AttendanceCorrectionResource::collection($corrections->items()),
                 'meta' => [
                     'page' => $corrections->currentPage(),
                     'per_page' => $corrections->perPage(),

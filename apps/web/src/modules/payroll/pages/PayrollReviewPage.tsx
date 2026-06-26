@@ -10,14 +10,13 @@ import {
 } from 'lucide-react'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
-import { CardDescription, CardTitle } from '../../../shared/ui/card'
 import { ConsoleSearchField, ConsoleToolbar, ConsoleToolbarRow } from '../../../shared/ui/console-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
 import {
   WorkspaceContent,
   WorkspaceEmptyState,
   WorkspaceHeader,
-  WorkspaceHeaderActions,
+  WorkspaceHeroHeader,
   WorkspacePage,
   WorkspaceSplit,
   WorkspaceSummaryRow,
@@ -210,25 +209,25 @@ export function PayrollReviewPage() {
   return (
     <WorkspacePage>
       <WorkspaceSurface>
-        <WorkspaceHeader compact>
-          <div className="min-w-0 space-y-1">
-            <CardTitle>Payroll review</CardTitle>
-            <CardDescription className="max-w-3xl">
-              Inspect payroll summaries, flagged exceptions, and variance signals before releasing finalized payroll artifacts.
-            </CardDescription>
-          </div>
-          <WorkspaceHeaderActions>
-            <Badge variant={workspace.source === 'demo' ? 'info' : 'neutral'}>
-              {workspace.source === 'demo' ? 'Demo review surface' : 'Live review surface'}
-            </Badge>
+        <WorkspaceHeroHeader
+          moduleLabel="Payroll Review"
+          title="Payroll Review"
+          description="Inspect payroll summaries, flagged exceptions, and variance signals before releasing finalized payroll artifacts."
+          badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo review surface' : 'Live review surface'}</Badge>}
+          context={[
+            `${summaryRows.length} run(s) in scope`,
+            `${exceptionEntries.filter((entry) => entry.severity === 'critical').length} critical issue(s)`,
+            canViewAmounts ? 'Amount visibility enabled' : 'Amount visibility restricted',
+          ]}
+          actions={
             <Button asChild size="xs">
               <Link to="/payroll/run-console">
                 Open run console
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
             </Button>
-          </WorkspaceHeaderActions>
-        </WorkspaceHeader>
+          }
+        />
 
         <WorkspaceContent className="space-y-3.5">
           <ConsoleToolbar>
