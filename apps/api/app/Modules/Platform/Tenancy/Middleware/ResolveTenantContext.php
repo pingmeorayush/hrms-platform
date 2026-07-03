@@ -30,17 +30,22 @@ class ResolveTenantContext
 
         $previousContext = app(TenantContext::class);
         $previousTimezone = (string) config('app.timezone');
+        $previousLocale = app()->getLocale();
 
         app()->instance(TenantContext::class, TenantContext::fromCompany($company));
         config(['app.timezone' => $company->timezone]);
+        config(['app.locale' => $company->language]);
         date_default_timezone_set($company->timezone);
+        app()->setLocale($company->language);
 
         try {
             return $next($request);
         } finally {
             app()->instance(TenantContext::class, $previousContext);
             config(['app.timezone' => $previousTimezone]);
+            config(['app.locale' => $previousLocale]);
             date_default_timezone_set($previousTimezone);
+            app()->setLocale($previousLocale);
         }
     }
 

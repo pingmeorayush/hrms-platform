@@ -5,7 +5,9 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "openapi:lint": "sh ./scripts/openapi-lint.sh"
+        "openapi:lint": "sh ./scripts/openapi-lint.sh",
+        "audit:dependencies": "npm audit --audit-level=high",
+        "quality": "npm run audit:dependencies && npm run openapi:lint"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

@@ -40,7 +40,9 @@ Completed and verified in the current workspace implementation.
 ## Delivery Items
 
 - Auth and MFA APIs
+- Web auth surfaces for `/login`, `/reset-password`, and authenticated shell session gating
 - Permission model and seed roles
+- Live access operations workspace for user administration, role governance, and backend visibility diagnostics
 - Tenant-aware middleware and data access pattern
 - Initial workflow templates for employee and leave approvals
 - Notification templates and event-driven dispatch hooks
@@ -49,7 +51,10 @@ Completed and verified in the current workspace implementation.
 ## Verification Notes
 
 - Backend tests, frontend tests, lint, and contract validation are wired into CI.
+- The web app now uses real sign-in and sign-out instead of manual bearer-token entry for normal live access, while preserving demo mode for walkthroughs.
+- The `/access` route now supports live user management and shared-role governance with platform-only role-definition editing plus tenant-safe filtering for platform-level admin accounts.
 - The UI visibility contract is implemented and covered in frontend and backend tests.
+- Browser UAT on July 2, 2026 verified login, live assistant access, live access administration, role-governance visibility, and logout against the local API.
 - Workflow stage `sla_hours` is available as the Sprint 1 placeholder for future escalation automation.
 - Automated delegation and escalation behavior remains intentionally deferred beyond the Sprint 1 MVP.
 

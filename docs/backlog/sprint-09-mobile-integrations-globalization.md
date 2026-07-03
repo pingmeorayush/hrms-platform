@@ -122,6 +122,10 @@ Acceptance Criteria:
 - Failures, retries, and payload history are traceable and auditable
 - Integration interfaces remain versioned and permission-aware
 
+Current Workspace Note:
+
+- The current implementation is complete in `apps/api` and `apps/web` through governed connection setup, webhook-subscription management, outbound event dispatch, signed inbound webhook ingestion, sync-job persistence, payload history visibility, operator queue processing and retry controls, and the routed `/operations/integrations` workspace.
+
 ### S09-005: Implement sync-job monitoring, retries, and operator controls
 
 Type: Story  
@@ -140,6 +144,10 @@ Acceptance Criteria:
 - Operators can review sync status, error states, and retry outcomes
 - Retry actions are permission-controlled and auditable
 - Monitoring states distinguish queued, running, failed, retried, and completed work
+
+Current Workspace Note:
+
+- The current implementation is complete in `apps/api` and `apps/web`, exposing `/api/v1/integrations/sync-jobs` with process and retry controls plus a website operator monitor that highlights queued, failed, retried, and completed work, selected-job payload and header evidence, and manual queue processing in one operations surface.
 
 ### S09-006: Implement localization, timezone, language, and currency-format services
 
@@ -160,6 +168,10 @@ Acceptance Criteria:
 - Timezone, locale, language, and currency-format rules are available to web, mobile, API, and reporting layers
 - The same input values render consistently across supported surfaces
 - Launch-country defaults and expansion-country placeholders are configurable
+
+Current Workspace Note:
+
+- The current implementation is complete for the API and website baseline in `apps/api` and `apps/web`; mobile-facing consumption of the same localization contract remains part of subsequent Sprint 09 follow-on work rather than a parallel website-only fork.
 
 ### S09-007: Implement regionalized web and mobile settings and formatting surfaces
 
@@ -182,6 +194,12 @@ Acceptance Criteria:
 - User or tenant settings for supported regional preferences are configurable where approved
 - UI tests cover at least one secondary locale or timezone scenario in addition to the default
 
+Current Workspace Note:
+
+- The website slice is now implemented in `apps/api` and `apps/web` through `PATCH /api/v1/localization/preferences`, shared user override state, and a self-service Regional preferences surface with preview coverage.
+- The current UI allows authenticated and demo website users to review source precedence, apply overrides, and continue using the page even when no employee profile is linked.
+- Mobile-specific settings screens remain intentionally deferred, but they should consume the same localization contract and precedence rules rather than introduce a parallel model.
+
 ### S09-008: Publish mobile, integration, and globalization contracts
 
 Type: Story  
@@ -203,3 +221,8 @@ Acceptance Criteria:
 - Core mobile, integration, and globalization endpoints are documented
 - Contract files are version-controlled, linted, and reviewable
 - Mobile and integration teams have a stable Sprint 09 source of truth for supported interfaces
+
+Current Workspace Note:
+
+- The current Sprint 09 contract publication is `apps/api/openapi/sprint-09-mobile-ess-globalization.yaml`, which aggregates the live auth, attendance, leave, payslip, notification, task-center, policy acknowledgement, self-service, company-profile, and localization APIs relevant to mobile and regional UX consumers.
+- Dedicated webhook, outbound sync, and operator retry endpoints are not yet implemented in `apps/api`, so the integration-specific portion of Sprint 09 remains an explicit follow-on rather than a speculative contract placeholder.

@@ -1,4 +1,5 @@
 import type { LearningAudienceType, LearningDeliveryMode, LearningDueState, LearningRenewalPosture } from './types'
+import { formatRegionalDate } from '../../shared/regionalization/formatters'
 
 function replaceSeparators(value: string) {
   return value.replace(/_/g, ' ')
@@ -17,15 +18,7 @@ export function formatLearningLabel(value: string | null | undefined) {
 }
 
 export function formatLearningDate(value: string | null | undefined) {
-  if (!value) {
-    return 'Not scheduled'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(`${value}T00:00:00`))
+  return formatRegionalDate(value, 'Not scheduled')
 }
 
 export function learningDueStateVariant(state: LearningDueState) {

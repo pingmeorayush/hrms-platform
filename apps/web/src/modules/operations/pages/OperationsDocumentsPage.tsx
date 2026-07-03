@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { formatRegionalDate } from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Input } from '../../../shared/ui/input'
@@ -423,15 +424,7 @@ export function OperationsDocumentsPage() {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not set'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not set')
 }
 
 const nativeSelectClassName =

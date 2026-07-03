@@ -1,6 +1,15 @@
 import { hasPermissions, type PermissionMatch } from '../../shared/auth/permissions'
 
-export type OperationsSectionId = 'overview' | 'documents' | 'assets' | 'lifecycle'
+export type OperationsSectionId =
+  | 'overview'
+  | 'documents'
+  | 'assets'
+  | 'integrations'
+  | 'release'
+  | 'readiness'
+  | 'observability'
+  | 'resilience'
+  | 'lifecycle'
 
 export interface OperationsSection {
   id: OperationsSectionId
@@ -37,6 +46,46 @@ export const operationsSectionNavigation: OperationsSection[] = [
     match: 'any',
   },
   {
+    id: 'integrations',
+    label: 'Integrations',
+    to: '/operations/integrations',
+    description: 'Monitor webhook posture, sync failures, retries, and operator-controlled outbound dispatches.',
+    requiredPermissions: ['integration.view', 'integration.manage'],
+    match: 'any',
+  },
+  {
+    id: 'release',
+    label: 'Release',
+    to: '/operations/release',
+    description: 'Review CI quality gates, dependency-security checks, contract validation, and protected-environment promotion posture.',
+    requiredPermissions: ['release.view', 'release.manage'],
+    match: 'any',
+  },
+  {
+    id: 'readiness',
+    label: 'Readiness',
+    to: '/operations/readiness',
+    description: 'Run the final go-live review with checklist evidence, blockers, decisions, and launch runbooks in one place.',
+    requiredPermissions: ['release.view', 'release.manage'],
+    match: 'any',
+  },
+  {
+    id: 'observability',
+    label: 'Observability',
+    to: '/operations/observability',
+    description: 'Monitor service health, routed alerts, workflow SLA pressure, reporting delivery, and release-critical telemetry.',
+    requiredPermissions: ['observability.view', 'observability.manage'],
+    match: 'any',
+  },
+  {
+    id: 'resilience',
+    label: 'Resilience',
+    to: '/operations/resilience',
+    description: 'Review backup, restore, and disaster-recovery validation evidence before launch readiness is approved.',
+    requiredPermissions: ['resilience.view', 'resilience.manage'],
+    match: 'any',
+  },
+  {
     id: 'lifecycle',
     label: 'Lifecycle',
     to: '/operations/lifecycle',
@@ -61,6 +110,26 @@ export function getDefaultOperationsSectionPath(grantedPermissions: string[]) {
 
   if (visibleSections.some((section) => section.id === 'assets')) {
     return operationsSectionNavigation.find((section) => section.id === 'assets')?.to ?? '/operations'
+  }
+
+  if (visibleSections.some((section) => section.id === 'integrations')) {
+    return operationsSectionNavigation.find((section) => section.id === 'integrations')?.to ?? '/operations'
+  }
+
+  if (visibleSections.some((section) => section.id === 'release')) {
+    return operationsSectionNavigation.find((section) => section.id === 'release')?.to ?? '/operations'
+  }
+
+  if (visibleSections.some((section) => section.id === 'readiness')) {
+    return operationsSectionNavigation.find((section) => section.id === 'readiness')?.to ?? '/operations'
+  }
+
+  if (visibleSections.some((section) => section.id === 'observability')) {
+    return operationsSectionNavigation.find((section) => section.id === 'observability')?.to ?? '/operations'
+  }
+
+  if (visibleSections.some((section) => section.id === 'resilience')) {
+    return operationsSectionNavigation.find((section) => section.id === 'resilience')?.to ?? '/operations'
   }
 
   if (visibleSections.some((section) => section.id === 'documents')) {

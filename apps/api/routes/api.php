@@ -2,6 +2,11 @@
 
 use App\Modules\AssetManagement\Controllers\AssetCategoryController;
 use App\Modules\AssetManagement\Controllers\AssetController;
+use App\Modules\AIAssistant\Controllers\AiChatController;
+use App\Modules\AIAssistant\Controllers\AiInteractionFeedbackController;
+use App\Modules\AIAssistant\Controllers\AiRecommendationController;
+use App\Modules\AIAssistant\Controllers\AiRecommendationDecisionController;
+use App\Modules\AIAssistant\Controllers\AiWorkspaceController;
 use App\Modules\AttendanceManagement\Controllers\AttendanceCorrectionController;
 use App\Modules\AttendanceManagement\Controllers\AttendanceOperationalReviewController;
 use App\Modules\AttendanceManagement\Controllers\AttendancePolicyController;
@@ -25,6 +30,13 @@ use App\Modules\EmployeeManagement\Controllers\EmployeeOnboardingTaskController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeSelfServiceController;
 use App\Modules\EmployeeManagement\Controllers\EmployeeTaskCenterController;
 use App\Modules\EmployeeManagement\Controllers\PolicyAcknowledgementController;
+use App\Modules\GlobalizationLocalization\Controllers\LocalizationController;
+use App\Modules\IntegrationsPlatform\Controllers\IntegrationCatalogController;
+use App\Modules\IntegrationsPlatform\Controllers\IntegrationConnectionController;
+use App\Modules\IntegrationsPlatform\Controllers\IntegrationEventDispatchController;
+use App\Modules\IntegrationsPlatform\Controllers\IntegrationSyncJobController;
+use App\Modules\IntegrationsPlatform\Controllers\PublicWebhookController;
+use App\Modules\IntegrationsPlatform\Controllers\WebhookSubscriptionController;
 use App\Modules\LearningManagement\Controllers\LearningAssignmentController;
 use App\Modules\LearningManagement\Controllers\LearningAssignmentTargetController;
 use App\Modules\LearningManagement\Controllers\LearningItemController;
@@ -53,11 +65,18 @@ use App\Modules\PerformanceManagement\Controllers\PerformanceReviewController;
 use App\Modules\PerformanceManagement\Controllers\PerformanceReviewCycleController;
 use App\Modules\Platform\Admin\Controllers\PermissionController;
 use App\Modules\Platform\Admin\Controllers\RoleController;
+use App\Modules\Platform\Admin\Controllers\UserController;
 use App\Modules\Platform\Audit\Controllers\AuditLogController;
 use App\Modules\Platform\Audit\Controllers\EmployeeAuditHistoryController;
 use App\Modules\Platform\Audit\Controllers\OrganizationAuditHistoryController;
 use App\Modules\Platform\Auth\Controllers\AuthController;
 use App\Modules\Platform\Notifications\Controllers\NotificationController;
+use App\Modules\Platform\Observability\Controllers\ObservabilityOverviewController;
+use App\Modules\Platform\Resilience\Controllers\ResilienceReadinessController;
+use App\Modules\Platform\Resilience\Controllers\ResilienceValidationRunController;
+use App\Modules\Platform\Release\Controllers\ReleaseReadinessController;
+use App\Modules\Platform\Release\Controllers\ReleaseReadinessDecisionController;
+use App\Modules\Platform\Release\Controllers\ReleaseQualityGateController;
 use App\Modules\Platform\UI\Controllers\UiVisibilityController;
 use App\Modules\Platform\Workflow\Controllers\WorkflowDefinitionController;
 use App\Modules\Platform\Workflow\Controllers\WorkflowInstanceController;
@@ -86,6 +105,9 @@ Route::prefix('v1')
             Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:auth-sensitive');
         });
 
+        Route::post('integrations/webhooks/{subscriptionKey}', [PublicWebhookController::class, 'store'])
+            ->middleware('throttle:auth-sensitive');
+
         Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
             Route::prefix('auth')->group(function (): void {
                 Route::post('logout', [AuthController::class, 'logout']);
@@ -93,6 +115,32 @@ Route::prefix('v1')
             });
 
             Route::get('ui/visibility', [UiVisibilityController::class, 'show']);
+            Route::get('localization', [LocalizationController::class, 'show']);
+            Route::patch('localization/preferences', [LocalizationController::class, 'updatePreferences']);
+            Route::prefix('ai')->group(function (): void {
+                Route::get('workspace', [AiWorkspaceController::class, 'show'])
+                    ->middleware('permission:ai.view|ai.recommend');
+                Route::post('chat', [AiChatController::class, 'store'])
+                    ->middleware('permission:ai.view|ai.recommend');
+                Route::post('recommendations', [AiRecommendationController::class, 'store'])
+                    ->middleware('permission:ai.recommend');
+                Route::post('recommendations/{recommendationId}/decisions', [AiRecommendationDecisionController::class, 'store'])
+                    ->middleware('permission:ai.recommend');
+                Route::post('interactions/{interactionId}/feedback', [AiInteractionFeedbackController::class, 'store'])
+                    ->middleware('permission:ai.view|ai.recommend');
+            });
+            Route::get('resilience/readiness', [ResilienceReadinessController::class, 'show'])
+                ->middleware('permission:resilience.view|resilience.manage');
+            Route::post('resilience/validation-runs', [ResilienceValidationRunController::class, 'store'])
+                ->middleware('permission:resilience.manage');
+            Route::get('observability/overview', [ObservabilityOverviewController::class, 'show'])
+                ->middleware('permission:observability.view|observability.manage');
+            Route::get('release/quality-gates', [ReleaseQualityGateController::class, 'show'])
+                ->middleware('permission:release.view|release.manage');
+            Route::get('release/readiness', [ReleaseReadinessController::class, 'show'])
+                ->middleware('permission:release.view|release.manage');
+            Route::post('release/readiness/decisions', [ReleaseReadinessDecisionController::class, 'store'])
+                ->middleware('permission:release.manage');
             Route::get('task-center', [EmployeeTaskCenterController::class, 'index']);
             Route::patch('task-center/lifecycle-tasks/{taskId}', [EmployeeTaskCenterController::class, 'updateLifecycleTask']);
             Route::get('policy-acknowledgements', [PolicyAcknowledgementController::class, 'index']);
@@ -108,9 +156,13 @@ Route::prefix('v1')
                     ->name('self-service.repository-documents.download');
             });
             Route::prefix('admin')->group(function (): void {
-                Route::get('roles', [RoleController::class, 'index'])->middleware('permission:auth.manage_roles');
+                Route::get('roles', [RoleController::class, 'index'])->middleware('permission:auth.manage_roles|auth.manage_permissions|auth.manage_users');
                 Route::post('roles', [RoleController::class, 'store'])->middleware('permission:auth.manage_roles');
-                Route::get('permissions', [PermissionController::class, 'index'])->middleware('permission:auth.manage_permissions');
+                Route::patch('roles/{role}', [RoleController::class, 'update'])->middleware('permission:auth.manage_roles');
+                Route::get('permissions', [PermissionController::class, 'index'])->middleware('permission:auth.manage_permissions|auth.manage_roles');
+                Route::get('users', [UserController::class, 'index'])->middleware('permission:auth.manage_users');
+                Route::post('users', [UserController::class, 'store'])->middleware('permission:auth.manage_users');
+                Route::patch('users/{user}', [UserController::class, 'update'])->middleware('permission:auth.manage_users');
             });
 
             Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
@@ -189,6 +241,33 @@ Route::prefix('v1')
                 Route::post('{assetId}/assign', [AssetController::class, 'assign'])->middleware('permission:asset.manage');
                 Route::post('{assetId}/issue', [AssetController::class, 'issue'])->middleware('permission:asset.manage');
                 Route::post('{assetId}/return', [AssetController::class, 'return'])->middleware('permission:asset.manage');
+            });
+
+            Route::prefix('integrations')->group(function (): void {
+                Route::get('catalog', [IntegrationCatalogController::class, 'index'])
+                    ->middleware('permission:integration.view|integration.manage');
+                Route::get('connections', [IntegrationConnectionController::class, 'index'])
+                    ->middleware('permission:integration.view|integration.manage');
+                Route::post('connections', [IntegrationConnectionController::class, 'store'])
+                    ->middleware('permission:integration.manage');
+                Route::patch('connections/{integrationConnectionId}', [IntegrationConnectionController::class, 'update'])
+                    ->middleware('permission:integration.manage');
+                Route::get('webhook-subscriptions', [WebhookSubscriptionController::class, 'index'])
+                    ->middleware('permission:integration.view|integration.manage');
+                Route::post('webhook-subscriptions', [WebhookSubscriptionController::class, 'store'])
+                    ->middleware('permission:integration.manage');
+                Route::patch('webhook-subscriptions/{webhookSubscriptionId}', [WebhookSubscriptionController::class, 'update'])
+                    ->middleware('permission:integration.manage');
+                Route::post('events/dispatch', [IntegrationEventDispatchController::class, 'store'])
+                    ->middleware('permission:integration.manage');
+                Route::get('sync-jobs', [IntegrationSyncJobController::class, 'index'])
+                    ->middleware('permission:integration.view|integration.manage');
+                Route::get('sync-jobs/{integrationSyncJobId}', [IntegrationSyncJobController::class, 'show'])
+                    ->middleware('permission:integration.view|integration.manage');
+                Route::post('sync-jobs/{integrationSyncJobId}/process', [IntegrationSyncJobController::class, 'process'])
+                    ->middleware('permission:integration.manage');
+                Route::post('sync-jobs/{integrationSyncJobId}/retry', [IntegrationSyncJobController::class, 'retry'])
+                    ->middleware('permission:integration.manage');
             });
 
             Route::prefix('leave')->group(function (): void {

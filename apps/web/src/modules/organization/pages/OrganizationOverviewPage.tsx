@@ -11,6 +11,10 @@ import {
 } from 'lucide-react'
 import { useShellFavorites } from '../../../app/shell/favorites'
 import { getModuleRecentActivity, useShellRecent } from '../../../app/shell/recent'
+import {
+  formatRegionalDate,
+  formatRegionalRelativeTimestamp,
+} from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { CardTitle } from '../../../shared/ui/card'
@@ -797,25 +801,9 @@ function renderCostCentersTable(rows: OrganizationMasterRecord[]) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not updated yet'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not updated yet')
 }
 
 function relativeTime(value: string | null) {
-  if (!value) {
-    return 'No activity time'
-  }
-
-  const now = Date.now()
-  const then = new Date(value).getTime()
-  const diffHours = Math.max(1, Math.round((now - then) / (1000 * 60 * 60)))
-
-  return diffHours < 24 ? `${diffHours}h ago` : `${Math.round(diffHours / 24)}d ago`
+  return formatRegionalRelativeTimestamp(value, 'No activity time')
 }

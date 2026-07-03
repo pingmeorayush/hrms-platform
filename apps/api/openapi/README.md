@@ -28,6 +28,14 @@ This directory holds the version-controlled OpenAPI contract files published by 
   - Persona-specific reporting dashboards, snapshot caching, widget governance, and freshness APIs
 - `sprint-08-reporting-delivery.yaml`
   - Reporting exports, saved views, subscriptions, delivery lifecycle, and download APIs
+- `sprint-09-mobile-ess-globalization.yaml`
+  - Mobile-consumable auth, attendance, leave, payslip, notification, self-service, and localization APIs available in the current Sprint 09 workspace
+- `sprint-09-integrations.yaml`
+  - Integration catalog, connection setup, webhook subscriptions, outbound dispatch, inbound webhook, sync-job monitoring, and retry-control APIs
+- `sprint-10-operations-release-controls.yaml`
+  - Release quality gates, observability overview, resilience readiness, validation-run logging, launch-readiness review, and go/no-go decision APIs
+- `sprint-10-ai-assistant.yaml`
+  - Governed AI workspace, cited question-answering, review-only recommendations, decision capture, and interaction feedback APIs
 
 ## Contract Conventions
 

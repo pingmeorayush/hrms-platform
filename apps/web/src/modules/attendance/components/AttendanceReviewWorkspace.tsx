@@ -7,6 +7,11 @@ import {
 } from '../../../app/shell/commandCenterEvents'
 import { useShellFavorites } from '../../../app/shell/favorites'
 import { touchShellRecent } from '../../../app/shell/recent'
+import {
+  formatRegionalDate,
+  formatRegionalDateTime,
+  formatRegionalTime,
+} from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { CardDescription, CardTitle } from '../../../shared/ui/card'
@@ -1168,41 +1173,15 @@ function FormNotice({ error, message }: { error: string | null; message: string 
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not available')
 }
 
 function formatTime(value: string | null) {
-  if (!value) {
-    return 'Pending'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(value))
+  return formatRegionalTime(value, 'Pending')
 }
 
 function formatDateTime(value: string | null) {
-  if (!value) {
-    return 'Pending'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(value))
+  return formatRegionalDateTime(value, 'Pending')
 }
 
 function formatPrimaryStatus(status: AttendanceOperationalRecord['calculation']['primary_status']) {

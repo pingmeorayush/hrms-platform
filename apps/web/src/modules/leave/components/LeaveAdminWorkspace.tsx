@@ -1,6 +1,7 @@
 import type { FormEvent, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { ApiRequestError } from '../../../shared/api/http'
+import { formatRegionalDate } from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../shared/ui/card'
@@ -994,15 +995,7 @@ function FormNotice({ error, message }: { error: string | null; message: string 
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not updated'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not updated')
 }
 
 function formatLeaveCategory(category: LeaveTypeCategory) {

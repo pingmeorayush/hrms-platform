@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "quality": "npm run typecheck && npm run lint && npm run test:run && npm run build"
+    "audit:dependencies": "npm audit --omit=dev --audit-level=high",
+    "quality": "npm run audit:dependencies && npm run typecheck && npm run lint && npm run test:run && npm run build"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",

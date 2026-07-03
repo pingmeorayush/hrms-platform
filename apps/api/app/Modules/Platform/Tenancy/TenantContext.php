@@ -12,6 +12,11 @@ class TenantContext
         public readonly ?string $subscriptionPlan,
         public readonly ?string $timezone,
         public readonly ?string $currency,
+        public readonly ?string $countryCode,
+        public readonly ?string $locale,
+        public readonly ?string $language,
+        public readonly ?string $timeFormat,
+        public readonly ?array $expansionCountryCodes,
     ) {}
 
     public static function empty(): self
@@ -22,6 +27,11 @@ class TenantContext
             subscriptionPlan: null,
             timezone: null,
             currency: null,
+            countryCode: null,
+            locale: null,
+            language: null,
+            timeFormat: null,
+            expansionCountryCodes: null,
         );
     }
 
@@ -33,6 +43,11 @@ class TenantContext
             subscriptionPlan: $company->subscription_plan,
             timezone: $company->timezone,
             currency: $company->currency,
+            countryCode: $company->country_code,
+            locale: $company->locale,
+            language: $company->language,
+            timeFormat: $company->time_format,
+            expansionCountryCodes: $company->expansion_country_codes,
         );
     }
 

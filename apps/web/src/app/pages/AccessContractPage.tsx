@@ -117,7 +117,7 @@ export function AccessContractPage() {
         label: 'Backend enforcement',
         summary: snapshot.visibility.meta.backend_enforcement_note,
         value: 'Server enforced',
-        sourceLabel: source === 'live' ? 'Live API' : 'Demo contract',
+        sourceLabel: source === 'live' ? 'Live API' : 'Local contract',
         note: 'Visibility decisions stay backend-driven.',
       },
       {
@@ -404,7 +404,7 @@ export function AccessContractPage() {
               moduleLabel="Access"
               title="Access Operations Center"
               description="Review route exposure, permitted actions, and backend enforcement posture from one governance workspace."
-              badge={<Badge variant={source === 'live' ? 'info' : 'warning'}>{source === 'live' ? 'Live contract' : 'Demo contract'}</Badge>}
+              badge={<Badge variant={source === 'live' ? 'info' : 'warning'}>{source === 'live' ? 'Live contract' : 'Local contract'}</Badge>}
               context={[snapshot.user.roles.join(', '), snapshot.user.tenant.company_name]}
               actions={
                 <>

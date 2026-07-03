@@ -18,6 +18,11 @@ class CompanyProfileResource extends JsonResource
             'subscription_plan' => $this->subscription_plan,
             'timezone' => $this->timezone,
             'currency' => $this->currency,
+            'country_code' => $this->country_code,
+            'locale' => $this->locale,
+            'language' => $this->language,
+            'time_format' => $this->time_format,
+            'expansion_country_codes' => $this->expansion_country_codes ?? [],
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

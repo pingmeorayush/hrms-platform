@@ -4,17 +4,29 @@ import { useAppSelector } from '../../../app/store/hooks'
 import { useAccessSnapshot } from '../../access/hooks/useAccessSnapshot'
 import {
   assignAsset,
+  createReleaseReadinessDecision,
+  createResilienceValidationRun,
+  createIntegrationConnection,
+  createIntegrationSubscription,
   createAsset,
   createAssetCategory,
   createDocumentCategory,
+  dispatchIntegrationEvent,
   fetchEmployeeLifecycleTasks,
   fetchOperationsWorkspace,
   issueAsset,
+  processIntegrationSyncJob,
+  retryIntegrationSyncJob,
   returnAsset,
   updateDocumentCategory,
   updateLifecycleTaskStatus,
 } from '../api/operationsApi'
-import { buildDemoOperationsWorkspace, getDemoLifecycleTasks } from '../data/demoOperationsWorkspace'
+import {
+  buildDemoOperationsWorkspace,
+  createDemoReleaseReadinessDecision,
+  buildDemoResilienceOverview,
+  getDemoLifecycleTasks,
+} from '../data/demoOperationsWorkspace'
 import type {
   AssetAssignmentFormValues,
   AssetCategoryFormValues,
@@ -22,10 +34,16 @@ import type {
   AssetIssueFormValues,
   AssetReturnFormValues,
   DocumentCategoryFormValues,
+  IntegrationConnectionFormValues,
+  IntegrationDispatchFormValues,
+  IntegrationSubscriptionFormValues,
   OperationsAssetRecord,
+  OperationsIntegrationSyncJobRecord,
   OperationsLifecycleTaskCollection,
   OperationsLifecycleType,
   OperationsWorkspaceData,
+  ReleaseReadinessDecisionFormValues,
+  ResilienceValidationRunFormValues,
 } from '../types'
 
 const queryScope = 'operations-workspace'
@@ -38,7 +56,7 @@ export function useOperationsWorkspace() {
   const access = useAppSelector((state) => state.access)
   const queryClient = useQueryClient()
   const { snapshot, source } = useAccessSnapshot()
-  const permissions = snapshot?.user.permissions ?? []
+  const permissions = useMemo(() => snapshot?.user.permissions ?? [], [snapshot?.user.permissions])
   const liveEnabled = access.mode === 'live' && access.token.trim().length > 0
   const demoStateKey = String(snapshot?.user.id ?? 'anonymous')
   const [demoStates, setDemoStates] = useState<Record<string, OperationsWorkspaceData>>({})
@@ -46,11 +64,15 @@ export function useOperationsWorkspace() {
   const [selectedLifecycleEmployeeId, setSelectedLifecycleEmployeeId] = useState<number | null>(null)
 
   const demoData = demoStates[demoStateKey] ?? buildDemoOperationsWorkspace(snapshot ?? null)
-  const queryKey = useMemo(() => [queryScope, access.apiBaseUrl, access.token] as const, [access.apiBaseUrl, access.token])
+  const permissionsKey = useMemo(() => [...permissions].sort().join(','), [permissions])
+  const queryKey = useMemo(
+    () => [queryScope, access.apiBaseUrl, access.token, permissionsKey] as const,
+    [access.apiBaseUrl, access.token, permissionsKey],
+  )
 
   const liveQuery = useQuery({
     queryKey,
-    queryFn: () => fetchOperationsWorkspace(access.apiBaseUrl, access.token),
+    queryFn: () => fetchOperationsWorkspace(access.apiBaseUrl, access.token, permissions),
     enabled: liveEnabled,
   })
 
@@ -101,6 +123,14 @@ export function useOperationsWorkspace() {
   const canViewAssets = hasAnyPermission(permissions, ['asset.view', 'asset.manage'])
   const canManageAssets = hasAnyPermission(permissions, ['asset.manage'])
   const canManageLifecycle = hasAnyPermission(permissions, ['employee.manage'])
+  const canViewIntegrations = hasAnyPermission(permissions, ['integration.view', 'integration.manage'])
+  const canManageIntegrations = hasAnyPermission(permissions, ['integration.manage'])
+  const canViewResilience = hasAnyPermission(permissions, ['resilience.view', 'resilience.manage'])
+  const canManageResilience = hasAnyPermission(permissions, ['resilience.manage'])
+  const canViewObservability = hasAnyPermission(permissions, ['observability.view', 'observability.manage'])
+  const canManageObservability = hasAnyPermission(permissions, ['observability.manage'])
+  const canViewRelease = hasAnyPermission(permissions, ['release.view', 'release.manage'])
+  const canManageRelease = hasAnyPermission(permissions, ['release.manage'])
 
   async function persistDemoUpdate(
     updater: (workspace: OperationsWorkspaceData) => OperationsWorkspaceData,
@@ -211,6 +241,90 @@ export function useOperationsWorkspace() {
     await refreshLiveWorkspace()
   }
 
+  async function saveIntegrationConnection(values: IntegrationConnectionFormValues) {
+    if (source === 'demo') {
+      await persistDemoUpdate((workspace) => createDemoIntegrationConnection(workspace, values))
+      return
+    }
+
+    await createIntegrationConnection(access.apiBaseUrl, access.token, values)
+    await refreshLiveWorkspace()
+  }
+
+  async function saveIntegrationSubscription(values: IntegrationSubscriptionFormValues) {
+    if (source === 'demo') {
+      await persistDemoUpdate((workspace) => createDemoIntegrationSubscription(workspace, values))
+      return
+    }
+
+    await createIntegrationSubscription(access.apiBaseUrl, access.token, values)
+    await refreshLiveWorkspace()
+  }
+
+  async function triggerIntegrationEvent(values: IntegrationDispatchFormValues) {
+    if (source === 'demo') {
+      await persistDemoUpdate((workspace) => dispatchDemoIntegrationEvent(workspace, values))
+      return
+    }
+
+    await dispatchIntegrationEvent(access.apiBaseUrl, access.token, values)
+    await refreshLiveWorkspace()
+  }
+
+  async function retryFailedIntegrationJob(jobId: number) {
+    if (source === 'demo') {
+      await persistDemoUpdate((workspace) => retryDemoIntegrationSyncJob(workspace, jobId))
+      return
+    }
+
+    await retryIntegrationSyncJob(access.apiBaseUrl, access.token, jobId)
+    await refreshLiveWorkspace()
+  }
+
+  async function processQueuedIntegrationJob(jobId: number) {
+    if (source === 'demo') {
+      await persistDemoUpdate((workspace) => processDemoIntegrationSyncJob(workspace, jobId))
+      return
+    }
+
+    await processIntegrationSyncJob(access.apiBaseUrl, access.token, jobId)
+    await refreshLiveWorkspace()
+  }
+
+  async function logResilienceValidation(values: ResilienceValidationRunFormValues) {
+    if (source === 'demo') {
+      await persistDemoUpdate((workspace) =>
+        createDemoResilienceValidationRun(
+          workspace,
+          values,
+          snapshot?.user.name ?? 'Demo operator',
+          snapshot?.user.id ?? null,
+        ),
+      )
+      return
+    }
+
+    await createResilienceValidationRun(access.apiBaseUrl, access.token, values)
+    await refreshLiveWorkspace()
+  }
+
+  async function recordReleaseReadinessDecision(values: ReleaseReadinessDecisionFormValues) {
+    if (source === 'demo') {
+      await persistDemoUpdate((workspace) =>
+        createDemoReleaseReadinessDecision(
+          workspace,
+          values,
+          snapshot?.user.name ?? 'Demo operator',
+          snapshot?.user.id ?? null,
+        ),
+      )
+      return
+    }
+
+    await createReleaseReadinessDecision(access.apiBaseUrl, access.token, values)
+    await refreshLiveWorkspace()
+  }
+
   return {
     source,
     data,
@@ -221,6 +335,14 @@ export function useOperationsWorkspace() {
     canViewAssets,
     canManageAssets,
     canManageLifecycle,
+    canViewIntegrations,
+    canManageIntegrations,
+    canViewResilience,
+    canManageResilience,
+    canViewObservability,
+    canManageObservability,
+    canViewRelease,
+    canManageRelease,
     selectedLifecycleType,
     setSelectedLifecycleType: (value: OperationsLifecycleType) => {
       startTransition(() => {
@@ -244,6 +366,13 @@ export function useOperationsWorkspace() {
     issueAssignedAsset,
     returnAssignedAsset,
     updateLifecycleTask,
+    saveIntegrationConnection,
+    saveIntegrationSubscription,
+    triggerIntegrationEvent,
+    retryFailedIntegrationJob,
+    processQueuedIntegrationJob,
+    logResilienceValidation,
+    recordReleaseReadinessDecision,
   }
 }
 
@@ -257,7 +386,7 @@ function nextId(values: Array<{ id: number }>) {
 
 function normalizeDelimitedValues(value: string) {
   return value
-    .split(',')
+    .split(/[\n,]/)
     .map((item) => item.trim())
     .filter(Boolean)
 }
@@ -523,6 +652,305 @@ function updateDemoLifecycleTask(
   }
 }
 
+function createDemoIntegrationConnection(
+  workspace: OperationsWorkspaceData,
+  values: IntegrationConnectionFormValues,
+) {
+  const nextConnection = {
+    id: nextId(workspace.integrations.connections),
+    system_key: values.system_key,
+    version: 'v1',
+    name: values.name.trim(),
+    direction: values.direction,
+    status: values.status,
+    auth_mode: values.auth_mode,
+    endpoint_url: values.endpoint_url.trim() || null,
+    description: values.description.trim() || null,
+    scopes: values.scopes
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+    settings: {},
+    active_subscription_count: 0,
+    last_synced_at: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+
+  return {
+    ...workspace,
+    integrations: {
+      ...workspace.integrations,
+      connections: [nextConnection, ...workspace.integrations.connections],
+    },
+  }
+}
+
+function createDemoIntegrationSubscription(
+  workspace: OperationsWorkspaceData,
+  values: IntegrationSubscriptionFormValues,
+) {
+  const connection = workspace.integrations.connections.find(
+    (record) => record.id === Number(values.integration_connection_id),
+  )
+  const customHeaders = parseDemoJsonRecord(values.custom_headers)
+  const filterRules = parseDemoJsonRecord(values.filter_rules)
+  const nextSubscription = {
+    id: nextId(workspace.integrations.subscriptions),
+    subscription_key: `sub-demo-${Date.now()}`,
+    integration_connection_id: Number(values.integration_connection_id),
+    version: 'v1',
+    event_key: values.event_key,
+    direction: values.direction,
+    status: values.status,
+    endpoint_url: values.endpoint_url.trim() || null,
+    secret_preview: values.secret.trim() ? `••••${values.secret.trim().slice(-4)}` : null,
+    custom_headers: customHeaders,
+    filter_rules: filterRules,
+    connection: connection
+      ? {
+          id: connection.id,
+          system_key: connection.system_key,
+          name: connection.name,
+          status: connection.status,
+        }
+      : null,
+    last_delivery_at: null,
+    last_received_at: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+
+  return {
+    ...workspace,
+    integrations: {
+      ...workspace.integrations,
+      connections: workspace.integrations.connections.map((record) =>
+        record.id === nextSubscription.integration_connection_id
+          ? {
+              ...record,
+              active_subscription_count:
+                (record.active_subscription_count ?? 0) + (nextSubscription.status === 'active' ? 1 : 0),
+              updated_at: new Date().toISOString(),
+            }
+          : record,
+      ),
+      subscriptions: [nextSubscription, ...workspace.integrations.subscriptions],
+    },
+  }
+}
+
+function dispatchDemoIntegrationEvent(
+  workspace: OperationsWorkspaceData,
+  values: IntegrationDispatchFormValues,
+) {
+  const payload = parseDemoJsonRecord(values.payload)
+  const matchingSubscriptions = workspace.integrations.subscriptions.filter(
+    (subscription) =>
+      subscription.event_key === values.event_key &&
+      subscription.direction === 'outbound' &&
+      subscription.status === 'active',
+  )
+
+  if (!matchingSubscriptions.length) {
+    throw new Error('No active outbound subscription matches this event in the demo workspace.')
+  }
+
+  const now = new Date().toISOString()
+  const nextJobId = nextId(workspace.integrations.syncJobs)
+  const nextJobs = matchingSubscriptions.map((subscription, index) =>
+    buildDemoIntegrationJob(
+      workspace,
+      subscription,
+      {
+        id: nextJobId + index,
+        eventKey: values.event_key,
+        entityType: values.entity_type.trim() || null,
+        entityId: values.entity_id.trim() || null,
+        payload,
+        shouldFail: Boolean(payload.simulate_failure),
+        occurredAt: now,
+      },
+    ),
+  )
+
+  return {
+    ...workspace,
+    integrations: {
+      ...workspace.integrations,
+      subscriptions: workspace.integrations.subscriptions.map((subscription) =>
+        matchingSubscriptions.some((candidate) => candidate.id === subscription.id)
+          ? {
+              ...subscription,
+              last_delivery_at: now,
+              updated_at: now,
+            }
+          : subscription,
+      ),
+      syncJobs: [...nextJobs, ...workspace.integrations.syncJobs].slice(0, 25),
+      syncJobMeta: {
+        ...workspace.integrations.syncJobMeta,
+        total: workspace.integrations.syncJobs.length + nextJobs.length,
+      },
+    },
+  }
+}
+
+function createDemoResilienceValidationRun(
+  workspace: OperationsWorkspaceData,
+  values: ResilienceValidationRunFormValues,
+  actorName: string,
+  actorId: number | null,
+) {
+  const scenario =
+    workspace.resilience.scenarios.find((record) => record.key === values.scenario_key) ??
+    workspace.resilience.scenarios[0]
+
+  if (!scenario) {
+    throw new Error('The selected resilience scenario could not be found in the demo workspace.')
+  }
+
+  const now = new Date().toISOString()
+  const nextRun = {
+    id: nextId(workspace.resilience.validation_runs),
+    scenario_key: scenario.key,
+    scenario_name: scenario.name,
+    scenario_type: scenario.scenario_type,
+    environment: scenario.environment,
+    status: values.status,
+    recovery_point_actual_minutes: values.recovery_point_actual_minutes.trim()
+      ? Number(values.recovery_point_actual_minutes)
+      : null,
+    recovery_time_actual_minutes: values.recovery_time_actual_minutes.trim()
+      ? Number(values.recovery_time_actual_minutes)
+      : null,
+    evidence_refs: normalizeDelimitedValues(values.evidence_refs),
+    notes: values.notes.trim() || null,
+    started_at: now,
+    completed_at: values.status === 'in_progress' ? null : now,
+    executed_by_user_id: actorId,
+    executed_by_name: actorName,
+    created_at: now,
+    updated_at: now,
+  }
+
+  const validationRuns = [nextRun, ...workspace.resilience.validation_runs]
+
+  return {
+    ...workspace,
+    resilience: buildDemoResilienceOverview(validationRuns),
+  }
+}
+
+function retryDemoIntegrationSyncJob(
+  workspace: OperationsWorkspaceData,
+  jobId: number,
+) {
+  let updatedJob: OperationsIntegrationSyncJobRecord | null = null
+
+  const syncJobs = workspace.integrations.syncJobs.map((job) => {
+    if (job.id !== jobId) {
+      return job
+    }
+
+    const now = new Date().toISOString()
+    updatedJob = {
+      ...job,
+      status: 'completed',
+      monitoring_state: 'retried',
+      attempts_count: job.attempts_count + 1,
+      last_attempt_at: now,
+      started_at: now,
+      completed_at: now,
+      failed_at: null,
+      retried_at: now,
+      last_error: null,
+      can_retry: false,
+      response_payload: {
+        status_code: 200,
+        body: {
+          retried: true,
+          outcome: 'successful',
+        },
+      },
+      errors: job.errors.map((error) =>
+        error.resolved_at
+          ? error
+          : {
+              ...error,
+              resolved_at: now,
+            },
+      ),
+      updated_at: now,
+    }
+
+    return updatedJob
+  })
+
+  if (!updatedJob) {
+    throw new Error('The selected demo sync job could not be found.')
+  }
+
+  return {
+    ...workspace,
+    integrations: {
+      ...workspace.integrations,
+      syncJobs,
+    },
+  }
+}
+
+function processDemoIntegrationSyncJob(
+  workspace: OperationsWorkspaceData,
+  jobId: number,
+) {
+  let updatedJob: OperationsIntegrationSyncJobRecord | null = null
+
+  const syncJobs = workspace.integrations.syncJobs.map((job) => {
+    if (job.id !== jobId) {
+      return job
+    }
+
+    if (job.status !== 'queued') {
+      throw new Error('Only queued demo sync jobs can be processed.')
+    }
+
+    const now = new Date().toISOString()
+    updatedJob = {
+      ...job,
+      status: 'completed',
+      monitoring_state: 'completed',
+      attempts_count: job.attempts_count + 1,
+      last_attempt_at: now,
+      started_at: now,
+      completed_at: now,
+      last_error: null,
+      response_payload: {
+        status_code: 202,
+        body: {
+          processed: true,
+          outcome: 'queued job completed',
+        },
+      },
+      updated_at: now,
+    }
+
+    return updatedJob
+  })
+
+  if (!updatedJob) {
+    throw new Error('The selected demo sync job could not be found.')
+  }
+
+  return {
+    ...workspace,
+    integrations: {
+      ...workspace.integrations,
+      syncJobs,
+    },
+  }
+}
+
 function deriveDueState(dueDate: string | null, status: string) {
   if (!dueDate) {
     return 'no_due_date'
@@ -608,4 +1036,112 @@ function rebuildLifecycleStatuses(
       }
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+}
+
+function parseDemoJsonRecord(value: string) {
+  if (!value.trim()) {
+    return {}
+  }
+
+  const parsed = JSON.parse(value) as unknown
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('JSON fields must contain an object.')
+  }
+
+  return parsed as Record<string, unknown>
+}
+
+function buildDemoIntegrationJob(
+  workspace: OperationsWorkspaceData,
+  subscription: OperationsWorkspaceData['integrations']['subscriptions'][number],
+  options: {
+    id: number
+    eventKey: string
+    entityType: string | null
+    entityId: string | null
+    payload: Record<string, unknown>
+    shouldFail: boolean
+    occurredAt: string
+  },
+): OperationsIntegrationSyncJobRecord {
+  const connection = workspace.integrations.connections.find(
+    (record) => record.id === subscription.integration_connection_id,
+  )
+  const responsePayload = options.shouldFail
+    ? {
+        status_code: 500,
+        body: {
+          error: 'Simulated integration outage',
+        },
+      }
+    : {
+        status_code: 202,
+        body: {
+          delivered: true,
+        },
+      }
+
+  return {
+    id: options.id,
+    job_uuid: `job-demo-${options.id}`,
+    version: 'v1',
+    system_key: connection?.system_key ?? 'unknown',
+    event_key: options.eventKey,
+    direction: 'outbound',
+    status: options.shouldFail ? 'failed' : 'completed',
+    monitoring_state: options.shouldFail ? 'failed' : 'completed',
+    trigger_source: 'manual_event',
+    entity_type: options.entityType,
+    entity_id: options.entityId,
+    request_payload: options.payload,
+    response_payload: responsePayload,
+    request_headers: {
+      'X-PhoenixHRMS-Event': options.eventKey,
+    },
+    response_headers: {},
+    attempts_count: 1,
+    last_attempt_at: options.occurredAt,
+    queued_at: options.occurredAt,
+    started_at: options.occurredAt,
+    completed_at: options.shouldFail ? null : options.occurredAt,
+    failed_at: options.shouldFail ? options.occurredAt : null,
+    retried_at: null,
+    last_error: options.shouldFail ? 'Simulated integration outage.' : null,
+    can_retry: options.shouldFail,
+    connection: connection
+      ? {
+          id: connection.id,
+          system_key: connection.system_key,
+          name: connection.name,
+          status: connection.status,
+        }
+      : null,
+    subscription: {
+      id: subscription.id,
+      subscription_key: subscription.subscription_key,
+      event_key: subscription.event_key,
+      direction: subscription.direction,
+      status: subscription.status,
+    },
+    errors: options.shouldFail
+      ? [
+          {
+            id: options.id + 10_000,
+            attempt_number: 1,
+            error_code: 'delivery_failed',
+            error_message: 'Simulated integration outage.',
+            request_payload: options.payload,
+            response_payload: responsePayload,
+            request_headers: {
+              'X-PhoenixHRMS-Event': options.eventKey,
+            },
+            response_headers: {},
+            occurred_at: options.occurredAt,
+            resolved_at: null,
+          },
+        ]
+      : [],
+    created_at: options.occurredAt,
+    updated_at: options.occurredAt,
+  }
 }

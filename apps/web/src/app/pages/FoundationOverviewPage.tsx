@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useState, type ReactNode } from 'react'
+import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -9,15 +9,12 @@ import {
   Lock,
   ShieldCheck,
   SlidersHorizontal,
-  UserRoundCog,
   Waypoints,
 } from 'lucide-react'
 import { useShellFavorites } from '../shell/favorites'
 import { getModuleRecentActivity, useShellRecent } from '../shell/recent'
 import { useAccessSnapshot } from '../../modules/access/hooks/useAccessSnapshot'
-import { demoPersonaLabels } from '../../modules/access/data/demoSnapshots'
-import type { DemoPersona } from '../../modules/access/types'
-import { setApiBaseUrl, setDemoPersona, setMode, setToken } from '../store/accessSlice'
+import { setApiBaseUrl } from '../store/accessSlice'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { hasPermissions } from '../../shared/auth/permissions'
 import { Badge } from '../../shared/ui/badge'
@@ -39,7 +36,6 @@ import {
 import { ConsoleSearchField, ConsoleToolbar, ConsoleToolbarRow } from '../../shared/ui/console-table'
 import { Input } from '../../shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../shared/ui/table'
-import { Textarea } from '../../shared/ui/textarea'
 import {
   WorkspaceContent,
   WorkspaceField,
@@ -78,7 +74,7 @@ export function FoundationOverviewPage() {
   const access = useAppSelector((state) => state.access)
   const { recentItems } = useShellRecent()
   const { isFavorite, toggleFavorite } = useShellFavorites()
-  const { snapshot, source, isLoading, error } = useAccessSnapshot()
+  const { snapshot, isLoading, error } = useAccessSnapshot()
   const [activeTab, setActiveTab] = useState<WorkspaceCatalogTab>('visible')
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
@@ -139,8 +135,8 @@ export function FoundationOverviewPage() {
   const permissionGrantCount = grantedPermissions.length
   const tenant = snapshot?.user.tenant
   const resolvedRole = formatRoleLabel(snapshot?.user.roles[0])
-  const currentPersonaLabel = demoPersonaLabels[access.demoPersona]
-  const missingToken = access.mode === 'live' && access.token.trim().length === 0
+  const pendingLiveSignIn = access.token.trim().length === 0
+  const liveLoginHref = `/login?next=${encodeURIComponent('/foundation')}`
 
   const metricCards: Array<{
     label: string
@@ -172,17 +168,21 @@ export function FoundationOverviewPage() {
       tone: permissionGrantCount ? 'success' : 'warning',
     },
     {
-      label: 'Session source',
-      value: access.mode === 'demo' ? 'Demo' : 'Live',
-      delta: access.mode === 'demo' ? currentPersonaLabel : missingToken ? 'Token pending' : 'Bearer token loaded',
+      label: 'Session status',
+      value: pendingLiveSignIn ? 'Pending' : 'Authenticated',
+      delta: pendingLiveSignIn
+        ? 'Sign in is required before protected workspaces open'
+        : 'Enterprise access contract resolved for this workspace',
       icon: <SlidersHorizontal className="h-4 w-4" />,
-      tone: missingToken ? 'warning' : 'info',
+      tone: pendingLiveSignIn ? 'warning' : 'info',
       valueSize: 'compact',
     },
     {
       label: 'Tenant context',
       value: tenant?.company_name ?? 'No tenant loaded',
-      delta: tenant ? `${tenant.subscription_plan ?? 'plan pending'} · ${tenant.timezone ?? 'timezone pending'}` : 'Resolve a live token or keep using a demo persona',
+      delta: tenant
+        ? `${tenant.subscription_plan ?? 'plan pending'} · ${tenant.timezone ?? 'timezone pending'}`
+        : 'Sign in to resolve tenant defaults and scoped access posture',
       icon: <Building2 className="h-4 w-4" />,
       tone: tenant ? 'info' : 'warning',
       valueSize: 'long',
@@ -225,27 +225,15 @@ export function FoundationOverviewPage() {
       })
     }
 
-    if (missingToken) {
+    if (pendingLiveSignIn) {
       items.push({
         id: 'live-token',
         path: '/foundation',
-        title: 'Live mode is enabled without a bearer token',
-        detail: 'Paste a platform token to resolve tenant and permission visibility from the API.',
-        meta: 'Until then, the workspace posture reflects an unresolved live session.',
+        title: 'Enterprise session still needs a secure sign-in',
+        detail: 'Open the login flow to resolve tenant, identity, and permission visibility from the API.',
+        meta: 'Until then, protected workspaces remain unavailable.',
         tone: 'danger',
         icon: <AlertTriangle className="h-4 w-4" />,
-      })
-    }
-
-    if (access.mode === 'demo') {
-      items.push({
-        id: 'demo-persona',
-        path: '/foundation',
-        title: `${currentPersonaLabel} demo session is active`,
-        detail: `Use demo personas to validate module visibility and permission coverage without changing environment data.`,
-        meta: source === 'demo' ? 'Demo snapshot loaded from seeded access profiles.' : 'Switch to live mode to resolve API-backed contract data.',
-        tone: 'info',
-        icon: <UserRoundCog className="h-4 w-4" />,
       })
     }
 
@@ -262,7 +250,7 @@ export function FoundationOverviewPage() {
     }
 
     return items.slice(0, 4)
-  }, [access.mode, catalogRows, currentPersonaLabel, missingToken, restrictedModuleCount, source])
+  }, [catalogRows, pendingLiveSignIn, restrictedModuleCount])
 
   const fallbackActivityItems = useMemo(
     () =>
@@ -270,15 +258,13 @@ export function FoundationOverviewPage() {
         {
           id: 'source',
           path: undefined,
-          title: access.mode === 'demo' ? 'Demo source active' : 'Live source active',
+          title: pendingLiveSignIn ? 'Enterprise session pending' : 'Enterprise session active',
           detail:
-            access.mode === 'demo'
-              ? `${currentPersonaLabel} visibility contract is seeded locally`
-              : missingToken
-                ? 'Token pending for live workspace access'
-                : 'Live token is available for API-backed access resolution',
-          meta: source === 'demo' ? 'Demo contract' : 'Live contract',
-          tone: access.mode === 'demo' ? 'info' : missingToken ? 'warning' : 'success',
+            pendingLiveSignIn
+              ? 'Sign-in still needs to complete before identity and tenant context can be trusted.'
+              : 'Authenticated access is available for API-backed identity, tenant, and visibility resolution.',
+          meta: pendingLiveSignIn ? 'Awaiting sign-in' : 'Access contract loaded',
+          tone: pendingLiveSignIn ? 'warning' : 'success',
           icon: <SlidersHorizontal className="h-4 w-4" />,
         },
         {
@@ -310,14 +296,11 @@ export function FoundationOverviewPage() {
         },
       ] as const,
     [
-      access.mode,
-      currentPersonaLabel,
-      missingToken,
+      pendingLiveSignIn,
       permissionGrantCount,
       resolvedRole,
       restrictedModuleCount,
       snapshot?.user.email,
-      source,
       tenant,
       visibleModuleCount,
       visibleSectionCount,
@@ -338,8 +321,8 @@ export function FoundationOverviewPage() {
         <WorkspaceHeroHeader
           moduleLabel="Foundation"
           title="Foundation Operations Center"
-          description="Control the current session, inspect workspace reach, and verify tenant posture before moving into deeper modules."
-          badge={<Badge variant={source === 'demo' ? 'warning' : 'info'}>{source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
+          description="Control the enterprise session, inspect workspace reach, and verify tenant posture before moving into deeper modules."
+          badge={<Badge variant={pendingLiveSignIn ? 'warning' : 'info'}>{pendingLiveSignIn ? 'Session pending' : 'Access contract loaded'}</Badge>}
           context={[resolvedRole, tenant?.company_name ?? 'Tenant pending']}
         />
 
@@ -502,83 +485,45 @@ export function FoundationOverviewPage() {
 
               <CommandCenterPanel
                 title="Workspace session"
-                description="Switch between demo and live posture, then confirm the resolved identity and tenant defaults."
+                description="Confirm the enterprise sign-in target, then review the resolved identity and tenant defaults."
               >
                 <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_21rem]">
                   <div className="space-y-4 border-b border-line/80 p-4 xl:border-b-0 xl:border-r">
-                    <div className="space-y-2">
-                      <p className="ui-type-body-strong text-foreground">Session source</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(['demo', 'live'] as const).map((mode) => (
-                          <Button
-                            key={mode}
-                            variant={access.mode === mode ? 'primary' : 'segmented'}
-                            size="xs"
-                            onClick={() =>
-                              startTransition(() => {
-                                dispatch(setMode(mode))
-                              })
-                            }
-                          >
-                            {mode === 'demo' ? 'Demo' : 'Live'}
-                          </Button>
-                        ))}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <WorkspaceField label="API base URL" compact className="sm:col-span-2">
+                        <Input
+                          type="url"
+                          value={access.apiBaseUrl}
+                          onChange={(event) => dispatch(setApiBaseUrl(event.target.value))}
+                          placeholder="http://127.0.0.1:8000/api/v1"
+                        />
+                      </WorkspaceField>
+                      <div className="sm:col-span-2 rounded-xl border border-line/80 bg-panel-soft/60 p-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="space-y-1">
+                            <p className="ui-type-body-strong text-foreground">
+                              {pendingLiveSignIn ? 'Workspace sign-in is still required' : 'Workspace session is authenticated'}
+                            </p>
+                            <p className="ui-type-body text-muted-foreground">
+                              {pendingLiveSignIn
+                                ? 'Authentication now happens through the secure sign-in flow instead of a demo or manual token workflow.'
+                                : 'This workspace is resolving identity, tenant defaults, and navigation visibility from the authenticated API session.'}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {pendingLiveSignIn ? (
+                              <Button asChild variant="primary" size="xs">
+                                <Link to={liveLoginHref}>Sign in</Link>
+                              </Button>
+                            ) : (
+                              <Button asChild variant="secondary" size="xs">
+                                <Link to="/access#users">Open access admin</Link>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-
-                    {access.mode === 'demo' ? (
-                      <div className="space-y-2">
-                        <p className="ui-type-body-strong text-foreground">Demo persona</p>
-                        <div className="flex flex-wrap gap-2">
-                          {(Object.keys(demoPersonaLabels) as DemoPersona[]).map((persona) => (
-                            <Button
-                              key={persona}
-                              variant={access.demoPersona === persona ? 'primary' : 'secondary'}
-                              size="xs"
-                              onClick={() =>
-                                startTransition(() => {
-                                  dispatch(setDemoPersona(persona))
-                                })
-                              }
-                            >
-                              {demoPersonaLabels[persona]}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <WorkspaceField label="API base URL" compact className="sm:col-span-2">
-                          <Input
-                            type="url"
-                            value={access.apiBaseUrl}
-                            onChange={(event) => dispatch(setApiBaseUrl(event.target.value))}
-                            placeholder="http://127.0.0.1:8000/api/v1"
-                          />
-                        </WorkspaceField>
-                        <WorkspaceField label="Bearer token" compact className="sm:col-span-2">
-                          <Textarea
-                            value={access.token}
-                            onChange={(event) => dispatch(setToken(event.target.value))}
-                            placeholder="Paste a bearer token from the platform API"
-                            className="min-h-[7rem]"
-                          />
-                        </WorkspaceField>
-                        <div className="sm:col-span-2">
-                          <Button
-                            variant="primary"
-                            size="xs"
-                            onClick={() =>
-                              startTransition(() => {
-                                dispatch(setToken(access.token.trim()))
-                              })
-                            }
-                          >
-                            Refresh contract
-                          </Button>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   <div className="space-y-2.5 p-4">
@@ -616,8 +561,8 @@ export function FoundationOverviewPage() {
                     value={restrictedModuleCount ? 'Scoped role' : 'Broad role'}
                   />
                   <WorkspaceSummaryRow
-                    label="Live readiness"
-                    value={missingToken ? 'Token pending' : access.mode === 'live' ? 'Resolved' : 'Demo ready'}
+                    label="Session readiness"
+                    value={pendingLiveSignIn ? 'Sign-in required' : 'Resolved'}
                   />
                 </CommandCenterInsightCard>
                 <CommandCenterInsightCard

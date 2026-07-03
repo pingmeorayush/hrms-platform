@@ -12,6 +12,10 @@ import {
 } from 'lucide-react'
 import { useAccessSnapshot } from '../../access/hooks/useAccessSnapshot'
 import {
+  formatRegionalDate,
+  formatRegionalTime,
+} from '../../../shared/regionalization/formatters'
+import {
   applyCommandCenterAlertOverrides,
   useCommandCenterEvents,
 } from '../../../app/shell/commandCenterEvents'
@@ -993,22 +997,11 @@ function todayDate() {
 }
 
 function formatDate(value: string) {
-  if (!value) {
-    return 'Not scheduled'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not scheduled')
 }
 
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat('en-IN', {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(value))
+  return formatRegionalTime(value, value)
 }
 
 function formatMinutes(value: number) {

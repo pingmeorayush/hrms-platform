@@ -16,6 +16,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $subscription_plan
  * @property string $timezone
  * @property string|null $currency
+ * @property string $country_code
+ * @property string $locale
+ * @property string $language
+ * @property string $time_format
+ * @property array<int, string>|null $expansion_country_codes
  */
 #[Fillable([
     'uuid',
@@ -25,6 +30,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'subscription_plan',
     'timezone',
     'currency',
+    'country_code',
+    'locale',
+    'language',
+    'time_format',
+    'expansion_country_codes',
 ])]
 class Company extends Model
 {
@@ -39,6 +49,13 @@ class Company extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'expansion_country_codes' => 'array',
+        ];
     }
 
     public function isActive(): bool

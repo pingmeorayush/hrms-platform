@@ -1,0 +1,583 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 09 Mobile ESS and Globalization API
+  version: 1.0.0
+  description: >
+    Mobile-consumable auth, attendance, leave, payslip, notification, self-service,
+    and localization APIs available in the current Sprint 09 website-first workspace.
+    This contract intentionally documents only the live backend surfaces that a mobile
+    client or regional settings experience can consume today. Dedicated external webhook,
+    sync-job, and outbound integration endpoints are deferred until the Sprint 09
+    integration baseline is implemented in apps/api.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: https://api.phoenixhrms.test/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1auth~1login'
+  /auth/verify-mfa:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1auth~1verify-mfa'
+  /auth/forgot-password:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1auth~1forgot-password'
+  /auth/reset-password:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1auth~1reset-password'
+  /auth/logout:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1auth~1logout'
+  /auth/me:
+    get:
+      operationId: getAuthenticatedMobileUser
+      summary: Load the authenticated user, employee link, permissions, tenant context, and effective regional settings
+      responses:
+        '200':
+          description: Authenticated user loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthenticatedUser'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+  /ui/visibility:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1ui~1visibility'
+  /attendance:
+    $ref: './sprint-03-attendance-shift-operations.yaml#/paths/~1attendance'
+  /attendance/{attendanceRecordId}:
+    $ref: './sprint-03-attendance-shift-operations.yaml#/paths/~1attendance~1{attendanceRecordId}'
+  /attendance/check-in:
+    $ref: './sprint-03-attendance-shift-operations.yaml#/paths/~1attendance~1check-in'
+  /attendance/check-out:
+    $ref: './sprint-03-attendance-shift-operations.yaml#/paths/~1attendance~1check-out'
+  /attendance/corrections:
+    $ref: './sprint-03-attendance-shift-operations.yaml#/paths/~1attendance~1corrections'
+  /attendance/corrections/{attendanceCorrectionId}:
+    $ref: './sprint-03-attendance-shift-operations.yaml#/paths/~1attendance~1corrections~1{attendanceCorrectionId}'
+  /leave/balances:
+    $ref: './sprint-04-leave-manager-workflows.yaml#/paths/~1leave~1balances'
+  /leave/balances/{employeeId}:
+    $ref: './sprint-04-leave-manager-workflows.yaml#/paths/~1leave~1balances~1{employeeId}'
+  /leave/requests:
+    $ref: './sprint-04-leave-manager-workflows.yaml#/paths/~1leave~1requests'
+  /leave/requests/{leaveRequestId}:
+    $ref: './sprint-04-leave-manager-workflows.yaml#/paths/~1leave~1requests~1{leaveRequestId}'
+  /payroll/payslips:
+    $ref: './sprint-05-payroll-compensation.yaml#/paths/~1payroll~1payslips'
+  /payroll/payslips/{payslipId}:
+    $ref: './sprint-05-payroll-compensation.yaml#/paths/~1payroll~1payslips~1{payslipId}'
+  /payroll/payslips/{payslipId}/download:
+    $ref: './sprint-05-payroll-compensation.yaml#/paths/~1payroll~1payslips~1{payslipId}~1download'
+  /notifications:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1notifications'
+  /notifications/{notificationId}/read:
+    $ref: './sprint-01-platform-foundation.yaml#/paths/~1notifications~1{notificationId}~1read'
+  /task-center:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1task-center'
+  /task-center/lifecycle-tasks/{taskId}:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1task-center~1lifecycle-tasks~1{taskId}'
+  /policy-acknowledgements:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1policy-acknowledgements'
+  /policy-acknowledgements/{policyAcknowledgementId}/acknowledge:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1policy-acknowledgements~1{policyAcknowledgementId}~1acknowledge'
+  /policy-acknowledgements/{policyAcknowledgementId}/download:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1policy-acknowledgements~1{policyAcknowledgementId}~1download'
+  /self-service/workspace:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1self-service~1workspace'
+  /self-service/employee-documents/{employeeDocumentId}/download:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1self-service~1employee-documents~1{employeeDocumentId}~1download'
+  /self-service/repository-documents/{documentId}/download:
+    $ref: './sprint-06-documents-assets-ess-onoffboarding.yaml#/paths/~1self-service~1repository-documents~1{documentId}~1download'
+  /localization:
+    get:
+      operationId: getLocalizationConfiguration
+      summary: Load effective user regional settings, tenant defaults, and supported regional options
+      responses:
+        '200':
+          description: Localization configuration loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LocalizationConfiguration'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+  /localization/preferences:
+    patch:
+      operationId: updateLocalizationPreferences
+      summary: Apply or clear personal regional overrides without changing tenant-wide defaults
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocalizationPreferencesRequest'
+      responses:
+        '200':
+          description: Regional preferences updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LocalizationConfiguration'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /organization/company-profile:
+    get:
+      operationId: getRegionalizedCompanyProfile
+      summary: Load the tenant company profile including regional defaults and expansion-country placeholders
+      responses:
+        '200':
+          description: Company profile loaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompanyProfile'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+    patch:
+      operationId: updateRegionalizedCompanyProfile
+      summary: Update tenant-level regional defaults used by web, reporting, and future mobile experiences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyProfileUpdateRequest'
+      responses:
+        '200':
+          description: Company profile updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompanyProfile'
+                    required: [data]
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    UnauthorizedErrorResponse:
+      description: The request is not authenticated.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenErrorResponse:
+      description: The authenticated user is not allowed to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: The request payload or current state is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    SuccessResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        message:
+          type: string
+        data: {}
+    ErrorResponse:
+      type: object
+      required: [success, message, errors]
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+    AuthenticatedUser:
+      type: object
+      required:
+        - id
+        - name
+        - initials
+        - email
+        - roles
+        - permissions
+        - tenant
+        - regional_settings
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        initials:
+          type: string
+        email:
+          type: string
+          format: email
+        employee:
+          oneOf:
+            - $ref: '#/components/schemas/AuthenticatedEmployeeSummary'
+            - type: 'null'
+        roles:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+        tenant:
+          $ref: '#/components/schemas/AuthenticatedTenantContext'
+        regional_settings:
+          $ref: '#/components/schemas/EffectiveRegionalSettings'
+    AuthenticatedEmployeeSummary:
+      type: object
+      required: [id, employee_code, full_name, email]
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+    AuthenticatedTenantContext:
+      type: object
+      required:
+        - company_id
+        - company_name
+        - subscription_plan
+        - timezone
+        - currency
+        - country_code
+        - locale
+        - language
+        - time_format
+        - expansion_country_codes
+      properties:
+        company_id:
+          type: integer
+        company_name:
+          type: string
+        subscription_plan:
+          type: string
+        timezone:
+          type: string
+        currency:
+          type: string
+        country_code:
+          type: string
+        locale:
+          type: string
+        language:
+          type: string
+        time_format:
+          $ref: '#/components/schemas/RegionalTimeFormatCode'
+        expansion_country_codes:
+          type: array
+          items:
+            type: string
+    LocalizationConfiguration:
+      type: object
+      required: [effective_settings, tenant_defaults, supported]
+      properties:
+        effective_settings:
+          $ref: '#/components/schemas/EffectiveRegionalSettings'
+        tenant_defaults:
+          $ref: '#/components/schemas/TenantRegionalSettings'
+        supported:
+          type: object
+          required: [countries, languages, locales, currencies, time_formats]
+          properties:
+            countries:
+              type: array
+              items:
+                $ref: '#/components/schemas/RegionalCountryOption'
+            languages:
+              type: array
+              items:
+                $ref: '#/components/schemas/RegionalOption'
+            locales:
+              type: array
+              items:
+                $ref: '#/components/schemas/RegionalOption'
+            currencies:
+              type: array
+              items:
+                $ref: '#/components/schemas/RegionalOption'
+            time_formats:
+              type: array
+              items:
+                $ref: '#/components/schemas/RegionalTimeFormatOption'
+    EffectiveRegionalSettings:
+      allOf:
+        - $ref: '#/components/schemas/TenantRegionalSettings'
+        - type: object
+          required: [source]
+          properties:
+            source:
+              $ref: '#/components/schemas/RegionalSettingSourceMap'
+    TenantRegionalSettings:
+      type: object
+      required:
+        - country_code
+        - locale
+        - language
+        - timezone
+        - currency
+        - time_format
+        - week_start
+        - expansion_country_codes
+      properties:
+        country_code:
+          type: string
+        locale:
+          type: string
+        language:
+          type: string
+        timezone:
+          type: string
+        currency:
+          type: string
+        time_format:
+          $ref: '#/components/schemas/RegionalTimeFormatCode'
+        week_start:
+          type: string
+        expansion_country_codes:
+          type: array
+          items:
+            type: string
+    RegionalSettingSourceMap:
+      type: object
+      required: [locale, language, timezone, currency, time_format]
+      properties:
+        locale:
+          $ref: '#/components/schemas/RegionalSettingSource'
+        language:
+          $ref: '#/components/schemas/RegionalSettingSource'
+        timezone:
+          $ref: '#/components/schemas/RegionalSettingSource'
+        currency:
+          $ref: '#/components/schemas/RegionalSettingSource'
+        time_format:
+          $ref: '#/components/schemas/RegionalSettingSource'
+    RegionalSettingSource:
+      type: string
+      enum: [tenant, user]
+    RegionalCountryOption:
+      type: object
+      required:
+        - code
+        - label
+        - locale
+        - language
+        - timezone
+        - currency
+        - time_format
+        - week_start
+        - launch_default
+        - expansion_placeholder
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        locale:
+          type: string
+        language:
+          type: string
+        timezone:
+          type: string
+        currency:
+          type: string
+        time_format:
+          $ref: '#/components/schemas/RegionalTimeFormatCode'
+        week_start:
+          type: string
+        launch_default:
+          type: boolean
+        expansion_placeholder:
+          type: boolean
+    RegionalOption:
+      type: object
+      required: [code, label]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+    RegionalTimeFormatOption:
+      type: object
+      required: [code, label]
+      properties:
+        code:
+          $ref: '#/components/schemas/RegionalTimeFormatCode'
+        label:
+          type: string
+    RegionalTimeFormatCode:
+      type: string
+      enum: [12h, 24h]
+    UpdateLocalizationPreferencesRequest:
+      type: object
+      properties:
+        locale:
+          type: [string, 'null']
+          maxLength: 10
+        language:
+          type: [string, 'null']
+          maxLength: 10
+        timezone:
+          type: [string, 'null']
+        currency:
+          type: [string, 'null']
+          minLength: 3
+          maxLength: 3
+        time_format:
+          oneOf:
+            - $ref: '#/components/schemas/RegionalTimeFormatCode'
+            - type: 'null'
+      additionalProperties: false
+    CompanyProfile:
+      type: object
+      required:
+        - id
+        - uuid
+        - name
+        - slug
+        - status
+        - subscription_plan
+        - timezone
+        - currency
+        - country_code
+        - locale
+        - language
+        - time_format
+        - expansion_country_codes
+      properties:
+        id:
+          type: integer
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        subscription_plan:
+          type: [string, 'null']
+        timezone:
+          type: string
+        currency:
+          type: string
+        country_code:
+          type: string
+        locale:
+          type: string
+        language:
+          type: string
+        time_format:
+          $ref: '#/components/schemas/RegionalTimeFormatCode'
+        expansion_country_codes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+    CompanyProfileUpdateRequest:
+      type: object
+      required:
+        - name
+        - timezone
+        - currency
+        - country_code
+        - locale
+        - language
+        - time_format
+      properties:
+        name:
+          type: string
+        subscription_plan:
+          type: [string, 'null']
+        timezone:
+          type: string
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        country_code:
+          type: string
+          minLength: 2
+          maxLength: 2
+        locale:
+          type: string
+          maxLength: 10
+        language:
+          type: string
+          maxLength: 10
+        time_format:
+          $ref: '#/components/schemas/RegionalTimeFormatCode'
+        expansion_country_codes:
+          type: array
+          items:
+            type: string
+            minLength: 2
+            maxLength: 2
+      additionalProperties: false

@@ -3,6 +3,10 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { AccessSnapshot } from '../../access/types'
 import { useShellFavorites } from '../../../app/shell/favorites'
+import {
+  formatRegionalDate,
+  formatRegionalDateTime,
+} from '../../../shared/regionalization/formatters'
 import { buildDemoEmployeeWorkspace } from '../data/demoEmployeeProfiles'
 import { useEmployeeDirectory, employeeStatusOptions } from '../hooks/useEmployeeDirectory'
 import type { EmployeeDirectoryFilters, EmployeeRecord, EmployeeStatus } from '../types'
@@ -1106,29 +1110,11 @@ function isExpiringSoon(value: string | null) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not available')
 }
 
 function formatDateTime(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value))
+  return formatRegionalDateTime(value, 'Not available')
 }
 
 function employeeInitials(fullName: string) {

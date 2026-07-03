@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AlertTriangle, FileWarning, LaptopMinimalCheck, ShieldAlert } from 'lucide-react'
+import { formatRegionalDate } from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import {
   CommandCenterAttentionItem,
@@ -42,6 +43,15 @@ export function OperationsOverviewPage() {
   const retentionAttention = workspace.data.documents.filter((document) => document.retention_until && isWithinDays(document.retention_until, 30))
   const onboardingRisk = workspace.data.lifecycle.onboarding.filter((record) => record.summary.incomplete_count > 0)
   const offboardingRisk = workspace.data.lifecycle.offboarding.filter((record) => record.summary.incomplete_count > 0)
+  const failedIntegrationJobs = workspace.data.integrations.syncJobs.filter((job) => job.monitoring_state === 'failed')
+  const pausedSubscriptions = workspace.data.integrations.subscriptions.filter((subscription) => subscription.status === 'paused')
+  const failedResilienceScenarios = workspace.data.resilience.scenarios.filter((scenario) => scenario.status === 'failed')
+  const attentionResilienceScenarios = workspace.data.resilience.scenarios.filter((scenario) => scenario.status === 'attention')
+  const criticalObservabilityServices = workspace.data.observability.services.filter((service) => service.status === 'critical')
+  const degradedObservabilityServices = workspace.data.observability.services.filter((service) => service.status === 'degraded')
+  const criticalObservabilityAlerts = workspace.data.observability.alerts.filter((alert) => alert.severity === 'sev1')
+  const blockedReleaseEnvironments = workspace.data.release.environments.filter((environment) => environment.status === 'blocked')
+  const pendingReleaseEnvironments = workspace.data.release.environments.filter((environment) => environment.status === 'pending')
   const attentionItems = [
     blockedAssets[0]
       ? {
@@ -83,6 +93,48 @@ export function OperationsOverviewPage() {
           to: '/operations/lifecycle',
         }
       : null,
+    failedIntegrationJobs[0]
+      ? {
+          id: 'integration-failure',
+          icon: <ShieldAlert className="h-4 w-4" />,
+          tone: 'danger' as const,
+          title: `${failedIntegrationJobs[0].event_key} failed downstream delivery`,
+          detail: failedIntegrationJobs[0].last_error ?? 'Operator retry is still required.',
+          to: '/operations/integrations',
+        }
+      : null,
+    workspace.canViewResilience && (failedResilienceScenarios[0] ?? attentionResilienceScenarios[0])
+      ? {
+          id: 'resilience-readiness',
+          icon: <ShieldAlert className="h-4 w-4" />,
+          tone: failedResilienceScenarios[0] ? ('danger' as const) : ('warning' as const),
+          title: `${(failedResilienceScenarios[0] ?? attentionResilienceScenarios[0])?.name} needs recovery evidence review`,
+          detail:
+            (failedResilienceScenarios[0] ?? attentionResilienceScenarios[0])?.blocked_reason ??
+            'Recovery validation needs operator follow-up before launch readiness is approved.',
+          to: '/operations/resilience',
+        }
+      : null,
+    workspace.canViewObservability && criticalObservabilityAlerts[0]
+      ? {
+          id: 'observability-critical',
+          icon: <ShieldAlert className="h-4 w-4" />,
+          tone: 'danger' as const,
+          title: criticalObservabilityAlerts[0].title,
+          detail: criticalObservabilityAlerts[0].summary,
+          to: '/operations/observability',
+        }
+      : null,
+    blockedReleaseEnvironments[0]
+      ? {
+          id: 'release-blocked',
+          icon: <ShieldAlert className="h-4 w-4" />,
+          tone: 'danger' as const,
+          title: `${blockedReleaseEnvironments[0].name} is blocked by release gates`,
+          detail: blockedReleaseEnvironments[0].blocked_reason ?? 'A blocking quality gate still needs recovery.',
+          to: '/operations/release',
+        }
+      : null,
   ].filter((item): item is NonNullable<typeof item> => item !== null)
 
   return (
@@ -91,7 +143,7 @@ export function OperationsOverviewPage() {
         <WorkspaceHeroHeader
           moduleLabel="Operations"
           title="HR and IT Operations Center"
-          description="Keep document governance, asset handoffs, and onboarding-offboarding follow-through in one routed workspace."
+          description="Keep document governance, asset handoffs, onboarding-offboarding follow-through, observability, and release-readiness posture in one routed workspace."
           badge={<Badge variant={workspace.source === 'demo' ? 'warning' : 'info'}>{workspace.source === 'demo' ? 'Demo contract' : 'Live contract'}</Badge>}
           context={[
             workspace.canManageDocuments ? 'Document governance live' : 'Document visibility',
@@ -101,7 +153,7 @@ export function OperationsOverviewPage() {
         />
 
         <WorkspaceContent className="space-y-4">
-          <CommandCenterMetricGrid className="xl:grid-cols-4 2xl:grid-cols-4">
+          <CommandCenterMetricGrid className="xl:grid-cols-4 2xl:grid-cols-8">
             <CommandCenterMetricCard
               label="Document categories"
               value={String(workspace.data.documentCategories.length)}
@@ -125,6 +177,34 @@ export function OperationsOverviewPage() {
               value={String(onboardingRisk.length + offboardingRisk.length)}
               delta={`${offboardingRisk.length} offboarding record(s) still open`}
               tone="danger"
+            />
+            <CommandCenterMetricCard
+              label="Sync failures"
+              value={String(failedIntegrationJobs.length)}
+              delta={`${pausedSubscriptions.length} subscription(s) are currently paused`}
+              tone={failedIntegrationJobs.length ? 'danger' : 'info'}
+            />
+            {workspace.canViewResilience ? (
+              <CommandCenterMetricCard
+                label="Recovery readiness"
+                value={String(failedResilienceScenarios.length + attentionResilienceScenarios.length)}
+                delta={`${workspace.data.resilience.summary.ready_scenario_count} scenario(s) are currently ready`}
+                tone={failedResilienceScenarios.length ? 'danger' : attentionResilienceScenarios.length ? 'warning' : 'success'}
+              />
+            ) : null}
+            {workspace.canViewObservability ? (
+              <CommandCenterMetricCard
+                label="Critical services"
+                value={String(criticalObservabilityServices.length)}
+                delta={`${degradedObservabilityServices.length} degraded service(s) have routed signals`}
+                tone={criticalObservabilityServices.length ? 'danger' : degradedObservabilityServices.length ? 'warning' : 'success'}
+              />
+            ) : null}
+            <CommandCenterMetricCard
+              label="Release gate watch"
+              value={String(blockedReleaseEnvironments.length)}
+              delta={`${pendingReleaseEnvironments.length} promotion stage(s) are pending approval`}
+              tone={blockedReleaseEnvironments.length ? 'danger' : pendingReleaseEnvironments.length ? 'warning' : 'success'}
             />
           </CommandCenterMetricGrid>
 
@@ -281,15 +361,7 @@ export function OperationsOverviewPage() {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not available')
 }
 
 function formatAssetStatus(status: string) {

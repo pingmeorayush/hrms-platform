@@ -1,6 +1,10 @@
 import type { FormEvent } from 'react'
 import { useMemo, useState } from 'react'
 import { Link, NavLink, Navigate, Outlet, useLocation, useOutletContext, useParams } from 'react-router-dom'
+import {
+  formatRegionalDate,
+  formatRegionalDateTime,
+} from '../../../shared/regionalization/formatters'
 import { Badge, type BadgeVariant } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../shared/ui/card'
@@ -2771,29 +2775,11 @@ function formatBytes(value: number) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not available')
 }
 
 function formatDateTime(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value))
+  return formatRegionalDateTime(value, 'Not available')
 }
 
 function todayDate() {

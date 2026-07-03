@@ -56,11 +56,30 @@ class EmployeeOrganizationApiTest extends TestCase
         $this->patchJson('/api/v1/organization/company-profile', [
             'name' => 'Phoenix India HQ',
             'subscription_plan' => 'enterprise-plus',
+            'country_code' => 'IN',
+            'locale' => 'en-IN',
+            'language' => 'en',
             'timezone' => 'Asia/Kolkata',
             'currency' => 'INR',
+            'time_format' => '24h',
+            'expansion_country_codes' => ['US', 'DE'],
         ])->assertOk()
             ->assertJsonPath('data.name', 'Phoenix India HQ')
-            ->assertJsonPath('data.currency', 'INR');
+            ->assertJsonPath('data.currency', 'INR')
+            ->assertJsonPath('data.country_code', 'IN')
+            ->assertJsonPath('data.locale', 'en-IN')
+            ->assertJsonPath('data.language', 'en')
+            ->assertJsonPath('data.time_format', '24h')
+            ->assertJsonPath('data.expansion_country_codes.0', 'US')
+            ->assertJsonPath('data.expansion_country_codes.1', 'DE');
+
+        $this->getJson('/api/v1/localization')
+            ->assertOk()
+            ->assertJsonPath('data.tenant_defaults.country_code', 'IN')
+            ->assertJsonPath('data.tenant_defaults.locale', 'en-IN')
+            ->assertJsonPath('data.effective_settings.timezone', 'Asia/Kolkata')
+            ->assertJsonPath('data.effective_settings.currency', 'INR')
+            ->assertJsonPath('data.supported.time_formats.0.code', '12h');
 
         $departmentId = $this->postJson('/api/v1/organization/departments', [
             'code' => 'HR',

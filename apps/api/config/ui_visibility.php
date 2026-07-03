@@ -42,7 +42,7 @@ return [
             'label' => 'Access Control',
             'href' => '/access',
             'description' => 'Roles, permissions, and protected admin operations.',
-            'required_permissions' => ['auth.manage_roles', 'auth.manage_permissions'],
+            'required_permissions' => ['auth.manage_roles', 'auth.manage_permissions', 'auth.manage_users'],
             'match' => 'any',
         ],
     ],
@@ -101,6 +101,12 @@ return [
                     'label' => 'Create Role',
                     'description' => 'Add a new tenant or platform role mapping.',
                     'required_permissions' => ['auth.manage_roles'],
+                ],
+                [
+                    'id' => 'manage-user-access',
+                    'label' => 'Manage User Access',
+                    'description' => 'Create or update tenant-scoped admin users and assign approved roles.',
+                    'required_permissions' => ['auth.manage_users'],
                 ],
                 [
                     'id' => 'review-audit-log',

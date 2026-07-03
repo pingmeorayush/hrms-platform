@@ -5,6 +5,7 @@ import type { PropsWithChildren, ReactElement } from 'react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import { accessReducer, type AccessState } from '../../app/store/accessSlice'
+import { RegionalizationProvider } from '../regionalization/provider'
 import { ConfirmProvider } from '../ui/confirm'
 import { ToastProvider } from '../ui/toast'
 
@@ -48,11 +49,13 @@ export function renderWithProviders(
     return (
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <ConfirmProvider>
-              <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
-            </ConfirmProvider>
-          </ToastProvider>
+          <RegionalizationProvider>
+            <ToastProvider>
+              <ConfirmProvider>
+                <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+              </ConfirmProvider>
+            </ToastProvider>
+          </RegionalizationProvider>
         </QueryClientProvider>
       </Provider>
     )

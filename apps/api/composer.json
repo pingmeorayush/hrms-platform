@@ -54,9 +54,14 @@
         "analyse": [
             "@php ./vendor/bin/phpstan analyse --memory-limit=1G"
         ],
+        "security:audit": [
+            "@composer validate --strict",
+            "@composer audit --locked"
+        ],
         "ci": [
             "@composer lint",
             "@composer analyse",
+            "@composer security:audit",
             "@php artisan test"
         ],
         "test": [

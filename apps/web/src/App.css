@@ -710,10 +710,9 @@ button {
 }
 
 .ui-modal__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
   gap: 0.75rem;
   padding: var(--space-modal-padding-y) var(--space-modal-padding-x) 0.8rem;
   border-bottom: 1px solid var(--workspace-line);
@@ -722,6 +721,7 @@ button {
 .ui-modal__heading {
   display: grid;
   gap: 0.22rem;
+  min-width: 0;
 }
 
 .ui-modal__title {
@@ -740,6 +740,8 @@ button {
 
 .ui-modal__close {
   flex-shrink: 0;
+  align-self: start;
+  justify-self: end;
 }
 
 .ui-modal__body {
@@ -3022,6 +3024,20 @@ table.workspace-collection-table--employee-audit {
 
 .workspace-form-grid--location {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-form-field--span-full {
+  grid-column: 1 / -1;
+}
+
+.ui-modal__body .workspace-form-grid,
+.ui-modal__body .workspace-form-grid--location,
+.ui-modal__body .employee-editor-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.ui-modal__body .workspace-form-grid--company {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 }
 
 .workspace-field {

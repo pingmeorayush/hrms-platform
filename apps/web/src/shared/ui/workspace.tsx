@@ -434,9 +434,16 @@ export function WorkspaceSummaryRow({
   className?: string
 }) {
   return (
-    <div className={cn('flex items-start justify-between gap-3 border-b border-line-soft py-1.5 last:border-b-0', className)}>
-      <span className="ui-workspace-summary__label text-muted-foreground">{label}</span>
-      <strong className="ui-workspace-summary__value text-right text-foreground">{value}</strong>
+    <div
+      className={cn(
+        'flex min-w-0 flex-col gap-1.5 border-b border-line-soft py-1.5 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-3',
+        className,
+      )}
+    >
+      <span className="ui-workspace-summary__label min-w-0 text-muted-foreground sm:max-w-[48%]">{label}</span>
+      <strong className="ui-workspace-summary__value min-w-0 break-words text-left text-foreground sm:max-w-[52%] sm:text-right">
+        {value}
+      </strong>
     </div>
   )
 }

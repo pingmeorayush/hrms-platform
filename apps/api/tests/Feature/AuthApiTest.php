@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Company;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -244,6 +245,88 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('data.employee.id', $employee->id)
             ->assertJsonPath('data.employee.employee_code', $employee->employee_code)
             ->assertJsonPath('data.employee.full_name', $employee->full_name);
+    }
+
+    public function test_authenticated_user_can_update_and_reset_regional_preferences(): void
+    {
+        $company = Company::factory()->create([
+            'status' => 'active',
+            'country_code' => 'IN',
+            'locale' => 'en-IN',
+            'language' => 'en',
+            'timezone' => 'Asia/Kolkata',
+            'currency' => 'INR',
+            'time_format' => '24h',
+        ]);
+
+        $user = User::factory()->create([
+            'company_id' => $company->id,
+        ]);
+        $token = $user->createToken('browser');
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->patchJson('/api/v1/localization/preferences', [
+                'locale' => 'de-DE',
+                'language' => 'de',
+                'timezone' => 'Europe/Berlin',
+                'currency' => 'EUR',
+                'time_format' => '24h',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.effective_settings.locale', 'de-DE')
+            ->assertJsonPath('data.effective_settings.language', 'de')
+            ->assertJsonPath('data.effective_settings.timezone', 'Europe/Berlin')
+            ->assertJsonPath('data.effective_settings.currency', 'EUR')
+            ->assertJsonPath('data.effective_settings.source.locale', 'user')
+            ->assertJsonPath('data.effective_settings.source.timezone', 'user');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'locale' => 'de-DE',
+            'language' => 'de',
+            'timezone' => 'Europe/Berlin',
+            'currency' => 'EUR',
+            'time_format' => '24h',
+        ]);
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertJsonPath('data.regional_settings.locale', 'de-DE')
+            ->assertJsonPath('data.regional_settings.source.locale', 'user');
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->patchJson('/api/v1/localization/preferences', [
+                'locale' => null,
+                'language' => null,
+                'timezone' => null,
+                'currency' => null,
+                'time_format' => null,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.effective_settings.locale', 'en-IN')
+            ->assertJsonPath('data.effective_settings.language', 'en')
+            ->assertJsonPath('data.effective_settings.timezone', 'Asia/Kolkata')
+            ->assertJsonPath('data.effective_settings.currency', 'INR')
+            ->assertJsonPath('data.effective_settings.source.locale', 'tenant')
+            ->assertJsonPath('data.effective_settings.source.timezone', 'tenant');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'locale' => null,
+            'language' => null,
+            'timezone' => null,
+            'currency' => null,
+            'time_format' => null,
+        ]);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $user->id,
+            'company_id' => $company->id,
+            'event_type' => 'localization.preferences.updated',
+            'entity_type' => 'user',
+            'entity_id' => (string) $user->id,
+        ]);
     }
 
     private function generateTotp(string $secret): string

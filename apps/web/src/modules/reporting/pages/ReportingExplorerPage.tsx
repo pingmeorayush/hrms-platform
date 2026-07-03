@@ -3,6 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Archive, ArrowRight, Download, Save, Table2 } from 'lucide-react'
 import { useAccessSnapshot } from '../../access/hooks/useAccessSnapshot'
+import {
+  formatRegionalCurrency,
+  formatRegionalDate,
+  formatRegionalDateTime,
+} from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Input } from '../../../shared/ui/input'
@@ -50,17 +55,16 @@ function renderValue(field: ReportingApprovedField, value: unknown) {
     return value ? 'Yes' : 'No'
   }
 
-  if (field.type === 'date' || field.type === 'datetime') {
-    const date = new Date(String(value))
-    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString()
+  if (field.type === 'date') {
+    return formatRegionalDate(String(value), String(value))
+  }
+
+  if (field.type === 'datetime') {
+    return formatRegionalDateTime(String(value), String(value))
   }
 
   if (field.type === 'currency' && typeof value === 'number') {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(value)
+    return formatRegionalCurrency(value, 'INR', { maximumFractionDigits: 0 }, String(value))
   }
 
   return String(value)
@@ -79,14 +83,12 @@ function formatFreshness(generatedAt: string | null, expectationMinutes: number 
     return 'Awaiting governed query'
   }
 
-  const generatedDate = new Date(generatedAt)
-  if (Number.isNaN(generatedDate.getTime())) {
+  const formatted = formatRegionalDateTime(generatedAt, 'Freshness timestamp unavailable')
+  if (formatted === 'Freshness timestamp unavailable') {
     return 'Freshness timestamp unavailable'
   }
 
-  return expectationMinutes
-    ? `${generatedDate.toLocaleString()} · ${expectationMinutes} minute expectation`
-    : generatedDate.toLocaleString()
+  return expectationMinutes ? `${formatted} · ${expectationMinutes} minute expectation` : formatted
 }
 
 export function ReportingExplorerPage() {

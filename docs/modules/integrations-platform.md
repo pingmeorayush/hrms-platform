@@ -57,7 +57,26 @@ The Integrations Platform provides governed inbound and outbound connectivity be
 
 ## Primary APIs
 
-- Integration APIs are referenced in the source PDF and should be added to the canonical OpenAPI inventory during implementation
+- `GET /api/v1/integrations/catalog`
+- `GET /api/v1/integrations/connections`
+- `POST /api/v1/integrations/connections`
+- `PATCH /api/v1/integrations/connections/{integrationConnectionId}`
+- `GET /api/v1/integrations/webhook-subscriptions`
+- `POST /api/v1/integrations/webhook-subscriptions`
+- `PATCH /api/v1/integrations/webhook-subscriptions/{webhookSubscriptionId}`
+- `POST /api/v1/integrations/events/dispatch`
+- `GET /api/v1/integrations/sync-jobs`
+- `GET /api/v1/integrations/sync-jobs/{integrationSyncJobId}`
+- `POST /api/v1/integrations/sync-jobs/{integrationSyncJobId}/process`
+- `POST /api/v1/integrations/sync-jobs/{integrationSyncJobId}/retry`
+- `POST /api/v1/integrations/webhooks/{subscriptionKey}`
+
+## Current Workspace Baseline
+
+- The Sprint 09 contract inventory now includes `apps/api/openapi/sprint-09-mobile-ess-globalization.yaml` for the live mobile-consumable and localization APIs.
+- The current workspace now exposes tenant-scoped integration connection, webhook subscription, outbound dispatch, public inbound webhook, sync-job listing, sync-job detail, process, and retry APIs in `apps/api`.
+- Operator monitoring is now available in `apps/web` through the routed `/operations/integrations` workspace, including demo-mode queue processing, retry, selected-job payload and header review, event dispatch, and connection or subscription setup flows.
+- The reviewed integration contract is now published as `apps/api/openapi/sprint-09-integrations.yaml`, giving backend, frontend, QA, and downstream integration teams a dedicated source of truth for `S09-004` and `S09-005`.
 
 ## Dependencies
 

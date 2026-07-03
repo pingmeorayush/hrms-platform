@@ -55,6 +55,13 @@ The Mobile Platform extends PhoenixHRMS into secure, role-aware mobile experienc
 ## Primary APIs
 
 - Mobile experiences consume the existing HRMS API set rather than a separate domain-specific API surface
+- The current reviewable mobile-consumer contract is `apps/api/openapi/sprint-09-mobile-ess-globalization.yaml`
+
+## Current Workspace Baseline
+
+- The current workspace does not ship a separate mobile app package yet, but it now publishes a Sprint 09 consumer contract for the live auth, attendance, leave, payslip, notification, task-center, policy acknowledgement, self-service, and localization APIs that a mobile client would call.
+- Regional settings for future mobile flows should consume the same `GET /api/v1/localization`, `GET /api/v1/auth/me`, `PATCH /api/v1/localization/preferences`, and `PATCH /api/v1/organization/company-profile` contract already used by the web app.
+- Device registration, trusted-session, push-token, offline-sync, and biometric-specific APIs are still deferred.
 
 ## Dependencies
 

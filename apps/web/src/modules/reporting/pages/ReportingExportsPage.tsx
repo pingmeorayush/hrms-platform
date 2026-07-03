@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Download, FileClock, PlayCircle } from 'lucide-react'
+import {
+  formatRegionalDateTime,
+  formatRegionalNumber,
+} from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
@@ -175,7 +179,9 @@ export function ReportingExportsPage() {
                         <TableCell>
                           <div className="space-y-1">
                             <p className="font-medium text-foreground">{record.file.name ?? record.export_uuid}</p>
-                            <p className="text-xs text-muted-foreground">{record.requested_at ? new Date(record.requested_at).toLocaleString() : 'Request time pending'}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatRegionalDateTime(record.requested_at, 'Request time pending')}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -183,7 +189,11 @@ export function ReportingExportsPage() {
                         </TableCell>
                         <TableCell>{record.dataset?.name ?? 'Dataset pending'}</TableCell>
                         <TableCell>{record.format.toUpperCase()}</TableCell>
-                        <TableCell>{record.counts.exported_row_count ?? record.counts.estimated_row_count ?? '—'}</TableCell>
+                        <TableCell>
+                          {typeof (record.counts.exported_row_count ?? record.counts.estimated_row_count) === 'number'
+                            ? formatRegionalNumber(record.counts.exported_row_count ?? record.counts.estimated_row_count)
+                            : '—'}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -218,11 +228,18 @@ export function ReportingExportsPage() {
                       <WorkspaceSummaryRow label="Execution" value={selectedExport.execution_mode} />
                       <WorkspaceSummaryRow
                         label="Rows"
-                        value={selectedExport.counts.exported_row_count ?? selectedExport.counts.estimated_row_count ?? '—'}
+                        value={
+                          typeof (selectedExport.counts.exported_row_count ?? selectedExport.counts.estimated_row_count) ===
+                          'number'
+                            ? formatRegionalNumber(
+                                selectedExport.counts.exported_row_count ?? selectedExport.counts.estimated_row_count,
+                              )
+                            : '—'
+                        }
                       />
                       <WorkspaceSummaryRow
                         label="Retention"
-                        value={selectedExport.retention.expires_at ? new Date(selectedExport.retention.expires_at).toLocaleString() : 'Not started'}
+                        value={formatRegionalDateTime(selectedExport.retention.expires_at, 'Not started')}
                       />
                     </div>
                     {selectedExport.last_error ? (

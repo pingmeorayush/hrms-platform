@@ -1,15 +1,8 @@
 import type { LeaveRequestRecord } from '../types'
+import { formatRegionalDate } from '../../../shared/regionalization/formatters'
 
 export function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not available')
 }
 
 export function formatRequestStatus(status: LeaveRequestRecord['status']) {

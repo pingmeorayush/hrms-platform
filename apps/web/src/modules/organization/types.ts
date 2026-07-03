@@ -10,6 +10,11 @@ export interface CompanyProfile {
   subscription_plan: string | null
   timezone: string
   currency: string
+  country_code: string
+  locale: string
+  language: string
+  time_format: '12h' | '24h'
+  expansion_country_codes: string[]
   created_at: string | null
   updated_at: string | null
 }
@@ -60,6 +65,11 @@ export interface CompanyProfileFormValues {
   subscription_plan: string
   timezone: string
   currency: string
+  country_code: string
+  locale: string
+  language: string
+  time_format: '12h' | '24h'
+  expansion_country_codes: string[]
 }
 
 export interface OrganizationMasterFormValues {

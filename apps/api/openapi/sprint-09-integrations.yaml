@@ -1,0 +1,1077 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 09 Integrations Contract
+  version: 0.1.0
+  description: >
+    Governed integration, webhook, and sync-job APIs delivered for Sprint 09.
+    This contract covers connection setup, webhook subscriptions, operator-driven
+    outbound dispatch, inbound webhook ingestion, sync-job monitoring, and retry controls.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+servers:
+  - url: /api/v1
+tags:
+  - name: Integrations
+    description: Governed external connectivity and sync-job operations
+paths:
+  /integrations/catalog:
+    get:
+      tags: [Integrations]
+      summary: Load approved integration systems and events
+      operationId: getIntegrationCatalog
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Integration catalog loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationCatalogResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /integrations/connections:
+    get:
+      tags: [Integrations]
+      summary: List governed integration connections
+      operationId: listIntegrationConnections
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: system_key
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, active, paused]
+        - in: query
+          name: direction
+          schema:
+            type: string
+            enum: [inbound, outbound, bidirectional]
+      responses:
+        '200':
+          description: Integration connections loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationConnectionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Integrations]
+      summary: Create an integration connection
+      operationId: createIntegrationConnection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIntegrationConnectionRequest'
+      responses:
+        '201':
+          description: Integration connection created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationConnectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /integrations/connections/{integrationConnectionId}:
+    patch:
+      tags: [Integrations]
+      summary: Update an integration connection
+      operationId: updateIntegrationConnection
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IntegrationConnectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIntegrationConnectionRequest'
+      responses:
+        '200':
+          description: Integration connection updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationConnectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /integrations/webhook-subscriptions:
+    get:
+      tags: [Integrations]
+      summary: List webhook subscriptions
+      operationId: listWebhookSubscriptions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: integration_connection_id
+          schema:
+            type: integer
+        - in: query
+          name: event_key
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, paused, disabled]
+        - in: query
+          name: direction
+          schema:
+            type: string
+            enum: [inbound, outbound]
+      responses:
+        '200':
+          description: Webhook subscriptions loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscriptionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Integrations]
+      summary: Create a webhook subscription
+      operationId: createWebhookSubscription
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookSubscriptionRequest'
+      responses:
+        '201':
+          description: Webhook subscription created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscriptionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /integrations/webhook-subscriptions/{webhookSubscriptionId}:
+    patch:
+      tags: [Integrations]
+      summary: Update a webhook subscription
+      operationId: updateWebhookSubscription
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WebhookSubscriptionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWebhookSubscriptionRequest'
+      responses:
+        '200':
+          description: Webhook subscription updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscriptionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /integrations/events/dispatch:
+    post:
+      tags: [Integrations]
+      summary: Dispatch an approved outbound integration event
+      operationId: dispatchIntegrationEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DispatchIntegrationEventRequest'
+      responses:
+        '201':
+          description: Integration event dispatched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationDispatchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /integrations/sync-jobs:
+    get:
+      tags: [Integrations]
+      summary: List sync jobs for operator monitoring
+      operationId: listIntegrationSyncJobs
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [queued, running, failed, retried, completed]
+        - in: query
+          name: event_key
+          schema:
+            type: string
+        - in: query
+          name: integration_connection_id
+          schema:
+            type: integer
+        - in: query
+          name: webhook_subscription_id
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sync jobs loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationSyncJobListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /integrations/sync-jobs/{integrationSyncJobId}:
+    get:
+      tags: [Integrations]
+      summary: Show a sync job and its error history
+      operationId: showIntegrationSyncJob
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IntegrationSyncJobId'
+      responses:
+        '200':
+          description: Sync job loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationSyncJobResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /integrations/sync-jobs/{integrationSyncJobId}/process:
+    post:
+      tags: [Integrations]
+      summary: Process a queued or failed sync job
+      operationId: processIntegrationSyncJob
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IntegrationSyncJobId'
+      responses:
+        '200':
+          description: Sync job processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationSyncJobResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /integrations/sync-jobs/{integrationSyncJobId}/retry:
+    post:
+      tags: [Integrations]
+      summary: Retry a failed sync job
+      operationId: retryIntegrationSyncJob
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IntegrationSyncJobId'
+      responses:
+        '200':
+          description: Sync job retried
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationSyncJobResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /integrations/webhooks/{subscriptionKey}:
+    post:
+      tags: [Integrations]
+      summary: Receive a signed inbound webhook payload
+      operationId: receiveIntegrationWebhook
+      security: []
+      parameters:
+        - in: path
+          name: subscriptionKey
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Webhook accepted into the sync queue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationSyncJobResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+  parameters:
+    IntegrationConnectionId:
+      in: path
+      name: integrationConnectionId
+      required: true
+      schema:
+        type: integer
+    WebhookSubscriptionId:
+      in: path
+      name: webhookSubscriptionId
+      required: true
+      schema:
+        type: integer
+    IntegrationSyncJobId:
+      in: path
+      name: integrationSyncJobId
+      required: true
+      schema:
+        type: integer
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    IntegrationCatalogResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            systems:
+              type: array
+              items:
+                $ref: '#/components/schemas/IntegrationSystem'
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/IntegrationEvent'
+          required: [systems, events]
+      required: [success, message, data]
+    IntegrationConnectionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/IntegrationConnection'
+          required: [items]
+      required: [success, message, data]
+    IntegrationConnectionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IntegrationConnection'
+      required: [success, message, data]
+    WebhookSubscriptionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/WebhookSubscription'
+          required: [items]
+      required: [success, message, data]
+    WebhookSubscriptionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WebhookSubscription'
+      required: [success, message, data]
+    IntegrationDispatchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/IntegrationSyncJob'
+          required: [items]
+      required: [success, message, data]
+    IntegrationSyncJobListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/IntegrationSyncJob'
+            meta:
+              $ref: '#/components/schemas/PaginationMeta'
+          required: [items, meta]
+      required: [success, message, data]
+    IntegrationSyncJobResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IntegrationSyncJob'
+      required: [success, message, data]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message, errors]
+    IntegrationSystem:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        directions:
+          type: array
+          items:
+            type: string
+      required: [key, name, description, directions]
+    IntegrationEvent:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        entity_type:
+          type: string
+        directions:
+          type: array
+          items:
+            type: string
+        systems:
+          type: array
+          items:
+            type: string
+      required: [key, name, description, entity_type, directions, systems]
+    IntegrationConnection:
+      type: object
+      properties:
+        id:
+          type: integer
+        system_key:
+          type: string
+        version:
+          type: string
+        name:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound, bidirectional]
+        status:
+          type: string
+          enum: [draft, active, paused]
+        auth_mode:
+          type: string
+          enum: [none, bearer, hmac_sha256]
+        endpoint_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        description:
+          type:
+            - string
+            - 'null'
+        scopes:
+          type: array
+          items:
+            type: string
+        settings:
+          type: object
+          additionalProperties: true
+        active_subscription_count:
+          type:
+            - integer
+            - 'null'
+        last_synced_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required: [id, system_key, version, name, direction, status, auth_mode, endpoint_url, description, scopes, settings, last_synced_at, created_at, updated_at]
+    WebhookSubscription:
+      type: object
+      properties:
+        id:
+          type: integer
+        subscription_key:
+          type: string
+          format: uuid
+        integration_connection_id:
+          type: integer
+        version:
+          type: string
+        event_key:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        status:
+          type: string
+          enum: [active, paused, disabled]
+        endpoint_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        secret_preview:
+          type:
+            - string
+            - 'null'
+        custom_headers:
+          type: object
+          additionalProperties: true
+        filter_rules:
+          type: object
+          additionalProperties: true
+        connection:
+          type:
+            - object
+            - 'null'
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            system_key:
+              type:
+                - string
+                - 'null'
+            name:
+              type:
+                - string
+                - 'null'
+            status:
+              type:
+                - string
+                - 'null'
+        last_delivery_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        last_received_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required: [id, subscription_key, integration_connection_id, version, event_key, direction, status, endpoint_url, secret_preview, custom_headers, filter_rules, connection, last_delivery_at, last_received_at, created_at, updated_at]
+    IntegrationSyncError:
+      type: object
+      properties:
+        id:
+          type: integer
+        attempt_number:
+          type: integer
+        error_code:
+          type:
+            - string
+            - 'null'
+        error_message:
+          type: string
+        request_payload:
+          type: object
+          additionalProperties: true
+        response_payload:
+          type: object
+          additionalProperties: true
+        request_headers:
+          type: object
+          additionalProperties: true
+        response_headers:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        resolved_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required: [id, attempt_number, error_code, error_message, request_payload, response_payload, request_headers, response_headers, occurred_at, resolved_at]
+    IntegrationSyncJob:
+      type: object
+      properties:
+        id:
+          type: integer
+        job_uuid:
+          type: string
+          format: uuid
+        version:
+          type: string
+        system_key:
+          type: string
+        event_key:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        status:
+          type: string
+          enum: [queued, running, failed, completed]
+        monitoring_state:
+          type: string
+          enum: [queued, running, failed, retried, completed]
+        trigger_source:
+          type: string
+        entity_type:
+          type:
+            - string
+            - 'null'
+        entity_id:
+          type:
+            - string
+            - 'null'
+        request_payload:
+          type: object
+          additionalProperties: true
+        response_payload:
+          type: object
+          additionalProperties: true
+        request_headers:
+          type: object
+          additionalProperties: true
+        response_headers:
+          type: object
+          additionalProperties: true
+        attempts_count:
+          type: integer
+        last_attempt_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        queued_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        started_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        failed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        retried_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        last_error:
+          type:
+            - string
+            - 'null'
+        can_retry:
+          type: boolean
+        connection:
+          type:
+            - object
+            - 'null'
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            system_key:
+              type:
+                - string
+                - 'null'
+            name:
+              type:
+                - string
+                - 'null'
+            status:
+              type:
+                - string
+                - 'null'
+        subscription:
+          type:
+            - object
+            - 'null'
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            subscription_key:
+              type:
+                - string
+                - 'null'
+            event_key:
+              type:
+                - string
+                - 'null'
+            direction:
+              type:
+                - string
+                - 'null'
+            status:
+              type:
+                - string
+                - 'null'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntegrationSyncError'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required: [id, job_uuid, version, system_key, event_key, direction, status, monitoring_state, trigger_source, entity_type, entity_id, request_payload, response_payload, request_headers, response_headers, attempts_count, last_attempt_at, queued_at, started_at, completed_at, failed_at, retried_at, last_error, can_retry, connection, subscription, errors, created_at, updated_at]
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+      required: [page, per_page, total, last_page]
+    CreateIntegrationConnectionRequest:
+      type: object
+      properties:
+        system_key:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound, bidirectional]
+        status:
+          type: string
+          enum: [draft, active, paused]
+        auth_mode:
+          type: string
+          enum: [none, bearer, hmac_sha256]
+        endpoint_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        description:
+          type:
+            - string
+            - 'null'
+        scopes:
+          type: array
+          items:
+            type: string
+        settings:
+          type: object
+          additionalProperties: true
+      required: [system_key, name, direction]
+    UpdateIntegrationConnectionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound, bidirectional]
+        status:
+          type: string
+          enum: [draft, active, paused]
+        auth_mode:
+          type: string
+          enum: [none, bearer, hmac_sha256]
+        endpoint_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        description:
+          type:
+            - string
+            - 'null'
+        scopes:
+          type: array
+          items:
+            type: string
+        settings:
+          type: object
+          additionalProperties: true
+    CreateWebhookSubscriptionRequest:
+      type: object
+      properties:
+        integration_connection_id:
+          type: integer
+        event_key:
+          type: string
+        version:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        status:
+          type: string
+          enum: [active, paused, disabled]
+        endpoint_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        secret:
+          type: string
+        custom_headers:
+          type: object
+          additionalProperties: true
+        filter_rules:
+          type: object
+          additionalProperties: true
+      required: [integration_connection_id, event_key, direction, secret]
+    UpdateWebhookSubscriptionRequest:
+      type: object
+      properties:
+        event_key:
+          type: string
+        version:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        status:
+          type: string
+          enum: [active, paused, disabled]
+        endpoint_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        secret:
+          type: string
+        custom_headers:
+          type: object
+          additionalProperties: true
+        filter_rules:
+          type: object
+          additionalProperties: true
+    DispatchIntegrationEventRequest:
+      type: object
+      properties:
+        event_key:
+          type: string
+        entity_type:
+          type:
+            - string
+            - 'null'
+        entity_id:
+          type:
+            - string
+            - 'null'
+        payload:
+          type: object
+          additionalProperties: true
+        subscription_ids:
+          type: array
+          items:
+            type: integer
+        process_now:
+          type: boolean
+      required: [event_key, payload]

@@ -1,0 +1,1402 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 10 Operations and Release Controls Contract
+  version: 0.1.0
+  description: >
+    Governed operational status and release-control APIs delivered for Sprint 10.
+    This contract covers release-quality gates, observability, resilience readiness,
+    recovery validation logging, launch-readiness review, and persisted go/no-go
+    decisions.
+
+    The governed AI Assistant surface is published separately in
+    `sprint-10-ai-assistant.yaml` so release and operations controls remain
+    independently versioned from the Sprint 10 AI contract.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+  x-phoenix-supported-ai-http-surface:
+    published: true
+    reason: AI-specific API routes are implemented and published in sprint-10-ai-assistant.yaml.
+servers:
+  - url: /api/v1
+tags:
+  - name: Release Engineering
+    description: Release-quality gates and protected-promotion controls
+  - name: Observability
+    description: Operational health, alert routing, and release-critical telemetry
+  - name: Resilience
+    description: Backup, restore, and disaster-recovery readiness controls
+  - name: Launch Governance
+    description: Final release-readiness review, blockers, runbooks, and go/no-go decisions
+paths:
+  /release/quality-gates:
+    get:
+      tags: [Release Engineering]
+      summary: Load release-quality gate posture
+      operationId: getReleaseQualityGates
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Release-quality baseline loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseQualityGatesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /observability/overview:
+    get:
+      tags: [Observability]
+      summary: Load the operational observability overview
+      operationId: getObservabilityOverview
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Observability overview loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityOverviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /resilience/readiness:
+    get:
+      tags: [Resilience]
+      summary: Load backup and recovery readiness
+      operationId: getResilienceReadiness
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resilience readiness loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResilienceReadinessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /resilience/validation-runs:
+    post:
+      tags: [Resilience]
+      summary: Record a backup, restore, or DR validation run
+      operationId: createResilienceValidationRun
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResilienceValidationRunRequest'
+      responses:
+        '201':
+          description: Validation run recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResilienceValidationRunResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /release/readiness:
+    get:
+      tags: [Launch Governance]
+      summary: Load release-readiness checklist and launch review posture
+      operationId: getReleaseReadiness
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Release-readiness overview loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseReadinessOverviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /release/readiness/decisions:
+    post:
+      tags: [Launch Governance]
+      summary: Record a go, conditional, or no-go launch decision
+      operationId: createReleaseReadinessDecision
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReleaseReadinessDecisionRequest'
+      responses:
+        '201':
+          description: Release-readiness decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseReadinessDecisionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  responses:
+    Unauthorized:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: The session does not have permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: The request payload failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ReleaseQualityGatesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReleaseQualityOverview'
+      required: [success, message, data]
+    ObservabilityOverviewResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ObservabilityOverview'
+      required: [success, message, data]
+    ResilienceReadinessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ResilienceOverview'
+      required: [success, message, data]
+    ResilienceValidationRunResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ResilienceValidationRun'
+      required: [success, message, data]
+    ReleaseReadinessOverviewResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReleaseReadinessOverview'
+      required: [success, message, data]
+    ReleaseReadinessDecisionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReleaseReadinessDecision'
+      required: [success, message, data]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message, errors]
+    ReleaseQualityOverview:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/ReleaseSummary'
+        policy:
+          $ref: '#/components/schemas/ReleasePolicy'
+        gates:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseGate'
+        environments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseEnvironment'
+      required: [summary, policy, gates, environments]
+    ReleaseSummary:
+      type: object
+      properties:
+        total_gate_count:
+          type: integer
+        blocking_gate_count:
+          type: integer
+        passing_gate_count:
+          type: integer
+        pending_gate_count:
+          type: integer
+        warning_gate_count:
+          type: integer
+        blocked_environment_count:
+          type: integer
+        protected_environment_count:
+          type: integer
+      required:
+        - total_gate_count
+        - blocking_gate_count
+        - passing_gate_count
+        - pending_gate_count
+        - warning_gate_count
+        - blocked_environment_count
+        - protected_environment_count
+    ReleasePolicy:
+      type: object
+      properties:
+        protected_branch:
+          type: string
+        promotion_rule:
+          type: string
+        required_workflow_names:
+          type: array
+          items:
+            type: string
+        reviewer_roles:
+          type: array
+          items:
+            type: string
+        artifact_paths:
+          type: array
+          items:
+            type: string
+      required: [protected_branch, promotion_rule, required_workflow_names, reviewer_roles, artifact_paths]
+    ReleaseGate:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+          enum: [passing, pending, warning, blocked]
+        blocking:
+          type: boolean
+        owner_role:
+          type: string
+        workflow_name:
+          type: string
+        workflow_path:
+          type: string
+        summary:
+          type: string
+        last_run_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        required_for:
+          type: array
+          items:
+            type: string
+        artifact_refs:
+          type: array
+          items:
+            type: string
+        check_count:
+          type: integer
+        failing_check_count:
+          type: integer
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseGateCheck'
+      required:
+        - key
+        - name
+        - category
+        - status
+        - blocking
+        - owner_role
+        - workflow_name
+        - workflow_path
+        - summary
+        - last_run_at
+        - required_for
+        - artifact_refs
+        - check_count
+        - failing_check_count
+        - checks
+    ReleaseGateCheck:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [passing, pending, warning, blocked]
+        command:
+          type: string
+      required: [key, label, status, command]
+    ReleaseEnvironment:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [passing, pending, blocked]
+        manual_approval_required:
+          type: boolean
+        required_gate_keys:
+          type: array
+          items:
+            type: string
+        required_gate_count:
+          type: integer
+        blocking_gate_count:
+          type: integer
+        blocked_reason:
+          type:
+            - string
+            - 'null'
+      required:
+        - key
+        - name
+        - status
+        - manual_approval_required
+        - required_gate_keys
+        - required_gate_count
+        - blocking_gate_count
+        - blocked_reason
+    ObservabilityOverview:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/ObservabilitySummary'
+        telemetry:
+          $ref: '#/components/schemas/ObservabilityTelemetry'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilityService'
+        signals:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilitySignal'
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilityAlert'
+        alert_routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilityAlertRoute'
+        coverage:
+          $ref: '#/components/schemas/ObservabilityCoverage'
+      required: [summary, telemetry, services, signals, alerts, alert_routes, coverage]
+    ObservabilitySummary:
+      type: object
+      properties:
+        service_count:
+          type: integer
+        healthy_service_count:
+          type: integer
+        degraded_service_count:
+          type: integer
+        critical_service_count:
+          type: integer
+        active_alert_count:
+          type: integer
+        routed_alert_count:
+          type: integer
+        monitored_workflow_count:
+          type: integer
+        monitored_integration_count:
+          type: integer
+        release_critical_coverage_count:
+          type: integer
+      required:
+        - service_count
+        - healthy_service_count
+        - degraded_service_count
+        - critical_service_count
+        - active_alert_count
+        - routed_alert_count
+        - monitored_workflow_count
+        - monitored_integration_count
+        - release_critical_coverage_count
+    ObservabilityTelemetry:
+      type: object
+      properties:
+        health_endpoint:
+          type: string
+        default_log_channel:
+          type: string
+        slack_alert_channel:
+          type:
+            - string
+            - 'null'
+        dashboard_refresh_minutes:
+          type: integer
+        required_release_workflows:
+          type: array
+          items:
+            type: string
+      required:
+        - health_endpoint
+        - default_log_channel
+        - slack_alert_channel
+        - dashboard_refresh_minutes
+        - required_release_workflows
+    ObservabilityService:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        owner_role:
+          type: string
+        status:
+          type: string
+          enum: [healthy, degraded, critical]
+        summary:
+          type: string
+        signal_keys:
+          type: array
+          items:
+            type: string
+        alert_count:
+          type: integer
+        metric_count:
+          type: integer
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilityServiceMetric'
+      required: [key, name, category, owner_role, status, summary, signal_keys, alert_count, metric_count, metrics]
+    ObservabilityServiceMetric:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        value:
+          type: integer
+        threshold:
+          type:
+            - integer
+            - 'null'
+        unit:
+          type: string
+        status:
+          type: string
+          enum: [healthy, warning, critical]
+      required: [key, label, value, threshold, unit, status]
+    ObservabilitySignal:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        service_key:
+          type: string
+        status:
+          type: string
+          enum: [healthy, warning, critical]
+        severity:
+          type:
+            - string
+            - 'null'
+        owner_role:
+          type: string
+        value:
+          type: integer
+        threshold:
+          type:
+            - integer
+            - 'null'
+        unit:
+          type: string
+        summary:
+          type: string
+        observed_at:
+          type: string
+          format: date-time
+        route_key:
+          type:
+            - string
+            - 'null'
+        route_name:
+          type:
+            - string
+            - 'null'
+        route_channels:
+          type: array
+          items:
+            type: string
+        drill_in_label:
+          type: string
+        drill_in_path:
+          type: string
+      required:
+        - key
+        - name
+        - category
+        - service_key
+        - status
+        - severity
+        - owner_role
+        - value
+        - threshold
+        - unit
+        - summary
+        - observed_at
+        - route_key
+        - route_name
+        - route_channels
+        - drill_in_label
+        - drill_in_path
+    ObservabilityAlert:
+      type: object
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        severity:
+          type: string
+        service_key:
+          type: string
+        service_name:
+          type: string
+        signal_key:
+          type: string
+        status:
+          type: string
+        owner_role:
+          type: string
+        route_key:
+          type:
+            - string
+            - 'null'
+        route_name:
+          type:
+            - string
+            - 'null'
+        channels:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+      required:
+        - key
+        - title
+        - severity
+        - service_key
+        - service_name
+        - signal_key
+        - status
+        - owner_role
+        - route_key
+        - route_name
+        - channels
+        - summary
+        - started_at
+    ObservabilityAlertRoute:
+      type: object
+      properties:
+        key:
+          type: string
+        severity:
+          type: string
+        name:
+          type: string
+        owner_team:
+          type: string
+        channels:
+          type: array
+          items:
+            type: string
+        initial_response_minutes:
+          type: integer
+        escalation_minutes:
+          type: integer
+      required: [key, severity, name, owner_team, channels, initial_response_minutes, escalation_minutes]
+    ObservabilityCoverage:
+      type: object
+      properties:
+        workflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilityCoverageItem'
+        integrations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilityCoverageItem'
+        release_critical:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservabilityCoverageItem'
+      required: [workflows, integrations, release_critical]
+    ObservabilityCoverageItem:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        area:
+          type: string
+        owner_role:
+          type: string
+        coverage_state:
+          type: string
+        monitored_entity_count:
+          type: integer
+        issue_count:
+          type: integer
+        signal_keys:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+      required:
+        - key
+        - name
+        - area
+        - owner_role
+        - coverage_state
+        - monitored_entity_count
+        - issue_count
+        - signal_keys
+        - summary
+    ResilienceOverview:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/ResilienceSummary'
+        policy:
+          $ref: '#/components/schemas/ResiliencePolicy'
+        scenarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResilienceScenario'
+        runbook:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResilienceRunbookStep'
+        validation_runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResilienceValidationRun'
+      required: [summary, policy, scenarios, runbook, validation_runs]
+    ResilienceSummary:
+      type: object
+      properties:
+        total_scenario_count:
+          type: integer
+        ready_scenario_count:
+          type: integer
+        attention_scenario_count:
+          type: integer
+        failed_scenario_count:
+          type: integer
+        overdue_scenario_count:
+          type: integer
+        validation_run_count:
+          type: integer
+        latest_validation_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - total_scenario_count
+        - ready_scenario_count
+        - attention_scenario_count
+        - failed_scenario_count
+        - overdue_scenario_count
+        - validation_run_count
+        - latest_validation_at
+    ResiliencePolicy:
+      type: object
+      properties:
+        primary_region:
+          type: string
+        secondary_region:
+          type: string
+        backup_cadence:
+          type: string
+        restore_validation_cadence:
+          type: string
+        dr_drill_cadence:
+          type: string
+        retention_policy:
+          type: string
+        encryption_posture:
+          type: string
+        coverage_scope:
+          type: string
+        default_rpo_minutes:
+          type: integer
+        default_rto_minutes:
+          type: integer
+        artifact_refs:
+          type: array
+          items:
+            type: string
+      required:
+        - primary_region
+        - secondary_region
+        - backup_cadence
+        - restore_validation_cadence
+        - dr_drill_cadence
+        - retention_policy
+        - encryption_posture
+        - coverage_scope
+        - default_rpo_minutes
+        - default_rto_minutes
+        - artifact_refs
+    ResilienceScenario:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        scenario_type:
+          type: string
+        environment:
+          type: string
+        owner_role:
+          type: string
+        cadence_days:
+          type: integer
+        recovery_point_objective_minutes:
+          type: integer
+        recovery_time_objective_minutes:
+          type: integer
+        status:
+          type: string
+          enum: [ready, attention, failed]
+        summary:
+          type: string
+        overdue:
+          type: boolean
+        blocked_reason:
+          type:
+            - string
+            - 'null'
+        last_validated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        next_validation_due_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        evidence_requirements:
+          type: array
+          items:
+            type: string
+        latest_run:
+          oneOf:
+            - $ref: '#/components/schemas/ResilienceValidationRun'
+            - type: 'null'
+      required:
+        - key
+        - name
+        - scenario_type
+        - environment
+        - owner_role
+        - cadence_days
+        - recovery_point_objective_minutes
+        - recovery_time_objective_minutes
+        - status
+        - summary
+        - overdue
+        - blocked_reason
+        - last_validated_at
+        - next_validation_due_at
+        - evidence_requirements
+        - latest_run
+    ResilienceRunbookStep:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        sequence:
+          type: integer
+        owner_role:
+          type: string
+        objective:
+          type: string
+        evidence_requirements:
+          type: array
+          items:
+            type: string
+      required: [key, name, sequence, owner_role, objective, evidence_requirements]
+    ResilienceValidationRun:
+      type: object
+      properties:
+        id:
+          type: integer
+        scenario_key:
+          type: string
+        scenario_name:
+          type: string
+        scenario_type:
+          type: string
+        environment:
+          type: string
+        status:
+          type: string
+          enum: [passed, issues_found, failed, in_progress]
+        recovery_point_actual_minutes:
+          type:
+            - integer
+            - 'null'
+        recovery_time_actual_minutes:
+          type:
+            - integer
+            - 'null'
+        evidence_refs:
+          type: array
+          items:
+            type: string
+        notes:
+          type:
+            - string
+            - 'null'
+        started_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        executed_by_user_id:
+          type:
+            - integer
+            - 'null'
+        executed_by_name:
+          type:
+            - string
+            - 'null'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - id
+        - scenario_key
+        - scenario_name
+        - scenario_type
+        - environment
+        - status
+        - recovery_point_actual_minutes
+        - recovery_time_actual_minutes
+        - evidence_refs
+        - notes
+        - started_at
+        - completed_at
+        - executed_by_user_id
+        - executed_by_name
+        - created_at
+        - updated_at
+    CreateResilienceValidationRunRequest:
+      type: object
+      description: >
+        `evidence_refs` is required unless the status is `in_progress`.
+      properties:
+        scenario_key:
+          type: string
+        status:
+          type: string
+          enum: [passed, issues_found, failed, in_progress]
+        recovery_point_actual_minutes:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+          maximum: 10080
+        recovery_time_actual_minutes:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+          maximum: 10080
+        evidence_refs:
+          type: array
+          items:
+            type: string
+        notes:
+          type:
+            - string
+            - 'null'
+        started_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required: [scenario_key, status]
+    ReleaseReadinessOverview:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/ReleaseReadinessSummary'
+        policy:
+          $ref: '#/components/schemas/ReleaseReadinessPolicy'
+        recommendation:
+          $ref: '#/components/schemas/ReleaseReadinessRecommendation'
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseReadinessArea'
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseReadinessBlocker'
+        runbooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseReadinessRunbook'
+        latest_decision:
+          oneOf:
+            - $ref: '#/components/schemas/ReleaseReadinessDecision'
+            - type: 'null'
+        decision_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseReadinessDecision'
+      required:
+        - summary
+        - policy
+        - recommendation
+        - areas
+        - blockers
+        - runbooks
+        - latest_decision
+        - decision_history
+    ReleaseReadinessSummary:
+      type: object
+      properties:
+        total_area_count:
+          type: integer
+        ready_area_count:
+          type: integer
+        attention_area_count:
+          type: integer
+        blocked_area_count:
+          type: integer
+        blocker_count:
+          type: integer
+        runbook_count:
+          type: integer
+        decision_count:
+          type: integer
+        latest_decision_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - total_area_count
+        - ready_area_count
+        - attention_area_count
+        - blocked_area_count
+        - blocker_count
+        - runbook_count
+        - decision_count
+        - latest_decision_at
+    ReleaseReadinessPolicy:
+      type: object
+      properties:
+        review_cadence:
+          type: string
+        decision_owner_roles:
+          type: array
+          items:
+            type: string
+        target_environments:
+          type: array
+          items:
+            type: string
+        artifact_refs:
+          type: array
+          items:
+            type: string
+      required: [review_cadence, decision_owner_roles, target_environments, artifact_refs]
+    ReleaseReadinessRecommendation:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending_review, go, conditional, no_go]
+        summary:
+          type: string
+      required: [status, summary]
+    ReleaseReadinessArea:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [ready, attention, blocked]
+        source:
+          type: string
+        owner_role:
+          type: string
+        summary:
+          type: string
+        evidence_requirements:
+          type: array
+          items:
+            type: string
+        artifact_refs:
+          type: array
+          items:
+            type: string
+        check_count:
+          type: integer
+        blocking_item_count:
+          type: integer
+        attention_item_count:
+          type: integer
+        last_reviewed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseReadinessAreaItem'
+      required:
+        - key
+        - name
+        - status
+        - source
+        - owner_role
+        - summary
+        - evidence_requirements
+        - artifact_refs
+        - check_count
+        - blocking_item_count
+        - attention_item_count
+        - last_reviewed_at
+        - items
+    ReleaseReadinessAreaItem:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [ready, attention, blocked]
+        owner_role:
+          type: string
+        summary:
+          type: string
+        last_reviewed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        artifact_refs:
+          type: array
+          items:
+            type: string
+      required: [key, label, status, owner_role, summary, last_reviewed_at, artifact_refs]
+    ReleaseReadinessBlocker:
+      type: object
+      properties:
+        key:
+          type: string
+        area_key:
+          type:
+            - string
+            - 'null'
+        area_name:
+          type:
+            - string
+            - 'null'
+        title:
+          type: string
+        status:
+          type: string
+        owner_role:
+          type: string
+        source:
+          type: string
+        summary:
+          type: string
+        artifact_refs:
+          type: array
+          items:
+            type: string
+      required: [key, area_key, area_name, title, status, owner_role, source, summary, artifact_refs]
+    ReleaseReadinessRunbook:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        path:
+          type: string
+        owner_role:
+          type: string
+        summary:
+          type: string
+        when_to_use:
+          type: string
+      required: [key, name, path, owner_role, summary, when_to_use]
+    ReleaseReadinessDecision:
+      type: object
+      properties:
+        id:
+          type: integer
+        release_window_label:
+          type: string
+        target_environment:
+          type: string
+        decision_status:
+          type: string
+          enum: [go, conditional, no_go]
+        summary:
+          type: string
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseReadinessDecisionBlocker'
+        artifact_refs:
+          type: array
+          items:
+            type: string
+        checklist_snapshot:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseReadinessChecklistSnapshot'
+        decision_notes:
+          type:
+            - string
+            - 'null'
+        decided_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        decided_by_user_id:
+          type:
+            - integer
+            - 'null'
+        decided_by_name:
+          type:
+            - string
+            - 'null'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - id
+        - release_window_label
+        - target_environment
+        - decision_status
+        - summary
+        - blockers
+        - artifact_refs
+        - checklist_snapshot
+        - decision_notes
+        - decided_at
+        - decided_by_user_id
+        - decided_by_name
+        - created_at
+        - updated_at
+    ReleaseReadinessDecisionBlocker:
+      type: object
+      properties:
+        area_key:
+          type:
+            - string
+            - 'null'
+        title:
+          type: string
+        owner_role:
+          type: string
+        status:
+          type: string
+          enum: [open, mitigated, accepted]
+        notes:
+          type:
+            - string
+            - 'null'
+      required: [area_key, title, owner_role, status, notes]
+    ReleaseReadinessChecklistSnapshot:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [ready, attention, blocked]
+        blocking_item_count:
+          type: integer
+        attention_item_count:
+          type: integer
+        last_reviewed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required: [key, name, status, blocking_item_count, attention_item_count, last_reviewed_at]
+    CreateReleaseReadinessDecisionRequest:
+      type: object
+      description: >
+        `blockers` is required unless the decision status is `go`.
+      properties:
+        release_window_label:
+          type: string
+        target_environment:
+          type: string
+        decision_status:
+          type: string
+          enum: [go, conditional, no_go]
+        summary:
+          type: string
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateReleaseReadinessDecisionBlocker'
+        artifact_refs:
+          type: array
+          items:
+            type: string
+        decision_notes:
+          type:
+            - string
+            - 'null'
+        decided_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required: [release_window_label, target_environment, decision_status, summary]
+    CreateReleaseReadinessDecisionBlocker:
+      type: object
+      properties:
+        area_key:
+          type:
+            - string
+            - 'null'
+        title:
+          type: string
+        owner_role:
+          type: string
+        status:
+          type: string
+          enum: [open, mitigated, accepted]
+        notes:
+          type:
+            - string
+            - 'null'
+      required: [title, owner_role]

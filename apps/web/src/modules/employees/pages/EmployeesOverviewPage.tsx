@@ -14,6 +14,10 @@ import {
 import { useAccessSnapshot } from '../../access/hooks/useAccessSnapshot'
 import { useShellFavorites } from '../../../app/shell/favorites'
 import { getModuleRecentActivity, useShellRecent } from '../../../app/shell/recent'
+import {
+  formatRegionalDate,
+  formatRegionalRelativeTimestamp,
+} from '../../../shared/regionalization/formatters'
 import { buildDemoEmployeeWorkspace } from '../data/demoEmployeeProfiles'
 import { useEmployeeDirectory, employeeStatusOptions } from '../hooks/useEmployeeDirectory'
 import type { EmployeeDirectoryFilters, EmployeeRecord, EmployeeStatus } from '../types'
@@ -1042,11 +1046,7 @@ function statusLabel(value: EmployeeStatus) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, value)
 }
 
 function daysUntil(value: string) {
@@ -1059,13 +1059,5 @@ function daysUntil(value: string) {
 }
 
 function relativeTime(value: string | null) {
-  if (!value) {
-    return 'No activity time'
-  }
-
-  const now = Date.now()
-  const then = new Date(value).getTime()
-  const diffHours = Math.max(1, Math.round((now - then) / (1000 * 60 * 60)))
-
-  return diffHours < 24 ? `${diffHours}h ago` : `${Math.round(diffHours / 24)}d ago`
+  return formatRegionalRelativeTimestamp(value, 'No activity time')
 }

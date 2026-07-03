@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { formatRegionalDate } from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
@@ -247,15 +248,7 @@ export function OperationsLifecyclePage() {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'No due date'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'No due date')
 }
 
 function taskStatusVariant(status: string) {

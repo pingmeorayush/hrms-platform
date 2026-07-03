@@ -1,4 +1,5 @@
 import { Badge } from '../../../shared/ui/badge'
+import { formatRegionalDate } from '../../../shared/regionalization/formatters'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
 import {
   WorkspaceContent,
@@ -147,13 +148,5 @@ export function SelfServiceAssetsPage() {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not available')
 }

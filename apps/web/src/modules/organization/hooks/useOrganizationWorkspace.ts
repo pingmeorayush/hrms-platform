@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAppSelector } from '../../../app/store/hooks'
 import { useAccessSnapshot } from '../../access/hooks/useAccessSnapshot'
+import type { AccessSnapshot } from '../../access/types'
 import { buildDemoOrganizationWorkspace } from '../data/demoOrganizationWorkspace'
 import {
   createLocation,
@@ -11,6 +12,9 @@ import {
   updateLocation,
   updateOrganizationMaster,
 } from '../api/organizationApi'
+import { resolveTenantRegionalDefaults } from '../../../shared/regionalization/defaults'
+import { getCurrentRegionalSettings, setCurrentRegionalSettings } from '../../../shared/regionalization/state'
+import type { LocalizationConfiguration } from '../../../shared/regionalization/types'
 import type {
   CompanyProfileFormValues,
   LocationFormValues,
@@ -35,6 +39,14 @@ export function useOrganizationWorkspace() {
     () => [queryScope, access.apiBaseUrl, access.token] as const,
     [access.apiBaseUrl, access.token],
   )
+  const accessSnapshotQueryKey = useMemo(
+    () => ['access-snapshot', access.apiBaseUrl, access.token] as const,
+    [access.apiBaseUrl, access.token],
+  )
+  const localizationQueryKey = useMemo(
+    () => ['localization-configuration', access.apiBaseUrl, access.token] as const,
+    [access.apiBaseUrl, access.token],
+  )
 
   const liveEnabled = access.mode === 'live' && access.token.trim().length > 0
 
@@ -48,9 +60,57 @@ export function useOrganizationWorkspace() {
     mutationFn: (values: CompanyProfileFormValues) =>
       updateCompanyProfile(access.apiBaseUrl, access.token, values),
     onSuccess: (companyProfile) => {
+      const tenantDefaults = resolveTenantRegionalDefaults(companyProfile)
+      const currentSettings = getCurrentRegionalSettings()
+      const nextRegionalSettings = {
+        ...currentSettings,
+        country_code: tenantDefaults.country_code,
+        locale: currentSettings.source.locale === 'user' ? currentSettings.locale : tenantDefaults.locale,
+        language: currentSettings.source.language === 'user' ? currentSettings.language : tenantDefaults.language,
+        timezone: currentSettings.source.timezone === 'user' ? currentSettings.timezone : tenantDefaults.timezone,
+        currency: currentSettings.source.currency === 'user' ? currentSettings.currency : tenantDefaults.currency,
+        time_format:
+          currentSettings.source.time_format === 'user' ? currentSettings.time_format : tenantDefaults.time_format,
+        week_start: tenantDefaults.week_start,
+        expansion_country_codes: tenantDefaults.expansion_country_codes,
+      }
+
+      setCurrentRegionalSettings(nextRegionalSettings)
+
       queryClient.setQueryData<OrganizationWorkspaceData>(queryKey, (current) =>
         current ? { ...current, companyProfile } : current,
       )
+      queryClient.setQueryData<AccessSnapshot>(accessSnapshotQueryKey, (current) =>
+        current
+          ? {
+              ...current,
+              user: {
+                ...current.user,
+                tenant: {
+                  ...current.user.tenant,
+                  timezone: companyProfile.timezone,
+                  currency: companyProfile.currency,
+                  country_code: companyProfile.country_code,
+                  locale: companyProfile.locale,
+                  language: companyProfile.language,
+                  time_format: companyProfile.time_format,
+                  expansion_country_codes: companyProfile.expansion_country_codes,
+                },
+              },
+            }
+          : current,
+      )
+      queryClient.setQueryData<LocalizationConfiguration>(localizationQueryKey, (current) =>
+        current
+          ? {
+              ...current,
+              tenant_defaults: tenantDefaults,
+              effective_settings: nextRegionalSettings,
+            }
+          : current,
+      )
+      void queryClient.invalidateQueries({ queryKey: accessSnapshotQueryKey })
+      void queryClient.invalidateQueries({ queryKey: localizationQueryKey })
     },
   })
 
@@ -152,8 +212,31 @@ export function useOrganizationWorkspace() {
           subscription_plan: values.subscription_plan.trim() || null,
           timezone: values.timezone.trim(),
           currency: values.currency.trim().toUpperCase(),
+          country_code: values.country_code.trim().toUpperCase(),
+          locale: values.locale.trim(),
+          language: values.language.trim().toLowerCase(),
+          time_format: values.time_format,
+          expansion_country_codes: values.expansion_country_codes,
           updated_at: new Date().toISOString(),
         }
+
+        setCurrentRegionalSettings({
+          country_code: companyProfile.country_code,
+          locale: companyProfile.locale,
+          language: companyProfile.language,
+          timezone: companyProfile.timezone,
+          currency: companyProfile.currency,
+          time_format: companyProfile.time_format,
+          week_start: companyProfile.country_code === 'US' ? 'sunday' : 'monday',
+          expansion_country_codes: companyProfile.expansion_country_codes,
+          source: {
+            locale: 'tenant',
+            language: 'tenant',
+            timezone: 'tenant',
+            currency: 'tenant',
+            time_format: 'tenant',
+          },
+        })
 
         setDemoData((current) => ({ ...current, companyProfile }))
         return companyProfile

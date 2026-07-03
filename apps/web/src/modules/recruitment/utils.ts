@@ -8,6 +8,11 @@ import type {
   RecruitmentRequisitionStatus,
 } from './types'
 import type { BadgeVariant } from '../../shared/ui/badge'
+import {
+  formatRegionalCurrency,
+  formatRegionalDate,
+  formatRegionalDateTime,
+} from '../../shared/regionalization/formatters'
 
 export const recruitmentCandidateStages: RecruitmentCandidateStage[] = [
   'applied',
@@ -31,51 +36,15 @@ export function formatRecruitmentLabel(value: string | null | undefined) {
 }
 
 export function formatRecruitmentDate(value: string | null | undefined) {
-  if (!value) {
-    return 'Pending'
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(date)
+  return formatRegionalDate(value, 'Pending')
 }
 
 export function formatRecruitmentDateTime(value: string | null | undefined) {
-  if (!value) {
-    return 'Pending'
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date)
+  return formatRegionalDateTime(value, 'Pending')
 }
 
 export function formatRecruitmentCurrency(amount: number | null | undefined, currency = 'INR') {
-  if (typeof amount !== 'number' || Number.isNaN(amount)) {
-    return 'Pending'
-  }
-
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return formatRegionalCurrency(amount, currency, { maximumFractionDigits: 0 }, 'Pending')
 }
 
 export function requisitionStatusBadgeVariant(status: RecruitmentRequisitionStatus): BadgeVariant {

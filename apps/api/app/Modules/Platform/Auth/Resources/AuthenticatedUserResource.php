@@ -2,6 +2,7 @@
 
 namespace App\Modules\Platform\Auth\Resources;
 
+use App\Modules\GlobalizationLocalization\Services\LocalizationService;
 use App\Modules\Platform\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -11,6 +12,7 @@ class AuthenticatedUserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $tenantContext = app(TenantContext::class);
+        $localizationService = app(LocalizationService::class);
 
         return [
             'id' => $this->id,
@@ -33,7 +35,13 @@ class AuthenticatedUserResource extends JsonResource
                 'subscription_plan' => $tenantContext->subscriptionPlan,
                 'timezone' => $tenantContext->timezone,
                 'currency' => $tenantContext->currency,
+                'country_code' => $tenantContext->countryCode,
+                'locale' => $tenantContext->locale,
+                'language' => $tenantContext->language,
+                'time_format' => $tenantContext->timeFormat,
+                'expansion_country_codes' => $tenantContext->expansionCountryCodes ?? [],
             ],
+            'regional_settings' => $localizationService->effectiveSettingsForUser($this->resource),
         ];
     }
 }

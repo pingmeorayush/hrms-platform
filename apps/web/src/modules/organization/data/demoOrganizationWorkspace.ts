@@ -5,6 +5,11 @@ export function buildDemoOrganizationWorkspace(snapshot: AccessSnapshot | null):
   const companyName = snapshot?.user.tenant.company_name ?? 'Phoenix Demo Company'
   const timezone = snapshot?.user.tenant.timezone ?? 'Asia/Kolkata'
   const currency = snapshot?.user.tenant.currency ?? 'INR'
+  const countryCode = snapshot?.user.tenant.country_code ?? 'IN'
+  const locale = snapshot?.user.tenant.locale ?? 'en-IN'
+  const language = snapshot?.user.tenant.language ?? 'en'
+  const timeFormat = snapshot?.user.tenant.time_format ?? '24h'
+  const expansionCountryCodes = snapshot?.user.tenant.expansion_country_codes ?? ['US', 'DE']
 
   return {
     companyProfile: {
@@ -16,6 +21,11 @@ export function buildDemoOrganizationWorkspace(snapshot: AccessSnapshot | null):
       subscription_plan: snapshot?.user.tenant.subscription_plan ?? 'enterprise',
       timezone,
       currency,
+      country_code: countryCode,
+      locale,
+      language,
+      time_format: timeFormat,
+      expansion_country_codes: expansionCountryCodes,
       created_at: '2026-01-02T09:00:00+05:30',
       updated_at: '2026-06-02T11:15:00+05:30',
     },

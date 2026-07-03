@@ -1,8 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { FoundationOverviewPage } from '../pages/FoundationOverviewPage'
-import { AccessContractPage } from '../pages/AccessContractPage'
 import { AppShell } from '../shell/AppShell'
+import { AppSessionGate } from './AppSessionGate'
 import { RouteGuard } from './RouteGuard'
+import { AssistantPage } from '../../modules/assistant/pages/AssistantPage'
+import { LoginPage } from '../../modules/access/pages/LoginPage'
+import { ResetPasswordPage } from '../../modules/access/pages/ResetPasswordPage'
+import { AccessAdminPage } from '../../modules/access/pages/AccessAdminPage'
 import { OrganizationAdminPage, OrganizationIndexRedirect } from '../../modules/organization/pages/OrganizationAdminPage'
 import { EmployeeAdminPage, EmployeeIndexRedirect } from '../../modules/employees/pages/EmployeeAdminPage'
 import { EmployeeDetailPage } from '../../modules/employees/pages/EmployeeDetailPage'
@@ -62,7 +66,12 @@ import { LearningOverviewPage } from '../../modules/learning/pages/LearningOverv
 import { OperationsAdminPage } from '../../modules/operations/pages/OperationsAdminPage'
 import { OperationsAssetsPage } from '../../modules/operations/pages/OperationsAssetsPage'
 import { OperationsDocumentsPage } from '../../modules/operations/pages/OperationsDocumentsPage'
+import { OperationsIntegrationsPage } from '../../modules/operations/pages/OperationsIntegrationsPage'
 import { OperationsIndexRedirect } from '../../modules/operations/pages/OperationsPage'
+import { OperationsObservabilityPage } from '../../modules/operations/pages/OperationsObservabilityPage'
+import { OperationsReleaseReadinessPage } from '../../modules/operations/pages/OperationsReleaseReadinessPage'
+import { OperationsResiliencePage } from '../../modules/operations/pages/OperationsResiliencePage'
+import { OperationsReleasePage } from '../../modules/operations/pages/OperationsReleasePage'
 import { OperationsLifecyclePage } from '../../modules/operations/pages/OperationsLifecyclePage'
 import { OperationsOverviewPage } from '../../modules/operations/pages/OperationsOverviewPage'
 import { ReportingAdminPage } from '../../modules/reporting/pages/ReportingAdminPage'
@@ -93,9 +102,30 @@ import {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<AppShell />}>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route
+        element={
+          <AppSessionGate>
+            <AppShell />
+          </AppSessionGate>
+        }
+      >
         <Route index element={<Navigate replace to="/foundation" />} />
         <Route path="/foundation" element={<FoundationOverviewPage />} />
+        <Route
+          path="/assistant"
+          element={
+            <RouteGuard
+              permissions={['ai.view', 'ai.recommend']}
+              match="any"
+              title="AI assistant unavailable"
+              description="This route requires governed AI visibility or recommendation review permissions in the current session."
+            >
+              <AssistantPage />
+            </RouteGuard>
+          }
+        />
         <Route
           path="/admin/organization"
           element={
@@ -384,7 +414,7 @@ export function AppRoutes() {
           path="/operations"
           element={
             <RouteGuard
-              permissions={['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage']}
+              permissions={['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage', 'integration.view', 'integration.manage', 'resilience.view', 'resilience.manage', 'release.view', 'release.manage']}
               match="any"
               title="Operations workspace unavailable"
               description="This route requires document governance, asset management, or employee lifecycle operations access in the current session."
@@ -398,7 +428,7 @@ export function AppRoutes() {
             path="overview"
             element={
               <RouteGuard
-                permissions={['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage']}
+                permissions={['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage', 'integration.view', 'integration.manage', 'resilience.view', 'resilience.manage', 'release.view', 'release.manage']}
                 match="any"
                 title="Operations overview unavailable"
                 description="This route is limited to HR and IT sessions that can review operations posture."
@@ -430,6 +460,71 @@ export function AppRoutes() {
                 description="This route requires asset visibility or asset lifecycle management access."
               >
                 <OperationsAssetsPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="integrations"
+            element={
+              <RouteGuard
+                permissions={['integration.view', 'integration.manage']}
+                match="any"
+                title="Integration operations unavailable"
+                description="This route requires integration visibility or operator retry access in the current session."
+              >
+                <OperationsIntegrationsPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="release"
+            element={
+              <RouteGuard
+                permissions={['release.view', 'release.manage']}
+                match="any"
+                title="Release operations unavailable"
+                description="This route requires release-quality visibility or release-operator access in the current session."
+              >
+                <OperationsReleasePage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="readiness"
+            element={
+              <RouteGuard
+                permissions={['release.view', 'release.manage']}
+                match="any"
+                title="Launch readiness workspace unavailable"
+                description="This route requires release-governance visibility or release-operator access in the current session."
+              >
+                <OperationsReleaseReadinessPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="observability"
+            element={
+              <RouteGuard
+                permissions={['observability.view', 'observability.manage']}
+                match="any"
+                title="Observability workspace unavailable"
+                description="This route requires observability visibility or alert-routing operator access in the current session."
+              >
+                <OperationsObservabilityPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="resilience"
+            element={
+              <RouteGuard
+                permissions={['resilience.view', 'resilience.manage']}
+                match="any"
+                title="Resilience workspace unavailable"
+                description="This route requires recovery-readiness visibility or resilience-operator access in the current session."
+              >
+                <OperationsResiliencePage />
               </RouteGuard>
             }
           />
@@ -491,12 +586,12 @@ export function AppRoutes() {
           path="/access"
           element={
             <RouteGuard
-              permissions={['auth.manage_roles', 'auth.manage_permissions']}
+              permissions={['auth.manage_roles', 'auth.manage_permissions', 'auth.manage_users']}
               match="any"
-              title="Access contract unavailable"
-              description="This governance route is limited to roles that can manage access controls."
+              title="Access operations unavailable"
+              description="This governance route is limited to sessions that can manage users, roles, or permission visibility."
             >
-              <AccessContractPage />
+              <AccessAdminPage />
             </RouteGuard>
           }
         />

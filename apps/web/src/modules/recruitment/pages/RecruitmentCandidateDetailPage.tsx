@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Dispatch, SetStateAction } from 'react'
 import { ArrowRight, Download, PlaneTakeoff, UserRoundCheck } from 'lucide-react'
+import { formatRegionalNumber } from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Input } from '../../../shared/ui/input'
@@ -378,7 +379,7 @@ export function RecruitmentCandidateDetailPage() {
                         <div>
                           <div className="font-semibold text-foreground">{resume.original_file_name}</div>
                           <div className="text-xs text-muted-foreground">
-                            v{resume.version_number} · {resume.file_size_bytes.toLocaleString('en-IN')} bytes ·{' '}
+                            v{resume.version_number} · {formatRegionalNumber(resume.file_size_bytes)} bytes ·{' '}
                             {formatRecruitmentDate(resume.created_at)}
                           </div>
                         </div>

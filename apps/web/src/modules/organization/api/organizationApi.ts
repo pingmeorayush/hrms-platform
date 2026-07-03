@@ -73,6 +73,11 @@ export async function updateCompanyProfile(
       subscription_plan: values.subscription_plan.trim() || null,
       timezone: values.timezone.trim(),
       currency: values.currency.trim().toUpperCase(),
+      country_code: values.country_code.trim().toUpperCase(),
+      locale: values.locale.trim(),
+      language: values.language.trim().toLowerCase(),
+      time_format: values.time_format,
+      expansion_country_codes: values.expansion_country_codes,
     }),
   })
 }

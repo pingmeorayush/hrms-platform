@@ -26,8 +26,8 @@ export function RouteGuard({
     return (
       <GuardState
         eyebrow="Live API"
-        title="Connect a bearer token first"
-        description="Open the Foundation workspace, switch to Live API mode, and paste a bearer token before opening protected routes."
+        title="Sign in to continue"
+        description="Open the secure sign-in flow and create a protected workspace session before opening restricted routes."
       />
     )
   }
@@ -58,7 +58,7 @@ export function RouteGuard({
       <GuardState
         eyebrow="Session required"
         title="No workspace session is available"
-        description="Use Demo mode or configure a live API session from the Foundation workspace."
+        description="Sign in to establish a protected workspace session and load the access contract."
         variant="warning"
       />
     )

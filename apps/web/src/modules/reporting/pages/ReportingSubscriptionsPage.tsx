@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BellRing, PlayCircle, RefreshCw, ShieldAlert } from 'lucide-react'
+import { formatRegionalDateTime } from '../../../shared/regionalization/formatters'
+import { useRegionalization } from '../../../shared/regionalization/context'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { Input } from '../../../shared/ui/input'
@@ -53,7 +55,7 @@ const subscriptionTabs: Array<{ id: SubscriptionTab; label: string }> = [
   { id: 'revoked', label: 'Revoked' },
 ]
 
-function defaultSubscriptionForm(): SubscriptionFormState {
+function defaultSubscriptionForm(timezone = 'Asia/Kolkata'): SubscriptionFormState {
   return {
     sourceType: 'saved_view',
     savedReportViewId: '',
@@ -62,7 +64,7 @@ function defaultSubscriptionForm(): SubscriptionFormState {
     description: '',
     frequency: 'weekly',
     exportFormat: 'csv',
-    timezone: 'Asia/Kolkata',
+    timezone,
     timeOfDay: '09:00',
     weekday: '1',
     dayOfMonth: '1',
@@ -93,15 +95,6 @@ function domainLabel(domain: string | null | undefined) {
   return domain.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) {
-    return 'Not scheduled'
-  }
-
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
-}
-
 function sourceLabel(subscription: ReportingSubscriptionRecord) {
   if (subscription.source.saved_view?.name) {
     return `${subscription.source.saved_view.name} · saved view`
@@ -116,9 +109,12 @@ function sourceLabel(subscription: ReportingSubscriptionRecord) {
 
 export function ReportingSubscriptionsPage() {
   const workspace = useReportingRouteWorkspace()
+  const { configuration } = useRegionalization()
   const [activeTab, setActiveTab] = useState<SubscriptionTab>('all')
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<number | null>(null)
-  const [form, setForm] = useState<SubscriptionFormState>(defaultSubscriptionForm())
+  const [form, setForm] = useState<SubscriptionFormState>(() =>
+    defaultSubscriptionForm(configuration.effective_settings.timezone),
+  )
 
   const subscriptions = useMemo(() => workspace.data?.subscriptions ?? [], [workspace.data?.subscriptions])
   const savedViews = useMemo(() => workspace.data?.savedViews ?? [], [workspace.data?.savedViews])
@@ -189,7 +185,7 @@ export function ReportingSubscriptionsPage() {
       schedule_config: scheduleConfig,
     })
 
-    setForm(defaultSubscriptionForm())
+    setForm(defaultSubscriptionForm(configuration.effective_settings.timezone))
   }
 
   async function handlePauseOrResume(subscription: ReportingSubscriptionRecord) {
@@ -310,7 +306,9 @@ export function ReportingSubscriptionsPage() {
                         </TableCell>
                         <TableCell>{sourceLabel(subscription)}</TableCell>
                         <TableCell>{subscription.schedule.frequency}</TableCell>
-                        <TableCell>{formatDateTime(subscription.schedule.next_delivery_at)}</TableCell>
+                        <TableCell>
+                          {formatRegionalDateTime(subscription.schedule.next_delivery_at, 'Not scheduled')}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -344,10 +342,17 @@ export function ReportingSubscriptionsPage() {
                       <WorkspaceSummaryRow label="Frequency" value={selectedSubscription.schedule.frequency} />
                       <WorkspaceSummaryRow label="Timezone" value={selectedSubscription.schedule.timezone} />
                       <WorkspaceSummaryRow label="Export format" value={selectedSubscription.delivery.export_format.toUpperCase()} />
-                      <WorkspaceSummaryRow label="Next delivery" value={formatDateTime(selectedSubscription.schedule.next_delivery_at)} />
+                      <WorkspaceSummaryRow
+                        label="Next delivery"
+                        value={formatRegionalDateTime(selectedSubscription.schedule.next_delivery_at, 'Not scheduled')}
+                      />
                       <WorkspaceSummaryRow
                         label="Last delivery"
-                        value={selectedSubscription.last_delivery.delivered_at ? formatDateTime(selectedSubscription.last_delivery.delivered_at) : selectedSubscription.last_delivery.status ?? 'No delivery yet'}
+                        value={
+                          selectedSubscription.last_delivery.delivered_at
+                            ? formatRegionalDateTime(selectedSubscription.last_delivery.delivered_at, 'No delivery yet')
+                            : selectedSubscription.last_delivery.status ?? 'No delivery yet'
+                        }
                       />
                     </div>
                     {selectedSubscription.validation.reason ? (

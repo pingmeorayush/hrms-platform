@@ -27,6 +27,7 @@ export interface AppNavItem {
   description: string
   icon:
     | 'foundation'
+    | 'assistant'
     | 'organization'
     | 'employees'
     | 'recruitment'
@@ -53,6 +54,16 @@ export const appNavigation: AppNavItem[] = [
     description: 'Session controls, workspace access, and environment posture.',
     icon: 'foundation',
     requiredPermissions: [],
+    status: 'live',
+  },
+  {
+    id: 'assistant',
+    label: 'Assistant',
+    to: '/assistant',
+    description: 'Governed read-focused AI copilot with citations, guardrails, and review-only recommendations.',
+    icon: 'assistant',
+    requiredPermissions: ['ai.view', 'ai.recommend'],
+    match: 'any',
     status: 'live',
   },
   {
@@ -114,9 +125,9 @@ export const appNavigation: AppNavItem[] = [
     id: 'operations',
     label: 'Operations',
     to: '/operations',
-    description: 'HR and IT control tower for document governance, asset handoffs, and onboarding-offboarding progress.',
+    description: 'HR and IT control tower for document governance, asset handoffs, integrations, observability, resilience, and release posture.',
     icon: 'operations',
-    requiredPermissions: ['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage'],
+    requiredPermissions: ['document.view', 'document.manage', 'asset.view', 'asset.manage', 'employee.manage', 'integration.view', 'integration.manage', 'resilience.view', 'resilience.manage', 'observability.view', 'observability.manage', 'release.view', 'release.manage'],
     match: 'any',
     status: 'live',
     children: operationsSectionNavigation,
@@ -201,9 +212,9 @@ export const appNavigation: AppNavItem[] = [
     id: 'access',
     label: 'Access',
     to: '/access',
-    description: 'Permission contract, backend visibility, and governance checks.',
+    description: 'Session auth, user access, role governance, and backend visibility checks.',
     icon: 'access',
-    requiredPermissions: ['auth.manage_roles', 'auth.manage_permissions'],
+    requiredPermissions: ['auth.manage_roles', 'auth.manage_permissions', 'auth.manage_users'],
     match: 'any',
     status: 'live',
   },

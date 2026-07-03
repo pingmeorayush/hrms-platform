@@ -2,6 +2,11 @@ import type { Dispatch, FormEvent, ReactNode, SetStateAction } from 'react'
 import { useMemo, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { ApiRequestError } from '../../../shared/api/http'
+import {
+  formatRegionalDate,
+  formatRegionalDateTime,
+  formatRegionalTime,
+} from '../../../shared/regionalization/formatters'
 import { Badge } from '../../../shared/ui/badge'
 import { Button } from '../../../shared/ui/button'
 import { CardDescription, CardTitle } from '../../../shared/ui/card'
@@ -1101,41 +1106,15 @@ function formatMinutes(value: number | null, fallback = '0m') {
 }
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return 'Not available'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
+  return formatRegionalDate(value, 'Not available')
 }
 
 function formatTime(value: string | null) {
-  if (!value) {
-    return 'Pending'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(value))
+  return formatRegionalTime(value, 'Pending')
 }
 
 function formatDateTime(value: string | null) {
-  if (!value) {
-    return 'Pending'
-  }
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(value))
+  return formatRegionalDateTime(value, 'Pending')
 }
 
 function toDateTimeInputValue(value: string | null) {

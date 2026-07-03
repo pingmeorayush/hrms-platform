@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { startTransition, useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import {
   Bell,
   Building2,
@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAccessSnapshot } from '../../modules/access/hooks/useAccessSnapshot'
-import { demoPersonaLabels } from '../../modules/access/data/demoSnapshots'
+import { logout as logoutSession } from '../../modules/access/api/accessApi'
 import { buildDemoEmployeeWorkspace } from '../../modules/employees/data/demoEmployeeProfiles'
 import { matchEmployeeDetailSection } from '../../modules/employees/navigation'
 import { hasPermissions } from '../../shared/auth/permissions'
@@ -41,8 +41,9 @@ import {
   DialogTitle,
 } from '../../shared/ui/dialog'
 import { Input } from '../../shared/ui/input'
-import { setDemoPersona, setMode } from '../store/accessSlice'
-import { useAppDispatch } from '../store/hooks'
+import { ToastContext } from '../../shared/ui/toast-context'
+import { clearLiveSession } from '../store/accessSlice'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { useShellFavorites, type ShellFavoriteDraft } from './favorites'
 import { appNavigation, type AppNavItem } from './navigation'
 import { useShellRecent } from './recent'
@@ -127,6 +128,13 @@ function ShellIcon({ name }: { name: NavIconName }) {
         <svg {...iconProps}>
           <path d="M4 16V6l6-3 6 3v10" />
           <path d="M7 9h2M7 12h2M11 9h2M11 12h2" />
+        </svg>
+      )
+    case 'assistant':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h7A2.5 2.5 0 0 1 16 6.5v4A2.5 2.5 0 0 1 13.5 13H9l-3 3v-3H6.5A2.5 2.5 0 0 1 4 10.5z" />
+          <path d="M8 8h4M8 10.5h2.5" />
         </svg>
       )
     case 'employees':
@@ -234,8 +242,10 @@ function isPathForNav(pathname: string, path: string) {
 
 export function AppShell() {
   const dispatch = useAppDispatch()
+  const access = useAppSelector((state) => state.access)
   const location = useLocation()
   const navigate = useNavigate()
+  const toast = useContext(ToastContext)
   const { snapshot } = useAccessSnapshot()
   const [isRailCollapsed, setIsRailCollapsed] = useState(() => {
     if (typeof window === 'undefined') {
@@ -286,6 +296,7 @@ export function AppShell() {
     currentPage.children?.filter((item) =>
       hasPermissions(grantedPermissions, item.requiredPermissions, item.match ?? 'all'),
     ) ?? []
+  const canManageUserAccess = hasPermissions(grantedPermissions, ['auth.manage_users'])
 
   const employeeDetailSection =
     currentPage.id === 'employees' ? matchEmployeeDetailSection(location.pathname) : null
@@ -314,6 +325,14 @@ export function AppShell() {
     }
 
     if (location.pathname === '/access') {
+      if (location.hash === '#users') {
+        return 'Access · Users'
+      }
+
+      if (location.hash === '#roles') {
+        return 'Access · Roles'
+      }
+
       if (location.hash === '#actions') {
         return 'Access · Actions'
       }
@@ -503,6 +522,21 @@ export function AppShell() {
     navigate(path)
   }
 
+  async function handleLogout() {
+    const token = access.token.trim()
+
+    try {
+      if (token) {
+        await logoutSession(access.apiBaseUrl, token)
+      }
+    } catch {
+      toast.warning('Session closed locally', 'The API logout endpoint did not confirm, but the browser session was cleared.')
+    } finally {
+      dispatch(clearLiveSession())
+      navigate('/login?reason=signed-out', { replace: true })
+    }
+  }
+
   const renderShellRail = ({ collapsed, mobile = false }: { collapsed: boolean; mobile?: boolean }) => {
     const handleRailNavigate = () => {
       if (mobile) {
@@ -570,50 +604,38 @@ export function AppShell() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-72">
-                  <DropdownMenuLabel>Workspace switcher</DropdownMenuLabel>
+                  <DropdownMenuLabel>Workspace</DropdownMenuLabel>
                   <DropdownMenuItem className="flex-col items-start gap-0.5">
                     <span className="ui-type-body-strong">{tenantLabel}</span>
                     <span className="ui-type-caption text-muted-foreground">{planLabel}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Session mode</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onSelect={() =>
-                      startTransition(() => {
-                        dispatch(setMode('demo'))
-                      })
-                    }
-                  >
-                    Demo workspace
+                  <DropdownMenuItem onSelect={() => navigate('/foundation')}>
+                    Foundation operations center
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() =>
-                      startTransition(() => {
-                        dispatch(setMode('live'))
-                      })
-                    }
-                  >
-                    Live API session
-                  </DropdownMenuItem>
-                  {snapshot ? (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel>Demo personas</DropdownMenuLabel>
-                      {(Object.keys(demoPersonaLabels) as Array<keyof typeof demoPersonaLabels>).map((persona) => (
-                        <DropdownMenuItem
-                          key={persona}
-                          onSelect={() =>
-                            startTransition(() => {
-                              dispatch(setMode('demo'))
-                              dispatch(setDemoPersona(persona))
-                            })
-                          }
-                        >
-                          {demoPersonaLabels[persona]}
-                        </DropdownMenuItem>
-                      ))}
-                    </>
+                  {canManageUserAccess ? (
+                    <DropdownMenuItem onSelect={() => navigate('/access#users')}>
+                      Manage user access
+                    </DropdownMenuItem>
                   ) : null}
+                  {access.token.trim() ? (
+                    <DropdownMenuItem onSelect={() => void handleLogout()}>
+                      Sign out
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        navigate(
+                          `/login?next=${encodeURIComponent(
+                            `${location.pathname}${location.search}${location.hash}`,
+                          )}`,
+                          { replace: true },
+                        )
+                      }
+                    >
+                      Sign in to workspace
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -915,7 +937,12 @@ export function AppShell() {
                   <CircleHelp className="h-4 w-4" />
                   Support center
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={() => {
+                    void handleLogout()
+                  }}
+                >
                   <LogOut className="h-4 w-4" />
                   Logout
                 </DropdownMenuItem>

@@ -66,6 +66,11 @@ The Platform Foundation defines the shared security, tenancy, workflow, audit, n
 - Performance and recruitment request flows keep action-aware authorization where route access alone is too broad.
 - Workflow and self-service flows still rely on service-level scope resolution where preserving `404` semantics is part of the current contract behavior.
 - Backend quality gates now include Pint, PHPUnit, Larastan, and PHPStan level `6`.
+- Sprint 10 now adds a governed release-engineering baseline with reusable API and web CI workflows, dependency audits, OpenAPI validation, and a permission-aware `/api/v1/release/quality-gates` visibility contract for authorized operators.
+- Sprint 10 now also adds a governed observability baseline with explicit alert-routing policy, live operational telemetry, and a permission-aware `/api/v1/observability/overview` contract that keeps integrations, workflow SLAs, payroll blockers, reporting delivery, and release-critical visibility in one operator surface.
+- Sprint 10 now also adds a governed resilience baseline with a versioned recovery runbook, tenant-scoped validation-run tracking, and permission-aware `/api/v1/resilience/readiness` plus `/api/v1/resilience/validation-runs` contracts so backup and DR readiness stay reviewable before launch.
+- Sprint 10 now also adds a governed release-readiness baseline with persisted go or no-go decisions, versioned incident-response and rollback runbooks, and permission-aware `/api/v1/release/readiness` plus `/api/v1/release/readiness/decisions` contracts so final launch approval is explicit and reviewable.
+- Sprint 10 contract publication now keeps operational and release-control endpoints in `apps/api/openapi/sprint-10-operations-release-controls.yaml` and the governed AI surface in `apps/api/openapi/sprint-10-ai-assistant.yaml`, so both control planes remain independently reviewable.
 
 ## Core Entities
 
@@ -105,6 +110,12 @@ The versioned implementation source of truth for role-to-permission mapping is t
 - `GET /api/v1/notifications`
 - `PATCH /api/v1/notifications/{id}/read`
 - `GET /api/v1/audit-logs`
+- `GET /api/v1/observability/overview`
+- `GET /api/v1/release/quality-gates`
+- `GET /api/v1/release/readiness`
+- `POST /api/v1/release/readiness/decisions`
+- `GET /api/v1/resilience/readiness`
+- `POST /api/v1/resilience/validation-runs`
 
 ## Dependencies
 

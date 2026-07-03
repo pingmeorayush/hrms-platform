@@ -1,0 +1,95 @@
+<?php
+
+return [
+    'signature_header' => 'X-PhoenixHRMS-Signature',
+    'request_id_header' => 'X-PhoenixHRMS-Request-Id',
+    'status_options' => [
+        'connection' => ['draft', 'active', 'paused'],
+        'subscription' => ['active', 'paused', 'disabled'],
+        'job' => ['queued', 'running', 'failed', 'completed'],
+    ],
+    'systems' => [
+        [
+            'key' => 'identity_directory',
+            'name' => 'Identity Directory',
+            'description' => 'Provision workforce identity changes into the approved directory baseline.',
+            'directions' => ['inbound', 'outbound', 'bidirectional'],
+        ],
+        [
+            'key' => 'payroll_partner',
+            'name' => 'Payroll Partner',
+            'description' => 'Exchange payslip and payroll result updates with the selected payroll service.',
+            'directions' => ['inbound', 'outbound', 'bidirectional'],
+        ],
+        [
+            'key' => 'collaboration_suite',
+            'name' => 'Collaboration Suite',
+            'description' => 'Send worker lifecycle and onboarding updates to approved communication tooling.',
+            'directions' => ['outbound', 'bidirectional'],
+        ],
+        [
+            'key' => 'document_archive',
+            'name' => 'Document Archive',
+            'description' => 'Mirror approved policy and employee-document events into a governed archive.',
+            'directions' => ['outbound', 'bidirectional'],
+        ],
+    ],
+    'events' => [
+        [
+            'key' => 'employee.created',
+            'name' => 'Employee created',
+            'description' => 'A new employee profile is available for downstream provisioning.',
+            'entity_type' => 'employee',
+            'directions' => ['outbound'],
+            'systems' => ['identity_directory', 'collaboration_suite'],
+        ],
+        [
+            'key' => 'employee.updated',
+            'name' => 'Employee updated',
+            'description' => 'Approved employee profile fields changed and may require downstream synchronization.',
+            'entity_type' => 'employee',
+            'directions' => ['outbound', 'inbound'],
+            'systems' => ['identity_directory', 'payroll_partner', 'collaboration_suite'],
+        ],
+        [
+            'key' => 'employee.terminated',
+            'name' => 'Employee terminated',
+            'description' => 'An employee is leaving and downstream systems should begin offboarding actions.',
+            'entity_type' => 'employee',
+            'directions' => ['outbound'],
+            'systems' => ['identity_directory', 'collaboration_suite'],
+        ],
+        [
+            'key' => 'attendance.record.updated',
+            'name' => 'Attendance record updated',
+            'description' => 'Attendance changes are available for approved downstream consumers.',
+            'entity_type' => 'attendance_record',
+            'directions' => ['outbound'],
+            'systems' => ['payroll_partner'],
+        ],
+        [
+            'key' => 'leave.request.approved',
+            'name' => 'Leave request approved',
+            'description' => 'A leave decision is final and downstream systems can synchronize the approved state.',
+            'entity_type' => 'leave_request',
+            'directions' => ['outbound'],
+            'systems' => ['payroll_partner', 'collaboration_suite'],
+        ],
+        [
+            'key' => 'payroll.payslip.generated',
+            'name' => 'Payslip generated',
+            'description' => 'A governed payslip artifact is available for downstream delivery or archival.',
+            'entity_type' => 'payslip',
+            'directions' => ['outbound'],
+            'systems' => ['payroll_partner', 'document_archive'],
+        ],
+        [
+            'key' => 'directory.profile.sync',
+            'name' => 'Directory profile sync',
+            'description' => 'An inbound directory payload should update the employee profile synchronization queue.',
+            'entity_type' => 'employee',
+            'directions' => ['inbound'],
+            'systems' => ['identity_directory'],
+        ],
+    ],
+];

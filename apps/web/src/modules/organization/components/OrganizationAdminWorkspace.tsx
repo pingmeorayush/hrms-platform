@@ -6,12 +6,19 @@ import { CardDescription, CardTitle } from '../../../shared/ui/card'
 import { Input } from '../../../shared/ui/input'
 import { Modal } from '../../../shared/ui/modal'
 import {
+  formatRegionalCurrency,
+  formatRegionalDate,
+  formatRegionalDateTime,
+} from '../../../shared/regionalization/formatters'
+import { useRegionalization } from '../../../shared/regionalization/context'
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '../../../shared/ui/select'
+import { SelectField } from '../../../shared/ui/select-field'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
 import { Textarea } from '../../../shared/ui/textarea'
 import { useOperationFeedback } from '../../../shared/ui/use-operation-feedback'
@@ -100,8 +107,18 @@ export function OrganizationCompanyProfileWorkspaceView({
   workspace: OrganizationWorkspaceController
 }) {
   const { data, isLoading, error, canManage, isSaving, saveCompanyProfile } = workspace
+  const { configuration } = useRegionalization()
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false)
   const { runConfirmedAction } = useOperationFeedback()
+
+  const launchCountry = data
+    ? configuration.supported.countries.find((country) => country.code === data.companyProfile.country_code)
+    : null
+  const expansionCountries = data
+    ? configuration.supported.countries.filter((country) =>
+        data.companyProfile.expansion_country_codes.includes(country.code),
+      )
+    : []
 
   return (
     <WorkspacePage>
@@ -151,6 +168,21 @@ export function OrganizationCompanyProfileWorkspaceView({
                       hint="Controls expected commercial context"
                     />
                     <ProfileRow
+                      label="Launch country"
+                      value={launchCountry ? `${launchCountry.label} (${launchCountry.code})` : data.companyProfile.country_code}
+                      hint="Anchor market that drives the default regional preset"
+                    />
+                    <ProfileRow
+                      label="Locale"
+                      value={data.companyProfile.locale}
+                      hint="Primary regional format profile for dates, numbers, and messages"
+                    />
+                    <ProfileRow
+                      label="Language"
+                      value={data.companyProfile.language}
+                      hint="Default application language for locale-aware copy and fallbacks"
+                    />
+                    <ProfileRow
                       label="Timezone"
                       value={data.companyProfile.timezone}
                       hint="Default timezone for attendance and scheduling behavior"
@@ -161,12 +193,27 @@ export function OrganizationCompanyProfileWorkspaceView({
                       hint="Default currency for finance-linked HR operations"
                     />
                     <ProfileRow
-                      label="Last updated"
+                      label="Time format"
+                      value={data.companyProfile.time_format === '12h' ? '12-hour clock' : '24-hour clock'}
+                      hint="Controls hour formatting across schedules, timecards, and reports"
+                    />
+                    <ProfileRow
+                      label="Expansion placeholders"
                       value={
-                        data.companyProfile.updated_at
-                          ? new Date(data.companyProfile.updated_at).toLocaleDateString()
-                          : 'Not updated yet'
+                        expansionCountries.length
+                          ? expansionCountries.map((country) => country.label).join(', ')
+                          : 'No expansion placeholders selected'
                       }
+                      hint="Reserved markets that stay visible while future regional rollout is staged"
+                    />
+                    <ProfileRow
+                      label="Regional preview"
+                      value={`${formatRegionalDateTime(new Date())} · ${formatRegionalCurrency(123456.78, data.companyProfile.currency)}`}
+                      hint="Sanity-check how shared website formatting resolves for the tenant defaults"
+                    />
+                    <ProfileRow
+                      label="Last updated"
+                      value={formatRegionalDateTime(data.companyProfile.updated_at, 'Not updated yet')}
                       hint="Most recent profile change visible to operators"
                     />
                   </TableBody>
@@ -179,6 +226,7 @@ export function OrganizationCompanyProfileWorkspaceView({
             open={isCompanyModalOpen}
             title="Edit company profile"
             description="Update the tenant profile that downstream workspaces inherit."
+            size="lg"
             onClose={() => setIsCompanyModalOpen(false)}
           >
             <CompanyProfileEditor
@@ -402,7 +450,7 @@ function OrganizationRegistrySection({
                           </TableCell>
                           <TableCell className="align-top">
                             <small className="ui-table-secondary block">
-                              {record.updated_at ? new Date(record.updated_at).toLocaleDateString() : 'Not updated yet'}
+                              {formatRegionalDate(record.updated_at, 'Not updated yet')}
                             </small>
                           </TableCell>
                           <TableCell className="ui-table-action-cell align-top">
@@ -548,15 +596,54 @@ function CompanyProfileEditor({
   isSaving: boolean
   onSave: (values: CompanyProfileFormValues) => Promise<unknown>
 }) {
+  const { configuration } = useRegionalization()
   const [values, setValues] = useState<CompanyProfileFormValues>({
     name: profile.name,
     subscription_plan: profile.subscription_plan ?? '',
     timezone: profile.timezone,
     currency: profile.currency,
+    country_code: profile.country_code,
+    locale: profile.locale,
+    language: profile.language,
+    time_format: profile.time_format,
+    expansion_country_codes: profile.expansion_country_codes,
   })
+  const [expansionCountryCodesInput, setExpansionCountryCodesInput] = useState(
+    profile.expansion_country_codes.join(', '),
+  )
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const supportedCountryCodes = useMemo(
+    () => new Set(configuration.supported.countries.map((country) => country.code)),
+    [configuration.supported.countries],
+  )
+  const countryOptions = useMemo(
+    () =>
+      configuration.supported.countries.map((country) => ({
+        value: country.code,
+        label: `${country.label} (${country.code})`,
+      })),
+    [configuration.supported.countries],
+  )
+  const localeOptions = useMemo(
+    () => configuration.supported.locales.map((locale) => ({ value: locale.code, label: locale.label })),
+    [configuration.supported.locales],
+  )
+  const languageOptions = useMemo(
+    () => configuration.supported.languages.map((language) => ({ value: language.code, label: language.label })),
+    [configuration.supported.languages],
+  )
+  const currencyOptions = useMemo(
+    () =>
+      configuration.supported.currencies.map((currency) => ({ value: currency.code, label: currency.label })),
+    [configuration.supported.currencies],
+  )
+  const timeFormatOptions = useMemo(
+    () =>
+      configuration.supported.time_formats.map((format) => ({ value: format.code, label: format.label })),
+    [configuration.supported.time_formats],
+  )
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -564,13 +651,53 @@ function CompanyProfileEditor({
     setMessage(null)
     setFieldErrors({})
 
-    if (!values.name.trim() || !values.timezone.trim() || !values.currency.trim()) {
-      setError('Name, timezone, and currency are required.')
+    const normalizedCountryCode = values.country_code.trim().toUpperCase()
+    const normalizedExpansionCountryCodes = expansionCountryCodesInput
+      .split(',')
+      .map((item) => item.trim().toUpperCase())
+      .filter((item, index, array) => Boolean(item) && array.indexOf(item) === index)
+
+    if (
+      !values.name.trim() ||
+      !normalizedCountryCode ||
+      !values.locale.trim() ||
+      !values.language.trim() ||
+      !values.timezone.trim() ||
+      !values.currency.trim()
+    ) {
+      setError('Name, launch country, locale, language, timezone, and currency are required.')
+      return
+    }
+
+    if (!supportedCountryCodes.has(normalizedCountryCode)) {
+      setError(`Launch country ${normalizedCountryCode} is not part of the current regional preset list.`)
+      return
+    }
+
+    const invalidExpansionCountryCode = normalizedExpansionCountryCodes.find(
+      (countryCode) => !supportedCountryCodes.has(countryCode),
+    )
+
+    if (invalidExpansionCountryCode) {
+      setError(`Expansion country ${invalidExpansionCountryCode} is not part of the current preset list.`)
+      return
+    }
+
+    if (normalizedExpansionCountryCodes.includes(normalizedCountryCode)) {
+      setError('Expansion placeholders should not repeat the selected launch country.')
       return
     }
 
     try {
-      await onSave(values)
+      await onSave({
+        ...values,
+        timezone: values.timezone.trim(),
+        currency: values.currency.trim().toUpperCase(),
+        country_code: normalizedCountryCode,
+        locale: values.locale.trim(),
+        language: values.language.trim().toLowerCase(),
+        expansion_country_codes: normalizedExpansionCountryCodes,
+      })
       setMessage('Company profile saved successfully.')
     } catch (caughtError) {
       const nextError = caughtError as Error
@@ -585,7 +712,11 @@ function CompanyProfileEditor({
   return (
     <form className="workspace-form" onSubmit={handleSubmit}>
       <div className="workspace-form-grid workspace-form-grid--company">
-        <Field label="Company name" error={fieldErrors.name?.[0]}>
+        <Field
+          label="Company name"
+          error={fieldErrors.name?.[0]}
+          className="workspace-form-field--span-full xl:col-span-2"
+        >
           <Input
             value={values.name}
             onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
@@ -601,6 +732,60 @@ function CompanyProfileEditor({
             disabled={!canManage || isSaving}
           />
         </Field>
+        <SelectField
+          label="Launch country"
+          value={values.country_code}
+          options={countryOptions}
+          error={fieldErrors.country_code?.[0]}
+          disabled={!canManage || isSaving}
+          onChange={(nextCountryCode) => {
+            const preset = configuration.supported.countries.find((country) => country.code === nextCountryCode)
+
+            if (!preset) {
+              setValues((current) => ({ ...current, country_code: nextCountryCode }))
+              return
+            }
+
+            setValues((current) => ({
+              ...current,
+              country_code: preset.code,
+              locale: preset.locale,
+              language: preset.language,
+              timezone: preset.timezone,
+              currency: preset.currency,
+              time_format: preset.time_format,
+              expansion_country_codes: current.expansion_country_codes.filter(
+                (countryCode) => countryCode !== preset.code,
+              ),
+            }))
+            setExpansionCountryCodesInput((current) =>
+              current
+                .split(',')
+                .map((item) => item.trim().toUpperCase())
+                .filter(
+                  (countryCode, index, array) =>
+                    Boolean(countryCode) && countryCode !== preset.code && array.indexOf(countryCode) === index,
+                )
+                .join(', '),
+            )
+          }}
+        />
+        <SelectField
+          label="Locale"
+          value={values.locale}
+          options={localeOptions}
+          error={fieldErrors.locale?.[0]}
+          disabled={!canManage || isSaving}
+          onChange={(locale) => setValues((current) => ({ ...current, locale }))}
+        />
+        <SelectField
+          label="Language"
+          value={values.language}
+          options={languageOptions}
+          error={fieldErrors.language?.[0]}
+          disabled={!canManage || isSaving}
+          onChange={(language) => setValues((current) => ({ ...current, language }))}
+        />
         <Field label="Timezone" error={fieldErrors.timezone?.[0]}>
           <Input
             value={values.timezone}
@@ -608,14 +793,42 @@ function CompanyProfileEditor({
             disabled={!canManage || isSaving}
           />
         </Field>
-        <Field label="Currency" error={fieldErrors.currency?.[0]}>
+        <SelectField
+          label="Currency"
+          value={values.currency}
+          options={currencyOptions}
+          error={fieldErrors.currency?.[0]}
+          disabled={!canManage || isSaving}
+          onChange={(currency) => setValues((current) => ({ ...current, currency }))}
+        />
+        <SelectField
+          label="Time format"
+          value={values.time_format}
+          options={timeFormatOptions}
+          error={fieldErrors.time_format?.[0]}
+          disabled={!canManage || isSaving}
+          onChange={(timeFormat) =>
+            setValues((current) => ({ ...current, time_format: timeFormat as CompanyProfileFormValues['time_format'] }))
+          }
+        />
+        <Field
+          label="Expansion country placeholders"
+          error={fieldErrors.expansion_country_codes?.[0] ?? fieldErrors['expansion_country_codes.0']?.[0]}
+          className="workspace-form-field--span-full xl:col-span-2"
+        >
           <Input
-            value={values.currency}
-            onChange={(event) => setValues((current) => ({ ...current, currency: event.target.value }))}
+            value={expansionCountryCodesInput}
+            onChange={(event) => setExpansionCountryCodesInput(event.target.value)}
+            placeholder="US, DE"
             disabled={!canManage || isSaving}
           />
         </Field>
       </div>
+
+      <p className="workspace-muted">
+        Launch-country presets refresh locale, language, timezone, currency, and time formatting. Expansion
+        placeholders keep future rollout markets visible in planning without changing current tenant behavior.
+      </p>
 
       {error ? <p className="workspace-error">{error}</p> : null}
       {message ? <p className="workspace-success">{message}</p> : null}
@@ -776,14 +989,16 @@ function RecordEditor({
 function Field({
   label,
   error,
+  className,
   children,
 }: {
   label: string
   error?: string
+  className?: string
   children: ReactNode
 }) {
   return (
-    <WorkspaceField label={label} error={error}>
+    <WorkspaceField label={label} error={error} className={className}>
       {children}
     </WorkspaceField>
   )

@@ -33,6 +33,11 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $locked_until
  * @property Carbon|null $last_login_at
  * @property string|null $last_login_ip
+ * @property string|null $timezone
+ * @property string|null $currency
+ * @property string|null $locale
+ * @property string|null $language
+ * @property string|null $time_format
  * @property-read Company|null $company
  * @property-read Employee|null $employee
  */
@@ -52,6 +57,11 @@ use Spatie\Permission\Traits\HasRoles;
     'locked_until',
     'last_login_at',
     'last_login_ip',
+    'timezone',
+    'currency',
+    'locale',
+    'language',
+    'time_format',
 ])]
 #[Hidden(['password', 'remember_token', 'mfa_secret', 'mfa_email_otp'])]
 class User extends Authenticatable

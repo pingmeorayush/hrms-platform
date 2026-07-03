@@ -1,0 +1,772 @@
+openapi: 3.1.0
+info:
+  title: PhoenixHRMS Sprint 10 AI Assistant Contract
+  version: 0.1.0
+  description: >
+    Governed AI Assistant APIs delivered for Sprint 10. The surface is intentionally
+    read-focused for question answering and review-focused for approved recommendation
+    scenarios. Critical HR mutations, payroll changes, employee status changes, and
+    autonomous approvals remain out of scope for this contract.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-PhoenixHRMS-Proprietary
+  x-phoenix-supported-ai-http-surface:
+    published: true
+    use_cases:
+      - leave_balance
+      - attendance_summary
+      - payslip_summary
+      - policy_document
+      - learning_summary
+    approved_recommendation_scenarios:
+      - learning_next_best_action
+      - policy_acknowledgement_follow_up
+      - attendance_follow_up
+servers:
+  - url: /api/v1
+tags:
+  - name: AI Assistant
+    description: Governed assistant workspace, cited answers, feedback capture, and review-only recommendations
+paths:
+  /ai/workspace:
+    get:
+      tags: [AI Assistant]
+      summary: Load the AI assistant workspace
+      operationId: getAiAssistantWorkspace
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: AI assistant workspace loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiWorkspaceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /ai/chat:
+    post:
+      tags: [AI Assistant]
+      summary: Generate a governed AI assistant response
+      operationId: createAiAssistantChat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAiChatRequest'
+      responses:
+        '201':
+          description: AI interaction recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiChatResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /ai/recommendations:
+    post:
+      tags: [AI Assistant]
+      summary: Generate an approved review-only AI recommendation
+      operationId: createAiRecommendation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAiRecommendationRequest'
+      responses:
+        '201':
+          description: AI recommendation recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRecommendationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /ai/recommendations/{recommendationId}/decisions:
+    post:
+      tags: [AI Assistant]
+      summary: Record a human decision for a pending AI recommendation
+      operationId: createAiRecommendationDecision
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: recommendationId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAiRecommendationDecisionRequest'
+      responses:
+        '200':
+          description: AI recommendation decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiRecommendationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /ai/interactions/{interactionId}/feedback:
+    post:
+      tags: [AI Assistant]
+      summary: Record feedback on an AI interaction
+      operationId: createAiInteractionFeedback
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: interactionId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAiInteractionFeedbackRequest'
+      responses:
+        '200':
+          description: AI interaction feedback recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiInteractionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  responses:
+    Unauthorized:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: The current session does not have permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: The requested interaction, recommendation, or employee scope was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: The request payload failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    AiWorkspaceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AiWorkspace'
+      required: [success, message, data]
+    AiChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            conversation:
+              $ref: '#/components/schemas/AiConversation'
+            interaction:
+              $ref: '#/components/schemas/AiInteraction'
+          required: [conversation, interaction]
+      required: [success, message, data]
+    AiRecommendationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AiRecommendation'
+      required: [success, message, data]
+    AiInteractionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AiInteraction'
+      required: [success, message, data]
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+      required: [success, message, errors]
+    CreateAiChatRequest:
+      type: object
+      properties:
+        conversation_id:
+          type: [integer, 'null']
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        use_case:
+          type: [string, 'null']
+          enum: [leave_balance, attendance_summary, payslip_summary, policy_document, learning_summary, null]
+        subject_employee_id:
+          type: [integer, 'null']
+        persona:
+          type: [string, 'null']
+      required: [question]
+    CreateAiRecommendationRequest:
+      type: object
+      properties:
+        conversation_id:
+          type: [integer, 'null']
+        scenario:
+          type: string
+          enum:
+            - learning_next_best_action
+            - policy_acknowledgement_follow_up
+            - attendance_follow_up
+        subject_employee_id:
+          type: [integer, 'null']
+        context_note:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [scenario]
+    CreateAiRecommendationDecisionRequest:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum: [accepted, rejected]
+        decision_notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [decision]
+    CreateAiInteractionFeedbackRequest:
+      type: object
+      properties:
+        rating:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 5
+        sentiment:
+          type: string
+          enum: [positive, negative, neutral]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+      required: [sentiment]
+    AiWorkspace:
+      type: object
+      properties:
+        disclosure:
+          type: string
+        persona:
+          $ref: '#/components/schemas/AiPersona'
+        linked_employee:
+          oneOf:
+            - $ref: '#/components/schemas/AiEmployeeSummary'
+            - type: 'null'
+        subject_options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiEmployeeSummary'
+        capabilities:
+          type: object
+          properties:
+            supported_use_cases:
+              type: array
+              items:
+                $ref: '#/components/schemas/AiUseCase'
+            approved_recommendation_scenarios:
+              type: array
+              items:
+                $ref: '#/components/schemas/AiRecommendationScenario'
+            guardrails:
+              type: array
+              items:
+                type: string
+          required: [supported_use_cases, approved_recommendation_scenarios, guardrails]
+        permissions:
+          type: object
+          properties:
+            can_chat:
+              type: boolean
+            can_generate_recommendations:
+              type: boolean
+          required: [can_chat, can_generate_recommendations]
+        summary:
+          type: object
+          properties:
+            interaction_count:
+              type: integer
+            recommendation_count:
+              type: integer
+            pending_recommendation_count:
+              type: integer
+            answered_interaction_count:
+              type: integer
+            guardrailed_interaction_count:
+              type: integer
+            feedback_recorded_count:
+              type: integer
+            accepted_recommendation_count:
+              type: integer
+            rejected_recommendation_count:
+              type: integer
+            last_interaction_at:
+              type: [string, 'null']
+              format: date-time
+          required:
+            - interaction_count
+            - recommendation_count
+            - pending_recommendation_count
+            - answered_interaction_count
+            - guardrailed_interaction_count
+            - feedback_recorded_count
+            - accepted_recommendation_count
+            - rejected_recommendation_count
+            - last_interaction_at
+        review_analytics:
+          $ref: '#/components/schemas/AiReviewAnalytics'
+        audit_timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiAuditEvent'
+        recent_interactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiInteraction'
+        recent_recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiRecommendation'
+      required:
+        - disclosure
+        - persona
+        - linked_employee
+        - subject_options
+        - capabilities
+        - permissions
+        - summary
+        - review_analytics
+        - audit_timeline
+        - recent_interactions
+        - recent_recommendations
+    AiPersona:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+      required: [key, label]
+    AiEmployeeSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+      required: [id, employee_code, full_name, email]
+    AiUseCase:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        examples:
+          type: array
+          items:
+            type: string
+      required: [key, label, description, examples]
+    AiRecommendationScenario:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        human_review_required:
+          type: boolean
+      required: [key, label, description, human_review_required]
+    AiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        persona:
+          type: string
+        status:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        last_interacted_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, title, persona, status, metadata, last_interacted_at, created_at, updated_at]
+    AiInteraction:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversation_id:
+          type: integer
+        interaction_type:
+          type: string
+        use_case:
+          type: string
+        question:
+          type: string
+        answer:
+          type: string
+        status:
+          type: string
+        confidence_score:
+          type: [number, 'null']
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiCitation'
+        guardrails:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiGuardrail'
+        metadata:
+          type: object
+          additionalProperties: true
+        feedback:
+          $ref: '#/components/schemas/AiInteractionFeedback'
+        responded_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required:
+        - id
+        - conversation_id
+        - interaction_type
+        - use_case
+        - question
+        - answer
+        - status
+        - confidence_score
+        - citations
+        - guardrails
+        - metadata
+        - feedback
+        - responded_at
+        - created_at
+        - updated_at
+    AiInteractionFeedback:
+      type: object
+      properties:
+        rating:
+          type: [integer, 'null']
+        sentiment:
+          type: [string, 'null']
+        notes:
+          type: [string, 'null']
+      required: [rating, sentiment, notes]
+    AiRecommendation:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversation_id:
+          type: [integer, 'null']
+        scenario:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        rationale:
+          type: array
+          items:
+            type: string
+        confidence_score:
+          type: [number, 'null']
+        suggested_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiRecommendationAction'
+        supporting_citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiCitation'
+        status:
+          type: string
+        human_review_required:
+          type: boolean
+        decision:
+          type: [string, 'null']
+        decision_notes:
+          type: [string, 'null']
+        decided_at:
+          type: [string, 'null']
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+        employee:
+          oneOf:
+            - $ref: '#/components/schemas/AiEmployeeSummary'
+            - type: 'null'
+        decided_by:
+          oneOf:
+            - $ref: '#/components/schemas/AiDecisionActor'
+            - type: 'null'
+      required:
+        - id
+        - conversation_id
+        - scenario
+        - title
+        - summary
+        - rationale
+        - confidence_score
+        - suggested_actions
+        - supporting_citations
+        - status
+        - human_review_required
+        - decision
+        - decision_notes
+        - decided_at
+        - metadata
+        - created_at
+        - updated_at
+        - employee
+        - decided_by
+    AiRecommendationAction:
+      type: object
+      properties:
+        type:
+          type: string
+        label:
+          type: string
+        path:
+          type: string
+        requires_confirmation:
+          type: boolean
+        notes:
+          type: [string, 'null']
+      required: [type, label, path, requires_confirmation, notes]
+    AiCitation:
+      type: object
+      properties:
+        type:
+          type: string
+        label:
+          type: string
+        reference:
+          type: string
+        excerpt:
+          type: string
+        entity_type:
+          type: string
+        entity_id:
+          type: integer
+        route:
+          type: string
+        rank:
+          type: integer
+        relevance_score:
+          type: [number, 'null']
+        evidence_strength:
+          type: string
+        freshness_label:
+          type: [string, 'null']
+        captured_at:
+          type: [string, 'null']
+      required: [type, label, reference, excerpt, entity_type, entity_id, route, rank, relevance_score, evidence_strength, freshness_label, captured_at]
+    AiReviewAnalytics:
+      type: object
+      properties:
+        answer_quality:
+          type: object
+          properties:
+            answered_count:
+              type: integer
+            cited_answer_count:
+              type: integer
+            citation_coverage_percent:
+              type: number
+            feedback_recorded_count:
+              type: integer
+            average_feedback_rating:
+              type: [number, 'null']
+            positive_feedback_count:
+              type: integer
+            negative_feedback_count:
+              type: integer
+            guardrailed_interaction_count:
+              type: integer
+          required: [answered_count, cited_answer_count, citation_coverage_percent, feedback_recorded_count, average_feedback_rating, positive_feedback_count, negative_feedback_count, guardrailed_interaction_count]
+        recommendation_queue:
+          type: object
+          properties:
+            pending_review_count:
+              type: integer
+            accepted_count:
+              type: integer
+            rejected_count:
+              type: integer
+            stale_pending_review_count:
+              type: integer
+            oldest_pending_created_at:
+              type: [string, 'null']
+              format: date-time
+            latest_decision_at:
+              type: [string, 'null']
+              format: date-time
+          required: [pending_review_count, accepted_count, rejected_count, stale_pending_review_count, oldest_pending_created_at, latest_decision_at]
+        audit_activity:
+          type: object
+          properties:
+            event_count:
+              type: integer
+            workspace_view_count:
+              type: integer
+            interaction_generated_count:
+              type: integer
+            feedback_event_count:
+              type: integer
+            recommendation_generated_count:
+              type: integer
+            recommendation_decision_count:
+              type: integer
+            last_event_at:
+              type: [string, 'null']
+              format: date-time
+          required: [event_count, workspace_view_count, interaction_generated_count, feedback_event_count, recommendation_generated_count, recommendation_decision_count, last_event_at]
+      required: [answer_quality, recommendation_queue, audit_activity]
+    AiAuditEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        event_type:
+          type: string
+        label:
+          type: string
+        summary:
+          type: string
+        entity_type:
+          type: [string, 'null']
+        entity_id:
+          type: [string, 'null']
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+      required: [id, event_type, label, summary, entity_type, entity_id, created_at, metadata]
+    AiGuardrail:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        action_path:
+          type: [string, 'null']
+      required: [code, message]
+    AiDecisionActor:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required: [id, name]

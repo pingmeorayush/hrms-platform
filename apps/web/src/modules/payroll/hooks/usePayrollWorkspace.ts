@@ -2,6 +2,10 @@ import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiRequestError } from '../../../shared/api/http'
 import { useAppSelector } from '../../../app/store/hooks'
+import {
+  formatRegionalCurrency,
+  formatRegionalDate,
+} from '../../../shared/regionalization/formatters'
 import { useAccessSnapshot } from '../../access/hooks/useAccessSnapshot'
 import type { AccessSnapshot } from '../../access/types'
 import {
@@ -1030,29 +1034,14 @@ function renderDemoPayslipHtml(payslip: PayslipRecord) {
 }
 
 function formatMoney(value: string | number | null | undefined, currency: string) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: currency || 'INR',
+  return formatRegionalCurrency(value, currency || 'INR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(Number(value ?? 0))
+  })
 }
 
 function formatDisplayDate(value: string | null | undefined) {
-  if (!value) {
-    return '—'
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date)
+  return formatRegionalDate(value, '—')
 }
 
 function escapeHtml(value: string) {

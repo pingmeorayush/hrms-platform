@@ -26,6 +26,16 @@ describe('AppRoutes', () => {
     expect(screen.queryByRole('heading', { name: /organization master admin workspace/i })).not.toBeInTheDocument()
   })
 
+  it('redirects a live protected route to the sign-in screen when no session is present', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { mode: 'live', token: '' },
+      initialEntries: ['/assistant'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /sign in to your workspace/i })).toBeInTheDocument()
+    expect(screen.getByText(/use your assigned account to open the protected workspace/i)).toBeInTheDocument()
+  })
+
   it('opens the routed organization module for a tenant admin session', () => {
     renderWithProviders(<AppRoutes />, {
       accessState: { demoPersona: 'tenantAdmin' },
@@ -385,6 +395,11 @@ describe('AppRoutes', () => {
     expect(within(operationSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
     expect(within(operationSections).getByRole('link', { name: /documents/i })).toBeInTheDocument()
     expect(within(operationSections).getByRole('link', { name: /assets/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /integrations/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /release/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /readiness/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /observability/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /resilience/i })).toBeInTheDocument()
     expect(within(operationSections).getByRole('link', { name: /lifecycle/i })).toBeInTheDocument()
   }, 15000)
 
@@ -399,7 +414,22 @@ describe('AppRoutes', () => {
     expect(within(operationSections).getByRole('link', { name: /overview/i })).toBeInTheDocument()
     expect(within(operationSections).getByRole('link', { name: /documents/i })).toBeInTheDocument()
     expect(within(operationSections).getByRole('link', { name: /assets/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /integrations/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /release/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /readiness/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /observability/i })).toBeInTheDocument()
+    expect(within(operationSections).getByRole('link', { name: /resilience/i })).toBeInTheDocument()
     expect(within(operationSections).queryByRole('link', { name: /lifecycle/i })).not.toBeInTheDocument()
+  }, 15000)
+
+  it('opens the launch-readiness route for a tenant admin session', async () => {
+    renderWithProviders(<AppRoutes />, {
+      accessState: { demoPersona: 'tenantAdmin' },
+      initialEntries: ['/operations/readiness'],
+    })
+
+    expect(await screen.findByRole('heading', { name: /go-live readiness/i })).toBeInTheDocument()
+    expect(screen.getByText(/launch incident response runbook/i)).toBeInTheDocument()
   }, 15000)
 
   it('blocks an employee persona from the operations route', () => {
